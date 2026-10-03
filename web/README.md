@@ -6,23 +6,23 @@ React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui (Radix) · React Rout
 npm install
 npm run dev          # http://localhost:5173 — app + backend (/api) in one process
 npm run dev:mock     # same UI on in-memory mocks, no keys needed
-npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents
+npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents and their procedures
 ```
 
-| Script                 | What it does                                                         |
-| ---------------------- | -------------------------------------------------------------------- |
-| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                 |
-| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend          |
-| `npm run setup:agents` | Pushes `prompts/interviewer.md` + `prompts/tutor.md` to ElevenAgents |
-| `npm run build`        | Typecheck + production build                                         |
-| `npm run lint`         | ESLint                                                               |
-| `npm run format`       | Prettier (with Tailwind class order)                                 |
-| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                          |
+| Script                 | What it does                                                                                   |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                                           |
+| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend                                    |
+| `npm run setup:agents` | Pushes `prompts/interviewer.md` + `prompts/tutor.md` and `prompts/procedures/` to ElevenAgents |
+| `npm run build`        | Typecheck + production build                                                                   |
+| `npm run lint`         | ESLint                                                                                         |
+| `npm run format`       | Prettier (with Tailwind class order)                                                           |
+| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                                                    |
 
 ## Setup (real backend + voice)
 
 1. `cp .env.example .env.local` and fill in `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`, and `VITE_API_URL=/api`. `.env.local` is gitignored; never prefix secrets with `VITE_`.
-2. `npm run setup:agents`: creates both agents and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts.
+2. `npm run setup:agents`: creates both agents, syncs and publishes their procedures, and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts or procedures.
 3. `npm run dev`. Use Chrome (tab sharing + microphone).
 
 Without agent ids (or if the mic is blocked) the voice panel falls back to **text mode**: questions, debrief and teach-back still work with buttons and text boxes.
@@ -57,7 +57,9 @@ server/                backend (runs in the Vite dev server, and on Vercel via a
   llm.ts               Claude calls (structured output, validated with zod)
   store.ts             in-memory storage (MVP)
 prompts/               one markdown file per prompt (vision, Work Map, tutor, agents…)
-scripts/setup-agents.ts  ElevenAgents config as code
+  procedures/          ElevenLabs Procedures, one file per phase: interviewer/ (Intake → Capture →
+                       Debrief → Teach-back) and tutor/ (lesson start, case, held save, saved, wrap-up)
+scripts/setup-agents.ts  ElevenAgents config as code (agents, tools, procedures)
 src/
   app/                 shell: router, providers, layout, paths
   components/          shared components (voice panel, screen moment, page header…)
@@ -97,6 +99,8 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 **Add an API call:** add the method to `SocratesApi` in `client.ts`, implement it in `http.ts`, `mock/index.ts` and a route in `server/router.ts`, then wrap it in a hook.
 
 **Tune a prompt:** edit `prompts/*.md`. Server prompts reload on the next call in dev; agent prompts need `npm run setup:agents`.
+
+**Tune an agent phase:** each phase of the voice agents is an ElevenLabs [free-form procedure](https://elevenlabs.io/docs/eleven-agents/customization/procedures/free-form-procedures) in `prompts/procedures/<agent>/`. A file is `name:` + `trigger:` frontmatter and a markdown body; reference tools as `[tool name="start_capture"]` and other procedures as `[procedure name="Capture"]` (the script resolves them to ids). The system prompt (`prompts/<agent>.md`) keeps only persona and global rules. Run `npm run setup:agents` to publish. Edit procedures here, not in the dashboard: the script overwrites procedures with the same name.
 
 **Add a shadcn component:** `npx shadcn@latest add <component>` (run from `web/`).
 
