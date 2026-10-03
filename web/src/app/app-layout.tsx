@@ -1,11 +1,23 @@
 import { Landmark, MessageCircleQuestion } from "lucide-react"
 import { Link, Outlet } from "react-router"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { usingMocks } from "@/lib/api"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { AskPanel } from "@/features/ask/ask-panel"
 
 import { paths } from "./paths"
+
+const ASK_SUGGESTIONS = [
+  "When is an invoice capex instead of opex?",
+  "What do I do with an unknown supplier?",
+  "Who approves intercompany invoices?",
+]
 
 export function AppLayout() {
   return (
@@ -17,17 +29,22 @@ export function AppLayout() {
           </div>
           <span className="font-semibold">Socrates</span>
         </Link>
-        {usingMocks && (
-          <Badge variant="outline" className="text-muted-foreground">
-            Mock data
-          </Badge>
-        )}
-        <Button asChild variant="outline" className="ml-auto">
-          <Link to={paths.ask()}>
-            <MessageCircleQuestion />
-            Ask Socrates
-          </Link>
-        </Button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              <MessageCircleQuestion />
+              Ask Socrates
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-full sm:max-w-md">
+            <SheetHeader className="pb-0">
+              <SheetTitle>Ask Socrates</SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 px-4 pb-4">
+              <AskPanel suggestions={ASK_SUGGESTIONS} className="h-full" />
+            </div>
+          </SheetContent>
+        </Sheet>
       </header>
       <main className="flex-1 p-4 md:p-8">
         <Outlet />

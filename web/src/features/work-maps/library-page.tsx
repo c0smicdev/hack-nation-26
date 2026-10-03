@@ -18,12 +18,12 @@ function AddWorkflowCard() {
   return (
     <Link
       to={paths.capture()}
-      className="group flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-muted-foreground transition-colors hover:border-primary hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+      className="group flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
     >
-      <div className="flex size-12 items-center justify-center rounded-full border border-dashed transition-colors group-hover:border-primary">
+      <div className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-110">
         <Plus className="size-6" />
       </div>
-      <span className="text-sm font-medium">New workflow</span>
+      <span className="text-base font-semibold">New workflow</span>
     </Link>
   )
 }
