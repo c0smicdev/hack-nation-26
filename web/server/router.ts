@@ -1,5 +1,5 @@
-import { sessions as fixtureSessions, LIVE_SESSION_ID } from "../src/lib/api/mock/fixtures.ts"
-import { toSummary } from "../src/lib/api/summary.ts"
+import { sessions as fixtureSessions, LIVE_SESSION_ID } from "../src/lib/api/mock/fixtures.js"
+import { toSummary } from "../src/lib/api/summary.js"
 import type {
   AskRequest,
   CaptureStatus,
@@ -10,18 +10,20 @@ import type {
   TeachBackReply,
   Tick,
   VoiceRole,
-} from "../src/lib/api/types.ts"
+  WorkflowDraftRequest,
+} from "../src/lib/api/types.js"
 import {
   createSession,
   findRelatedWorkMaps,
+  liveSteps,
   processTick,
   recordEvent,
   sessionView,
   updateSession,
-} from "./capture.ts"
-import { ask, checkDecision, voiceSession } from "./teach.ts"
-import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.ts"
-import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.ts"
+} from "./capture.js"
+import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
+import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
+import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
 
 type Params = Record<string, string>
 type Handler = (ctx: { params: Params; body: () => Promise<unknown>; url: URL }) => unknown
@@ -87,6 +89,11 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     "/sessions/:id/ticks",
     async ({ params, body }) => processTick(params.id, (await body()) as Tick),
   ],
+  [
+    "GET",
+    "/sessions/:id/steps",
+    ({ params }) => (store.sessions.has(params.id) ? liveSteps(getRuntime(params.id)) : []),
+  ],
   ["POST", "/sessions/:id/finish", ({ params }) => finishCapture(params.id)],
 
   ["GET", "/capture/status", () => store.captureStatus],
@@ -118,6 +125,11 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
 
   ["GET", "/voice/:role", ({ params }) => voiceSession(params.role as VoiceRole)],
   ["POST", "/ask", async ({ body }) => ask((await body()) as AskRequest)],
+  [
+    "POST",
+    "/workflows/draft",
+    async ({ body }) => draftWorkflow((await body()) as WorkflowDraftRequest),
+  ],
 ]
 
 function match(pattern: string, path: string): Params | undefined {

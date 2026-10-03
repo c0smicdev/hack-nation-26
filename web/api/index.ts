@@ -1,4 +1,4 @@
-import { handle } from "../server/router.ts"
+import { handle } from "../server/router.js"
 
 /**
  * Vercel function. vercel.json rewrites /api/<path> to /api?route=<path>, so

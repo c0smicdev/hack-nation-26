@@ -4,13 +4,16 @@ import type {
   CaptureSession,
   CaptureStatus,
   DecisionVerdict,
+  ErpSignal,
   ID,
   LiveQuestion,
+  LiveStep,
   Quote,
   SessionEvent,
   WorkMap,
 } from "../types"
 import { answer } from "./ask"
+import { draftWorkflow } from "./draft"
 import {
   LIVE_SESSION_ID,
   sessions as fixtureSessions,
@@ -36,6 +39,22 @@ const sessions: CaptureSession[] = fixtureSessions.filter((s) => s.id !== LIVE_S
 const events = new Map<ID, SessionEvent[]>()
 const startedAt = new Map<ID, number>()
 const lastQuestionAt = new Map<ID, number>()
+const liveSteps = new Map<ID, LiveStep[]>()
+
+/** Like the vision model: every decision in the ERP becomes a step. */
+function addToSteps(sid: ID, signal: ErpSignal) {
+  if (signal.kind === "navigate") return
+  const steps = liveSteps.get(sid) ?? []
+  liveSteps.set(sid, steps)
+  steps.push({
+    id: id("st"),
+    at: signal.at,
+    title: signal.text,
+    kind: signal.kind === "action" ? "judgment" : "routine",
+    decision: signal.text,
+    screenshotUrl: "/mock/erp-invoice-4471.svg",
+  })
+}
 
 let captureStatus: CaptureStatus = {
   active: false,
@@ -191,6 +210,11 @@ export const mockApi: SocratesApi = {
     return [...(events.get(sid) ?? [])]
   },
 
+  async listLiveSteps(sid) {
+    await delay(100)
+    return structuredClone(liveSteps.get(sid) ?? [])
+  },
+
   async recordEvent(sid, event) {
     await delay(50)
     if (captureStatus.offTheRecord && event.kind !== "off_record") {
@@ -203,6 +227,7 @@ export const mockApi: SocratesApi = {
   async postTick(sid, tick) {
     await delay(300)
     if (captureStatus.offTheRecord) return { processed: false, events: [], questions: [] }
+    tick.erp.forEach((signal) => addToSteps(sid, signal))
     const created = tick.erp.map((signal) =>
       push(sid, {
         at: signal.at,
@@ -223,7 +248,8 @@ export const mockApi: SocratesApi = {
         screen: "current",
       })
     }
-    return { processed: true, screen: "current", events: created, questions }
+    const steps = tick.erp.length ? structuredClone(liveSteps.get(sid) ?? []) : undefined
+    return { processed: true, screen: "current", events: created, questions, steps }
   },
 
   async getCaptureStatus() {
@@ -366,5 +392,10 @@ export const mockApi: SocratesApi = {
     await delay(600)
     const scope = workMapId ? workMaps.filter((m) => m.id === workMapId) : workMaps
     return answer(question, scope)
+  },
+
+  async draftWorkflow({ messages, title, description }) {
+    await delay(600)
+    return draftWorkflow(messages, title, description)
   },
 }

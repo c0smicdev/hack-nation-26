@@ -1,4 +1,4 @@
-import { BookOpenText, Search } from "lucide-react"
+import { BookOpenText, Plus, Search } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { PageHeader } from "@/components/page-header"
@@ -8,9 +8,28 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { WorkMapStatus } from "@/lib/api"
 
+import { NewWorkflowDialog } from "./components/new-workflow-dialog"
 import { WorkMapCard } from "./components/work-map-card"
 import { useWorkMaps } from "./hooks"
 import { STATUS } from "./labels"
+
+function AddWorkflowCard() {
+  return (
+    <NewWorkflowDialog
+      trigger={
+        <button
+          type="button"
+          className="group flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          <div className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-110">
+            <Plus className="size-6" />
+          </div>
+          <span className="text-base font-semibold">New workflow</span>
+        </button>
+      }
+    />
+  )
+}
 
 type Filter = "all" | WorkMapStatus
 
@@ -32,7 +51,7 @@ export function LibraryPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        title="Work Maps"
+        title="Workflows"
         description="Short, interactive guides captured from your experts — every step, judgment call and guardrail, in their own words."
       />
 
@@ -62,22 +81,26 @@ export function LibraryPage() {
         <ErrorState error={error} retry={refetch} />
       ) : isPending ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }, (_, i) => (
+          <AddWorkflowCard />
+          {Array.from({ length: 2 }, (_, i) => (
             <Skeleton key={i} className="h-80 rounded-xl" />
           ))}
         </div>
-      ) : visible.length === 0 ? (
-        <EmptyState icon={<BookOpenText />} title="No work maps found">
-          {data.length === 0
-            ? "Captured sessions turn into work maps here."
-            : "Try a different search or filter."}
-        </EmptyState>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <AddWorkflowCard />
           {visible.map((m) => (
             <WorkMapCard key={m.id} workMap={m} />
           ))}
         </div>
+      )}
+
+      {!isPending && !isError && visible.length === 0 && (
+        <EmptyState icon={<BookOpenText />} title="No workflows found">
+          {data.length === 0
+            ? "Captured sessions turn into workflows here."
+            : "Try a different search or filter."}
+        </EmptyState>
       )}
     </div>
   )

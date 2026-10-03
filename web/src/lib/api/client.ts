@@ -7,6 +7,7 @@ import type {
   DecisionCheck,
   DecisionVerdict,
   ID,
+  LiveStep,
   NewSession,
   NewSessionEvent,
   SessionEvent,
@@ -15,6 +16,8 @@ import type {
   TickResult,
   VoiceRole,
   VoiceSession,
+  WorkflowDraft,
+  WorkflowDraftRequest,
   WorkMap,
   WorkMapSummary,
 } from "./types"
@@ -44,6 +47,8 @@ export interface SocratesApi {
   createSession(input: NewSession): Promise<CaptureSession>
   updateSession(id: ID, patch: SessionPatch): Promise<CaptureSession>
   listSessionEvents(sessionId: ID): Promise<SessionEvent[]>
+  /** The steps grouped so far while recording. */
+  listLiveSteps(sessionId: ID): Promise<LiveStep[]>
   recordEvent(sessionId: ID, event: NewSessionEvent): Promise<SessionEvent>
   postTick(sessionId: ID, tick: Tick): Promise<TickResult>
   getCaptureStatus(): Promise<CaptureStatus>
@@ -66,4 +71,7 @@ export interface SocratesApi {
   getVoiceSession(role: VoiceRole): Promise<VoiceSession | null>
 
   ask(request: AskRequest): Promise<AskResponse>
+
+  /* New workflow: turn a free-text chat into a title + description. */
+  draftWorkflow(request: WorkflowDraftRequest): Promise<WorkflowDraft>
 }

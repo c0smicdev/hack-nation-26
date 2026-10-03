@@ -4,6 +4,7 @@ import type {
   CaptureSession,
   ID,
   LiveQuestion,
+  LiveStep,
   NewSession,
   NewSessionEvent,
   Person,
@@ -11,8 +12,8 @@ import type {
   Tick,
   TickResult,
   WorkMap,
-} from "../src/lib/api/types.ts"
-import { imageBlock, models, prompt, structured, text } from "./llm.ts"
+} from "../src/lib/api/types.js"
+import { imageBlock, models, prompt, structured, text } from "./llm.js"
 import {
   addEvent,
   type CandidateStep,
@@ -26,7 +27,7 @@ import {
   type SessionRuntime,
   sessionAt,
   store,
-} from "./store.ts"
+} from "./store.js"
 
 /* Sessions ---------------------------------------------------------- */
 
@@ -175,6 +176,19 @@ function contextFor(runtime: SessionRuntime, erpLines: string[]) {
     `Questions already asked or queued:\n${asked.join("\n") || "  (none)"}`,
     `Application signals since the previous screenshot:\n${erpLines.join("\n") || "  (none)"}`,
   ].join("\n\n")
+}
+
+/** Candidate steps as the recording page shows them. */
+export function liveSteps(runtime: SessionRuntime): LiveStep[] {
+  return runtime.candidates.map((c) => ({
+    id: c.id,
+    at: c.at,
+    title: c.title,
+    kind: c.kind,
+    decision: c.decision,
+    screenshotUrl: c.screen.screenshotUrl,
+    deviation: c.deviation,
+  }))
 }
 
 const empty = (processed: boolean, screen?: string): TickResult => ({
@@ -341,7 +355,7 @@ function applyVision(
     runtime.questions.push({ id: newId("q"), at, question, guardrail: false, askedLive: false })
   }
 
-  return { processed: true, screen: result.screen, events, questions }
+  return { processed: true, screen: result.screen, events, questions, steps: liveSteps(runtime) }
 }
 
 /* Events from the session page (speech, questions asked, …) ---------- */

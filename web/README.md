@@ -22,7 +22,7 @@ npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents a
 ## Setup (real backend + voice)
 
 1. `cp .env.example .env.local` and fill in `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`, and `VITE_API_URL=/api`. `.env.local` is gitignored; never prefix secrets with `VITE_`.
-2. `npm run setup:agents`: creates both agents, syncs and publishes their procedures, and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts or procedures.
+2. `npm run setup:agents`: creates the agents (interviewer, tutor, new-workflow drafter), syncs and publishes their procedures, and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` / `ELEVENLABS_DRAFTER_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts or procedures.
 3. `npm run dev`. Use Chrome (tab sharing + microphone).
 
 Without agent ids (or if the mic is blocked) the voice panel falls back to **text mode**: questions, debrief and teach-back still work with buttons and text boxes.

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 
-import { workMaps as fixtureWorkMaps } from "../src/lib/api/mock/fixtures.ts"
+import { workMaps as fixtureWorkMaps } from "../src/lib/api/mock/fixtures.js"
 import type {
   CaptureSession,
   CaptureStatus,
@@ -11,7 +11,7 @@ import type {
   SessionEvent,
   StepKind,
   WorkMap,
-} from "../src/lib/api/types.ts"
+} from "../src/lib/api/types.js"
 
 /**
  * In-memory storage (MVP). Everything is lost on restart. On Vercel each warm

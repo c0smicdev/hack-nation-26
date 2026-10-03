@@ -271,6 +271,27 @@ export interface TickResult {
   screen?: string
   events: SessionEvent[]
   questions: LiveQuestion[]
+  /** All steps so far, after this tick. Omitted when the tick changed nothing. */
+  steps?: LiveStep[]
+}
+
+/**
+ * A step as it forms during capture (a candidate step on the server). The
+ * session events from `at` until the next step's `at` belong to it.
+ * Becomes a WorkMapStep after the debrief.
+ */
+export interface LiveStep {
+  id: ID
+  /** Seconds since session start when the step first appeared. */
+  at: number
+  title: string
+  kind: StepKind
+  /** What the expert decided / did, as understood so far. */
+  decision: string
+  /** Latest screenshot of this step. */
+  screenshotUrl?: string
+  /** Decided differently than the saved Work Map. */
+  deviation?: boolean
 }
 
 /* ------------------------------------------------------------------ */
@@ -316,7 +337,7 @@ export interface DecisionVerdict {
 /* Voice — ElevenAgents                                                */
 /* ------------------------------------------------------------------ */
 
-export type VoiceRole = "interviewer" | "tutor"
+export type VoiceRole = "interviewer" | "tutor" | "drafter"
 
 export interface VoiceSession {
   /** Signed WebSocket URL; the API key never reaches the browser. */
@@ -343,4 +364,31 @@ export interface Citation {
 export interface AskResponse {
   answer: string
   citations: Citation[]
+}
+
+/* ------------------------------------------------------------------ */
+/* New workflow — AI drafts title + description from a chat            */
+/* ------------------------------------------------------------------ */
+
+export interface WorkflowDraftMessage {
+  role: "user" | "assistant"
+  content: string
+}
+
+export interface WorkflowDraftRequest {
+  /** The conversation so far; last entry is the newest user message. */
+  messages: WorkflowDraftMessage[]
+  /** Current field values, so the model can refine instead of overwrite. */
+  title: string
+  description: string
+}
+
+export interface WorkflowDraft {
+  /** What the assistant says back in the chat. */
+  reply: string
+  /** Proposed title + description for the new workflow. */
+  title: string
+  description: string
+  /** Enough is known to start: the app creates the workflow right away. */
+  ready: boolean
 }

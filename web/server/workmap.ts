@@ -9,9 +9,9 @@ import type {
   TeachBackReply,
   WorkMap,
   WorkMapStep,
-} from "../src/lib/api/types.ts"
-import { memoryContext } from "./capture.ts"
-import { models, prompt, structured, text } from "./llm.ts"
+} from "../src/lib/api/types.js"
+import { memoryContext } from "./capture.js"
+import { models, prompt, structured, text } from "./llm.js"
 import {
   getRuntime,
   getWorkMap,
@@ -21,7 +21,7 @@ import {
   saveWorkMap,
   sessionAt,
   store,
-} from "./store.ts"
+} from "./store.js"
 
 /**
  * The LLM never writes quotes itself: it points at utterances by id, and we copy
