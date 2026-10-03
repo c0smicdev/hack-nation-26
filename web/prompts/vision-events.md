@@ -21,6 +21,7 @@ Ask (`question`) only if all of these are true:
 - The reason for an important decision is **not** already known: not narrated by the expert, not answered earlier, not in the saved Work Map, not obvious from the screen.
 - The question is about something **visible on screen right now** and would reveal a **reason** or a **guardrail** (a limit, an exception, when to stop and ask someone). Never ask what the screen already answers ("What is the amount?").
 - It hasn't been asked or queued already (see the list).
+- The expert has actually **decided** something (changed a value, chose an action). Opening or looking at a work item is not a decision: wait and see what they do. Never ask generic questions like "Is this ready?" or "What will you do next?".
 
 A deviation from the saved Work Map is the most valuable question there is: "Last time this went to opex, now capex. What's different?"
 

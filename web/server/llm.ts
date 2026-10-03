@@ -7,9 +7,12 @@ import type { z } from "zod"
 
 import { HttpError } from "./store.ts"
 
-/** Override per call site via env, e.g. SOCRATES_VISION_MODEL=claude-haiku-4-5 for lower latency. */
+/**
+ * Vision runs on every tick, so it uses the fast model; everything that writes
+ * the Work Map or judges a learner's decision uses Opus. Override via env.
+ */
 export const models = {
-  vision: process.env.SOCRATES_VISION_MODEL ?? "claude-opus-5-5",
+  vision: process.env.SOCRATES_VISION_MODEL ?? "claude-haiku-4-5",
   reasoning: process.env.SOCRATES_REASONING_MODEL ?? "claude-opus-5-5",
 }
 
@@ -47,15 +50,19 @@ export async function structured<S extends z.ZodType>(opts: {
   effort?: "low" | "medium" | "high"
   maxTokens?: number
 }): Promise<z.infer<S>> {
+  // Haiku 4.5 takes neither `effort` nor server-side fallbacks.
+  const haiku = opts.model.startsWith("claude-haiku")
   const response = await anthropic().beta.messages.parse({
     model: opts.model,
     max_tokens: opts.maxTokens ?? 16000,
     system: opts.system,
     messages: [{ role: "user", content: opts.content }],
-    output_config: { effort: opts.effort ?? "medium", format: betaZodOutputFormat(opts.schema) },
+    output_config: {
+      ...(haiku ? {} : { effort: opts.effort ?? "medium" }),
+      format: betaZodOutputFormat(opts.schema),
+    },
     // Re-runs a classifier-declined request on Anthropic's recommended fallback model.
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
+    ...(haiku ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
   })
   if (response.stop_reason === "refusal") {
     throw new HttpError(502, "The model declined this request")
