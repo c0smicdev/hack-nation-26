@@ -13,6 +13,14 @@ const ENV_FILE = ".env.local"
 const API = "https://api.elevenlabs.io/v1/convai"
 /** Claude via ElevenAgents' built-in LLM catalog (see GET /v1/convai/llm/list). */
 const LLM = process.env.ELEVENLABS_LLM ?? "claude-sonnet-5-5"
+/**
+ * Expressive mode: Eleven v3 Conversational adapts tone to the conversation and speaks audio tags
+ * ("[curious]", "[warm]") the LLM writes. Only v3 models support it; the API silently turns
+ * `expressive_mode` off for any other TTS model.
+ */
+const TTS_MODEL = "eleven_v3_conversational"
+
+type AudioTag = { tag: string; description: string }
 
 function readEnv(): Record<string, string> {
   if (!existsSync(ENV_FILE)) return {}
@@ -182,8 +190,15 @@ const agents = {
     prompt: "interviewer",
     firstMessage: "Hi {{expert_name}}, I'm Socrates. What are you about to work on?",
     placeholders: { expert_name: "Sabine", task: "Process supplier invoices" },
-    // Experts pause to think while they work: don't jump in.
-    turn: { turn_eagerness: "patient", turn_timeout: 15 },
+    // Experts pause to think while they work: don't jump in. turn_v3 is the prosody-aware
+    // turn-taking that ships with expressive mode.
+    turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
+    audioTags: [
+      { tag: "curious", description: "Asking why the expert did something" },
+      { tag: "thoughtful", description: "Playing back what you understood, or the teach-back" },
+      { tag: "warm", description: "Thanking the expert or acknowledging a good explanation" },
+      { tag: "apologetic", description: "You got something wrong and they corrected you" },
+    ] satisfies AudioTag[],
     tools: [
       clientTool(
         "lookup_memory",
@@ -248,7 +263,13 @@ const agents = {
     firstMessage:
       "Hi {{learner_name}}, I'm Socrates. Today we'll work through how {{expert_name}} does this.",
     placeholders: { learner_name: "Alex", expert_name: "Sabine", work_map: "(Work Map)" },
-    turn: { turn_eagerness: "normal", turn_timeout: 10 },
+    turn: { turn_eagerness: "normal", turn_timeout: 10, turn_model: "turn_v3" },
+    audioTags: [
+      { tag: "encouraging", description: "The learner made a good call or is close" },
+      { tag: "serious", description: "A held save or a guardrail the learner is about to break" },
+      { tag: "slow", description: "Stating a limit, an amount, or a rule word for word" },
+      { tag: "warm", description: "Greeting and wrapping up the lesson" },
+    ] satisfies AudioTag[],
     tools: [
       clientTool(
         "finish_lesson",
@@ -290,6 +311,11 @@ async function main() {
         // Scribe v2 Realtime: listening + pause detection.
         asr: { provider: "scribe_realtime", quality: "high" },
         turn: agent.turn,
+        tts: {
+          model_id: TTS_MODEL,
+          expressive_mode: true,
+          suggested_audio_tags: agent.audioTags,
+        },
       },
     }
 
