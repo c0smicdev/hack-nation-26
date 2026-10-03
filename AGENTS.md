@@ -26,7 +26,7 @@ Running example from the brief: Sabine (accounts payable, 24 years) processes su
 - **Map:** the debrief asks **≥ 3 follow-up questions** not answered during the task and ends with a **teach-back the expert confirms**. Every step and guardrail links to a **screen moment** and the **expert's own words**.
 - **Teach:** a new hire processes a case the expert never showed; the tutor **catches at least one wrong decision before it's saved** and explains it using the expert's reasoning.
 - **Ask less, later:** 3–5 live questions per 10 minutes. Everything else waits for the debrief.
-- **The voice agent is the product.** ElevenAgents plays interviewer and tutor; Scribe v2 Realtime handles listening and pauses.
+- **The voice agent is the product.** ElevenAgents plays interviewer and tutor in **Expressive Mode** (Eleven v3 Conversational voice + prosody-aware turn-taking); Scribe v2 Realtime handles listening and pauses.
 - The demo must answer: *When to ask? What to ask? When has it understood? Did the new hire learn? Trust (off the record + personal data)?*
 - The pitch ends with **one moonshot slide** and how the MVP gets there. Our memory (§5) is the start of the brief's "living company memory".
 

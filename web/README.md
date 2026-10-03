@@ -90,7 +90,7 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 - **Mock by default.** Without `VITE_API_URL`, `api` is `mockApi` (no vision or voice; ERP signals become events and questions are canned).
 - **Changing the contract:** edit `lib/api/types.ts`, then update `client.ts`, `http.ts`, `mock/` and `server/`. Tell the team.
 - **Storage is in memory** (`server/store.ts`): restart = clean slate, seeded with the fixture Work Maps. Move to Postgres + Blob before relying on Vercel (each warm function has its own copy).
-- **Models:** vision `claude-haiku-4-5`, everything else `claude-opus-5-5`; override with `SOCRATES_VISION_MODEL` / `SOCRATES_REASONING_MODEL`. The voice agents run Claude Sonnet 5.5 inside ElevenAgents (`ELEVENLABS_LLM` in the setup script).
+- **Models:** vision `claude-haiku-4-5`, everything else `claude-opus-5-5`; override with `SOCRATES_VISION_MODEL` / `SOCRATES_REASONING_MODEL`. The voice agents run Claude Sonnet 5.5 inside ElevenAgents (`ELEVENLABS_LLM` in the setup script) and speak in [Expressive Mode](https://elevenlabs.io/docs/eleven-agents/customization/voice/expressive-mode): Eleven v3 Conversational TTS plus the `turn_v3` turn-taking model. Each agent gets suggested audio tags (`audioTags` in the setup script) and tone rules in its prompt's "Your voice" section; `use-voice-agent.ts` strips the tags from the on-screen transcript.
 
 ## Recipes
 
