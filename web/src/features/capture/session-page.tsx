@@ -73,10 +73,11 @@ const secondsSince = (iso: string) => Math.round((Date.now() - Date.parse(iso)) 
 /** Tells the interviewer where the debrief stands, so it can ask (or teach back) by voice. */
 function debriefBrief(map: WorkMap) {
   const open = map.debrief.filter((d) => !d.resolved)
-  if (map.status === "confirmed") return "[DEBRIEF] The Work Map is already confirmed."
-  if (!open.length) return "[DEBRIEF] All questions are answered. Call get_teach_back now."
+  if (map.status === "confirmed") return "[SYSTEM] The Work Map is already confirmed."
+  if (!open.length)
+    return "[SYSTEM] All debrief questions are answered. Continue with the Teach-back procedure."
   return [
-    `[DEBRIEF] The task is finished. Draft Work Map "${map.title}" with ${map.steps.length} steps. Ask these one at a time:`,
+    `[SYSTEM] The expert ended the task in the app, so finish_task already ran: don't call it. Draft Work Map "${map.title}" with ${map.steps.length} steps. Continue with the Debrief procedure using these questions:`,
     ...open.map((d) => `[${d.id}] ${d.question}`),
   ].join("\n")
 }

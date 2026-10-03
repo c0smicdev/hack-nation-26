@@ -30,6 +30,8 @@ Running example from the brief: Sabine (accounts payable, 24 years) processes su
 - The demo must answer: *When to ask? What to ask? When has it understood? Did the new hire learn? Trust (off the record + personal data)?*
 - The pitch ends with **one moonshot slide** and how the MVP gets there. Our memory (§5) is the start of the brief's "living company memory".
 
+There is a list of the prompts in `docs/PROMPTS.md`
+
 ---
 
 ## 2. Glossary (use these words in code and UI)

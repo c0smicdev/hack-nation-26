@@ -1,12 +1,13 @@
 /**
  * Creates or updates the two ElevenAgents (interviewer + tutor) from
- * prompts/*.md, so agent config lives in git, not in a dashboard.
+ * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
+ * so agent config lives in git, not in a dashboard.
  *
  *   npm run setup:agents
  *
  * Reads ELEVENLABS_API_KEY from .env.local and writes the agent ids back into it.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 
 const ENV_FILE = ".env.local"
 const API = "https://api.elevenlabs.io/v1/convai"
@@ -61,13 +62,125 @@ const skipTurn = {
   },
 }
 
+/* Procedures: one free-form procedure per file ----------------------- */
+
+interface ProcedureSource {
+  name: string
+  trigger: string
+  content: string
+}
+
+/**
+ * A procedure file is `name:` + `trigger:` frontmatter and a markdown body. The body references
+ * tools and other procedures by name (`[tool name="start_capture"]`, `[procedure name="Capture"]`);
+ * ids differ per agent, so they're resolved at sync time.
+ */
+function readProcedures(role: string): ProcedureSource[] {
+  const dir = `prompts/procedures/${role}`
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((file) => file.endsWith(".md"))
+    .sort()
+    .map((file) => {
+      const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(
+        readFileSync(`${dir}/${file}`, "utf8"),
+      )
+      const meta = Object.fromEntries(
+        (match?.[1] ?? "")
+          .split(/\r?\n/)
+          .map((line) => [
+            line.slice(0, line.indexOf(":")).trim(),
+            line.slice(line.indexOf(":") + 1).trim(),
+          ]),
+      )
+      if (!match || !meta.name || !meta.trigger)
+        throw new Error(`${dir}/${file}: needs name + trigger frontmatter`)
+      return { name: meta.name, trigger: meta.trigger, content: match[2].trim() }
+    })
+}
+
+async function call<T>(apiKey: string, path: string, method = "GET", body?: unknown): Promise<T> {
+  const res = await fetch(`${API}${path}`, {
+    method,
+    headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`${method} ${path}: ${res.status} ${await res.text()}`)
+  return (await res.json()) as T
+}
+
+/** Creates/updates the procedure drafts on the agent's main branch, then publishes them. */
+async function syncProcedures(apiKey: string, agentId: string, role: string) {
+  const sources = readProcedures(role)
+  if (!sources.length) return
+
+  const agent = await call<{
+    main_branch_id: string
+    conversation_config: { agent: { prompt: { tool_ids?: string[] } } }
+  }>(apiKey, `/agents/${agentId}`)
+  const branch = `/agents/${agentId}/branches/${agent.main_branch_id}/procedures`
+
+  const toolIds = new Map<string, string>()
+  for (const id of agent.conversation_config.agent.prompt.tool_ids ?? []) {
+    const tool = await call<{ tool_config: { name: string } }>(apiKey, `/tools/${id}`)
+    toolIds.set(tool.tool_config.name, id)
+  }
+
+  // Create missing procedures first, so procedures can reference each other by id.
+  const { procedures } = await call<{ procedures: { procedure_id: string; name: string }[] }>(
+    apiKey,
+    branch,
+  )
+  const procedureIds = new Map(procedures.map((p) => [p.name, p.procedure_id]))
+  for (const source of sources) {
+    if (procedureIds.has(source.name)) continue
+    const created = await call<{ procedure_id: string }>(apiKey, branch, "POST", {
+      name: source.name,
+      type: "free_form",
+      trigger: source.trigger,
+      content: "(syncing)",
+    })
+    procedureIds.set(source.name, created.procedure_id)
+  }
+  for (const p of procedures) {
+    if (!sources.some((s) => s.name === p.name))
+      console.warn(
+        `  ${p.name} (${p.procedure_id}) is not in prompts/procedures/${role}; left as is`,
+      )
+  }
+
+  const resolve = (kind: string, name: string, ids: Map<string, string>) => {
+    const id = ids.get(name)
+    if (!id) throw new Error(`prompts/procedures/${role}: unknown ${kind} "${name}"`)
+    return `[${kind} id="${id}"]`
+  }
+  for (const source of sources) {
+    const content = source.content
+      .replace(/\[tool name="([^"]+)"\]/g, (_, name: string) => resolve("tool", name, toolIds))
+      .replace(/\[procedure name="([^"]+)"\]/g, (_, name: string) =>
+        resolve("procedure", name, procedureIds),
+      )
+    await call(apiKey, `${branch}/${procedureIds.get(source.name)}/draft`, "PATCH", {
+      name: source.name,
+      type: "free_form",
+      trigger: source.trigger,
+      content,
+    })
+  }
+
+  // Publishing = a new agent version on the branch, carrying every changed draft.
+  await call(apiKey, `/agents/${agentId}?branch_id=${agent.main_branch_id}`, "PATCH", {
+    version_description: "Sync procedures from prompts/procedures",
+  })
+  console.log(`  ${sources.length} procedures: ${sources.map((s) => s.name).join(" → ")}`)
+}
+
 const agents = {
   interviewer: {
     envKey: "ELEVENLABS_INTERVIEWER_AGENT_ID",
     name: "Socrates · Interviewer",
     prompt: "interviewer",
-    firstMessage:
-      "I'm watching. Go ahead whenever you're ready; I'll mostly listen and ask a few things along the way.",
+    firstMessage: "Hi {{expert_name}}, I'm Socrates. What are you about to work on?",
     placeholders: { expert_name: "Sabine", task: "Process supplier invoices" },
     // Experts pause to think while they work: don't jump in.
     turn: { turn_eagerness: "patient", turn_timeout: 15 },
@@ -230,6 +343,7 @@ async function main() {
     }
     writeEnv(agent.envKey, agent_id)
     console.log(`${existing ? "Updated" : "Created"} ${agent.name}: ${agent_id}`)
+    await syncProcedures(apiKey, agent_id, role)
   }
   console.log(`Agent ids written to ${ENV_FILE}. Restart \`npm run dev\` to pick them up.`)
 }
