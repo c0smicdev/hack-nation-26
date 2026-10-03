@@ -316,7 +316,7 @@ export interface DecisionVerdict {
 /* Voice — ElevenAgents                                                */
 /* ------------------------------------------------------------------ */
 
-export type VoiceRole = "interviewer" | "tutor"
+export type VoiceRole = "interviewer" | "tutor" | "drafter"
 
 export interface VoiceSession {
   /** Signed WebSocket URL; the API key never reaches the browser. */
@@ -343,4 +343,31 @@ export interface Citation {
 export interface AskResponse {
   answer: string
   citations: Citation[]
+}
+
+/* ------------------------------------------------------------------ */
+/* New workflow — AI drafts title + description from a chat            */
+/* ------------------------------------------------------------------ */
+
+export interface WorkflowDraftMessage {
+  role: "user" | "assistant"
+  content: string
+}
+
+export interface WorkflowDraftRequest {
+  /** The conversation so far; last entry is the newest user message. */
+  messages: WorkflowDraftMessage[]
+  /** Current field values, so the model can refine instead of overwrite. */
+  title: string
+  description: string
+}
+
+export interface WorkflowDraft {
+  /** What the assistant says back in the chat. */
+  reply: string
+  /** Proposed title + description for the new workflow. */
+  title: string
+  description: string
+  /** Enough is known to start: the app creates the workflow right away. */
+  ready: boolean
 }

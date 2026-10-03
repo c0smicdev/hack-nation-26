@@ -152,6 +152,33 @@ const agents = {
       ),
     ],
   },
+  drafter: {
+    envKey: "ELEVENLABS_DRAFTER_AGENT_ID",
+    name: "Socrates · New workflow",
+    prompt: "drafter",
+    firstMessage:
+      "Hi, I'm Socrates. Which workflow do you want to show me? Just tell me what you do and when.",
+    placeholders: {},
+    turn: { turn_eagerness: "normal", turn_timeout: 10 },
+    tools: [
+      clientTool(
+        "update_workflow",
+        "Update the new workflow's title and description on the expert's screen.",
+        {
+          title: { type: "string", description: "3–7 words, the task as the expert names it" },
+          description: {
+            type: "string",
+            description: "1–3 sentences: what the task is, for whom, and when it comes up",
+          },
+        },
+      ),
+      clientTool(
+        "create_workflow",
+        "The expert agreed: create the workflow and start capture.",
+        {},
+      ),
+    ],
+  },
 }
 
 async function main() {

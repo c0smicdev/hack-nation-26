@@ -1,8 +1,6 @@
 import { BookOpenText, Plus, Search } from "lucide-react"
 import { useMemo, useState } from "react"
-import { Link } from "react-router"
 
-import { paths } from "@/app/paths"
 import { PageHeader } from "@/components/page-header"
 import { EmptyState, ErrorState } from "@/components/query-state"
 import { Input } from "@/components/ui/input"
@@ -10,21 +8,26 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { WorkMapStatus } from "@/lib/api"
 
+import { NewWorkflowDialog } from "./components/new-workflow-dialog"
 import { WorkMapCard } from "./components/work-map-card"
 import { useWorkMaps } from "./hooks"
 import { STATUS } from "./labels"
 
 function AddWorkflowCard() {
   return (
-    <Link
-      to={paths.capture()}
-      className="group flex min-h-48 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-    >
-      <div className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-110">
-        <Plus className="size-6" />
-      </div>
-      <span className="text-base font-semibold">New workflow</span>
-    </Link>
+    <NewWorkflowDialog
+      trigger={
+        <button
+          type="button"
+          className="group flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          <div className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-110">
+            <Plus className="size-6" />
+          </div>
+          <span className="text-base font-semibold">New workflow</span>
+        </button>
+      }
+    />
   )
 }
 

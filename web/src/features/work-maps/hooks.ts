@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 
 import { api, type ID } from "@/lib/api"
 
@@ -16,4 +16,9 @@ export function useWorkMap(id: ID) {
     queryKey: workMapKeys.detail(id),
     queryFn: () => api.getWorkMap(id),
   })
+}
+
+/** AI drafts a new workflow's title + description from a free-text chat. */
+export function useDraftWorkflow() {
+  return useMutation({ mutationFn: api.draftWorkflow })
 }

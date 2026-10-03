@@ -15,6 +15,8 @@ import type {
   TickResult,
   VoiceRole,
   VoiceSession,
+  WorkflowDraft,
+  WorkflowDraftRequest,
   WorkMap,
   WorkMapSummary,
 } from "./types"
@@ -66,4 +68,7 @@ export interface SocratesApi {
   getVoiceSession(role: VoiceRole): Promise<VoiceSession | null>
 
   ask(request: AskRequest): Promise<AskResponse>
+
+  /* New workflow: turn a free-text chat into a title + description. */
+  draftWorkflow(request: WorkflowDraftRequest): Promise<WorkflowDraft>
 }

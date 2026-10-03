@@ -10,6 +10,7 @@ import type {
   TeachBackReply,
   Tick,
   VoiceRole,
+  WorkflowDraftRequest,
 } from "../src/lib/api/types.ts"
 import {
   createSession,
@@ -19,7 +20,7 @@ import {
   sessionView,
   updateSession,
 } from "./capture.ts"
-import { ask, checkDecision, voiceSession } from "./teach.ts"
+import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.ts"
 import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.ts"
 import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.ts"
 
@@ -118,6 +119,11 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
 
   ["GET", "/voice/:role", ({ params }) => voiceSession(params.role as VoiceRole)],
   ["POST", "/ask", async ({ body }) => ask((await body()) as AskRequest)],
+  [
+    "POST",
+    "/workflows/draft",
+    async ({ body }) => draftWorkflow((await body()) as WorkflowDraftRequest),
+  ],
 ]
 
 function match(pattern: string, path: string): Params | undefined {

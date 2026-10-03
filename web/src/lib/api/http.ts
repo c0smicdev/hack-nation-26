@@ -56,5 +56,6 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     getVoiceSession: (role) => request(`/voice/${role}`),
 
     ask: (body) => post("/ask", body),
+    draftWorkflow: (body) => post("/workflows/draft", body),
   }
 }

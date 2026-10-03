@@ -8,6 +8,8 @@ import type {
   ID,
   VoiceRole,
   VoiceSession,
+  WorkflowDraft,
+  WorkflowDraftRequest,
 } from "../src/lib/api/types.ts"
 import { memoryContext } from "./capture.ts"
 import { models, prompt, structured, text } from "./llm.ts"
@@ -62,6 +64,7 @@ export async function checkDecision(workMapId: ID, check: DecisionCheck): Promis
 const agentEnv: Record<VoiceRole, string> = {
   interviewer: "ELEVENLABS_INTERVIEWER_AGENT_ID",
   tutor: "ELEVENLABS_TUTOR_AGENT_ID",
+  drafter: "ELEVENLABS_DRAFTER_AGENT_ID",
 }
 
 export async function voiceSession(role: VoiceRole): Promise<VoiceSession | null> {
@@ -104,4 +107,35 @@ export async function ask({ question, workMapId }: AskRequest): Promise<AskRespo
       : []
   })
   return { answer: out.answer, citations }
+}
+
+/* New workflow: title + description drafted from a typed chat -------- */
+
+const DraftOut = z.object({
+  reply: z.string(),
+  title: z.string(),
+  description: z.string(),
+  ready: z.boolean(),
+})
+
+export async function draftWorkflow({
+  messages,
+  title,
+  description,
+}: WorkflowDraftRequest): Promise<WorkflowDraft> {
+  const chat = messages
+    .map((m) => `${m.role === "user" ? "Expert" : "Socrates"}: ${m.content}`)
+    .join("\n")
+  return structured({
+    model: models.reasoning,
+    effort: "low",
+    maxTokens: 2000,
+    system: prompt("workflow-draft"),
+    schema: DraftOut,
+    content: [
+      text(
+        `Current title: ${title || "(empty)"}\nCurrent description: ${description || "(empty)"}\n\nConversation:\n${chat}`,
+      ),
+    ],
+  })
 }

@@ -11,6 +11,7 @@ import type {
   WorkMap,
 } from "../types"
 import { answer } from "./ask"
+import { draftWorkflow } from "./draft"
 import {
   LIVE_SESSION_ID,
   sessions as fixtureSessions,
@@ -366,5 +367,10 @@ export const mockApi: SocratesApi = {
     await delay(600)
     const scope = workMapId ? workMaps.filter((m) => m.id === workMapId) : workMaps
     return answer(question, scope)
+  },
+
+  async draftWorkflow({ messages, title, description }) {
+    await delay(600)
+    return draftWorkflow(messages, title, description)
   },
 }
