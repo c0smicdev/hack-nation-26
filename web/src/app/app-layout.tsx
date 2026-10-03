@@ -1,4 +1,4 @@
-import { BookOpenText, Landmark, MessageCircleQuestion, Radio } from "lucide-react"
+import { BookOpenText, GraduationCap, Landmark, MessageCircleQuestion, Radio } from "lucide-react"
 import { NavLink, Outlet, useLocation } from "react-router"
 
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +31,7 @@ const NAV = [
   },
   { to: paths.ask(), label: "Ask Socrates", icon: MessageCircleQuestion },
   { to: paths.capture(), label: "Capture", icon: Radio },
+  { to: paths.teach(), label: "Teach", icon: GraduationCap },
 ]
 
 function AppSidebar() {
@@ -89,7 +90,7 @@ export function AppLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           {usingMocks && (

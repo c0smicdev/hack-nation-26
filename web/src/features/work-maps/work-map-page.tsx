@@ -1,5 +1,5 @@
-import { ChevronLeft, MessageCircleQuestion } from "lucide-react"
-import { useCallback, useEffect } from "react"
+import { ChevronLeft, GraduationCap, MessageCircleQuestion } from "lucide-react"
+import { useCallback, useEffect, useRef } from "react"
 import { Link, useParams, useSearchParams } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -20,6 +20,7 @@ import { formatRelative, pluralize } from "@/lib/format"
 
 import { DebriefSection } from "./components/debrief-section"
 import { Expert } from "./components/expert"
+import { Flowchart } from "./components/flowchart"
 import { StatusBadge } from "./components/status-badge"
 import { StepDetail } from "./components/step-detail"
 import { StepTimeline } from "./components/step-timeline"
@@ -71,6 +72,12 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
     return () => window.removeEventListener("keydown", onKey)
   }, [activeIndex, steps, select])
 
+  const stepsRef = useRef<HTMLDivElement>(null)
+  const selectFromChart = (id: ID) => {
+    select(id)
+    stepsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   const judgmentCount = steps.filter((s) => s.kind === "judgment").length
   const guardrailCount = steps.reduce((n, s) => n + s.guardrails.length, 0)
 
@@ -95,7 +102,16 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{workMap.title}</h1>
             <p className="text-muted-foreground">{workMap.summary}</p>
           </div>
-          <AskSheet workMap={workMap} />
+          <div className="flex flex-wrap gap-2">
+            {workMap.status === "confirmed" && (
+              <Button variant="outline" asChild>
+                <Link to={paths.teach(workMap.id)}>
+                  <GraduationCap /> Teach a new hire
+                </Link>
+              </Button>
+            )}
+            <AskSheet workMap={workMap} />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border bg-muted/30 px-4 py-3 text-sm">
@@ -111,7 +127,7 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
       </div>
 
       {step && (
-        <div className="grid gap-8 lg:grid-cols-[17rem_1fr]">
+        <div ref={stepsRef} className="grid scroll-mt-4 gap-8 lg:grid-cols-[17rem_1fr]">
           <aside className="lg:sticky lg:top-4 lg:self-start">
             <StepTimeline steps={steps} activeId={step.id} onSelect={select} />
           </aside>
@@ -123,6 +139,13 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
             onNext={next}
           />
         </div>
+      )}
+
+      {steps.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Flowchart</h2>
+          <Flowchart workMap={workMap} onSelectStep={selectFromChart} />
+        </section>
       )}
 
       <DebriefSection workMap={workMap} onSelectStep={select} />

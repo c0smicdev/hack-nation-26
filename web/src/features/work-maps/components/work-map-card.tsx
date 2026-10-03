@@ -7,7 +7,7 @@ import type { WorkMapSummary } from "@/lib/api"
 import { formatRelative, pluralize } from "@/lib/format"
 
 import { Expert } from "./expert"
-import { ScreenMomentView } from "./screen-moment-view"
+import { ScreenMomentView } from "@/components/screen-moment-view"
 import { StatusBadge } from "./status-badge"
 
 export function WorkMapCard({ workMap }: { workMap: WorkMapSummary }) {
