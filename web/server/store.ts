@@ -6,6 +6,7 @@ import type {
   CaptureStatus,
   ErpSignal,
   ID,
+  LiveStepNote,
   Quote,
   ScreenMoment,
   SessionEvent,
@@ -29,6 +30,8 @@ export interface CandidateStep {
   screen: ScreenMoment
   matchedStepId?: ID
   deviation?: boolean
+  /** What each frame added about this step, oldest first. */
+  notes: LiveStepNote[]
 }
 
 /** Something the agent doesn't understand yet. Asked live or saved for the debrief. */

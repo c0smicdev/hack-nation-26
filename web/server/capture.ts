@@ -4,6 +4,7 @@ import type {
   CaptureSession,
   ID,
   LiveQuestion,
+  LiveStep,
   NewSession,
   NewSessionEvent,
   Person,
@@ -106,6 +107,7 @@ const VisionResult = z.object({
       stepTitle: z.string().nullable(),
       stepKind: z.enum(["routine", "judgment"]).nullable(),
       decision: z.string().nullable(),
+      detail: z.string().nullable(),
       matchedStepId: z.string().nullable(),
       sameDecision: z.boolean().nullable(),
       focus: Rect.nullable(),
@@ -175,6 +177,25 @@ function contextFor(runtime: SessionRuntime, erpLines: string[]) {
     `Questions already asked or queued:\n${asked.join("\n") || "  (none)"}`,
     `Application signals since the previous screenshot:\n${erpLines.join("\n") || "  (none)"}`,
   ].join("\n\n")
+}
+
+/** Candidate steps as the recording page shows them; answers to live questions join their step. */
+export function liveSteps(runtime: SessionRuntime): LiveStep[] {
+  return runtime.candidates.map((c) => {
+    const said = runtime.questions
+      .filter((q) => q.stepId === c.id && q.answer)
+      .map((q) => ({ at: q.answer!.at, text: `“${q.answer!.text}”`, source: "said" as const }))
+    return {
+      id: c.id,
+      at: c.at,
+      title: c.title,
+      kind: c.kind,
+      decision: c.decision,
+      notes: [...c.notes, ...said].sort((a, b) => a.at - b.at),
+      screenshotUrl: c.screen.screenshotUrl,
+      deviation: c.deviation,
+    }
+  })
 }
 
 const empty = (processed: boolean, screen?: string): TickResult => ({
@@ -256,7 +277,13 @@ function applyVision(
 
     // Known step with the same decision: link it, don't create a step and don't ask.
     const known = matchedStepId && !deviation
-    if (e.important && !known) {
+    const note = { at, text: e.detail ?? e.text, source: "seen" as const }
+    const continued = runtime.candidates.find((c) => c.id === e.candidateStepId)
+    if (!e.important && continued) {
+      // Still on the same subtask: the step learns more, nothing new appears.
+      continued.notes.push(note)
+      stepId = continued.id
+    } else if (e.important && !known) {
       const screen = {
         sessionId: session.id,
         at,
@@ -276,6 +303,7 @@ function applyVision(
         existing.decision = e.decision ?? existing.decision
         existing.kind = e.stepKind === "judgment" ? "judgment" : existing.kind
         existing.screen = screen
+        existing.notes.push(note)
         stepId = existing.id
       } else {
         const candidate: CandidateStep = {
@@ -287,6 +315,7 @@ function applyVision(
           screen,
           matchedStepId,
           deviation,
+          notes: [note],
         }
         runtime.candidates.push(candidate)
         stepId = candidate.id
@@ -341,7 +370,7 @@ function applyVision(
     runtime.questions.push({ id: newId("q"), at, question, guardrail: false, askedLive: false })
   }
 
-  return { processed: true, screen: result.screen, events, questions }
+  return { processed: true, screen: result.screen, events, questions, steps: liveSteps(runtime) }
 }
 
 /* Events from the session page (speech, questions asked, …) ---------- */

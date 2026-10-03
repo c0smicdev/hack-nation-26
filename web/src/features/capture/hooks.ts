@@ -10,6 +10,7 @@ export const captureKeys = {
   sessions: ["capture", "sessions"] as const,
   session: (sessionId: ID) => ["capture", "session", sessionId] as const,
   events: (sessionId: ID) => ["capture", "sessions", sessionId, "events"] as const,
+  steps: (sessionId: ID) => ["capture", "sessions", sessionId, "steps"] as const,
 }
 
 export function useCaptureStatus() {
@@ -46,6 +47,15 @@ export function useSessionEvents(sessionId: ID | undefined, { live = false } = {
     queryKey: captureKeys.events(sessionId ?? ""),
     queryFn: () => api.listSessionEvents(sessionId!),
     enabled: !!sessionId,
+    refetchInterval: live ? LIVE_POLL_MS : false,
+  })
+}
+
+/** Steps grouped so far while recording; the tick loop also pushes fresh ones in. */
+export function useLiveSteps(sessionId: ID, { live = false } = {}) {
+  return useQuery({
+    queryKey: captureKeys.steps(sessionId),
+    queryFn: () => api.listLiveSteps(sessionId),
     refetchInterval: live ? LIVE_POLL_MS : false,
   })
 }

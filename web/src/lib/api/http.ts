@@ -41,6 +41,7 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     createSession: (input) => post("/sessions", input),
     updateSession: (id, patch) => post(`/sessions/${id}`, patch, "PATCH"),
     listSessionEvents: (sessionId) => request(`/sessions/${sessionId}/events`),
+    listLiveSteps: (sessionId) => request(`/sessions/${sessionId}/steps`),
     recordEvent: (sessionId, event) => post(`/sessions/${sessionId}/events`, event),
     postTick: (sessionId, tick) => post(`/sessions/${sessionId}/ticks`, tick),
     getCaptureStatus: () => request("/capture/status"),

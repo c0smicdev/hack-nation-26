@@ -15,6 +15,7 @@ import type {
 import {
   createSession,
   findRelatedWorkMaps,
+  liveSteps,
   processTick,
   recordEvent,
   sessionView,
@@ -87,6 +88,11 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     "POST",
     "/sessions/:id/ticks",
     async ({ params, body }) => processTick(params.id, (await body()) as Tick),
+  ],
+  [
+    "GET",
+    "/sessions/:id/steps",
+    ({ params }) => (store.sessions.has(params.id) ? liveSteps(getRuntime(params.id)) : []),
   ],
   ["POST", "/sessions/:id/finish", ({ params }) => finishCapture(params.id)],
 

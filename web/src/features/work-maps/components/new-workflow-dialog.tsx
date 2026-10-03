@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import type { WorkflowDraftMessage } from "@/lib/api"
+import { handOverStream } from "@/lib/capture/pending-stream"
+import { startScreenShare } from "@/lib/capture/screen"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent } from "@/lib/voice/use-voice-agent"
 import { useCreateSession } from "@/features/capture/hooks"
@@ -88,10 +90,16 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
   }
 
   const creating = useRef(false)
-  async function createWorkflow() {
+  /**
+   * `share`: called from a click, so the browser lets us ask for the screen right
+   * away. Socrates (voice) can't; the recording page asks with a button instead.
+   */
+  async function createWorkflow({ share = false } = {}) {
     if (creating.current) return
     creating.current = true
     const { title, description } = fieldsRef.current
+    // Cancelled or denied: the recording page offers the share button again.
+    const stream = share ? await startScreenShare().catch(() => undefined) : undefined
     const session = await create
       .mutateAsync({
         title: title.trim() || "Untitled",
@@ -99,7 +107,12 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
         expertName: "You",
         expertRole: "Expert",
       })
+      .catch((e: unknown) => {
+        stream?.getTracks().forEach((t) => t.stop())
+        throw e
+      })
       .finally(() => (creating.current = false))
+    if (stream) handOverStream(session.id, stream)
     onClose()
     navigate(paths.session(session.id))
   }
@@ -253,7 +266,10 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
           <Button variant="ghost" onClick={onClose} disabled={create.isPending}>
             Cancel
           </Button>
-          <Button onClick={createWorkflow} disabled={create.isPending || !title.trim()}>
+          <Button
+            onClick={() => void createWorkflow({ share: true }).catch(() => undefined)}
+            disabled={create.isPending || !title.trim()}
+          >
             {create.isPending && <Loader2 className="animate-spin" />}
             Create workflow
           </Button>

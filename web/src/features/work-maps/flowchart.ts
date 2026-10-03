@@ -1,4 +1,4 @@
-import type { Guardrail, WorkMap } from "@/lib/api"
+import type { Guardrail, LiveStep, WorkMap } from "@/lib/api"
 
 /**
  * Work Map → Mermaid, deterministically. Steps become nodes (judgment steps are
@@ -58,11 +58,40 @@ export function workMapToMermaid(map: WorkMap) {
   })
   if (map.steps.length) lines.push(`  ${stepNodeId(map.steps.length - 1)} --> done(["Done"])`)
 
-  lines.push(
-    "  classDef routine fill:#f8fafc,stroke:#94a3b8,color:#0f172a",
-    "  classDef judgment fill:#eef2ff,stroke:#6366f1,color:#1e1b4b",
-    "  classDef guardrail fill:#fff7ed,stroke:#f97316,color:#7c2d12",
-    "  classDef edge fill:#f0fdf4,stroke:#22c55e,color:#14532d",
-  )
+  lines.push(...CLASS_DEFS)
+  return lines.join("\n")
+}
+
+const CLASS_DEFS = [
+  "  classDef routine fill:#f8fafc,stroke:#94a3b8,color:#0f172a",
+  "  classDef judgment fill:#eef2ff,stroke:#6366f1,color:#1e1b4b",
+  "  classDef guardrail fill:#fff7ed,stroke:#f97316,color:#7c2d12",
+  "  classDef edge fill:#f0fdf4,stroke:#22c55e,color:#14532d",
+  "  classDef current stroke-width:3px",
+  "  classDef pending fill:none,stroke:#cbd5e1,stroke-dasharray:4 4,color:#94a3b8",
+]
+
+/**
+ * Steps recorded so far → Mermaid, for the graph that grows during recording.
+ * Same shapes as the Work Map; while recording, a dashed node marks what's next.
+ */
+export function liveStepsToMermaid(steps: LiveStep[]) {
+  const lines = ["flowchart TD", '  start(["Start"])']
+  steps.forEach((step, i) => {
+    const id = stepNodeId(i)
+    const text = label(step.title, step.kind === "judgment" ? 44 : 70)
+    lines.push(step.kind === "judgment" ? `  ${id}{"${text}"}` : `  ${id}["${text}"]`)
+    lines.push(`  class ${id} ${step.kind}`)
+    const from = i === 0 ? "start" : stepNodeId(i - 1)
+    const prev = steps[i - 1]
+    lines.push(
+      prev?.kind === "judgment"
+        ? `  ${from} -- "${label(prev.decision, 40)}" --> ${id}`
+        : `  ${from} --> ${id}`,
+    )
+  })
+  const last = steps.length ? stepNodeId(steps.length - 1) : "start"
+  if (steps.length) lines.push(`  class ${last} current`)
+  lines.push('  next(["…"])', "  class next pending", `  ${last} -.-> next`, ...CLASS_DEFS)
   return lines.join("\n")
 }

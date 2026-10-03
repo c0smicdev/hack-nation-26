@@ -271,6 +271,37 @@ export interface TickResult {
   screen?: string
   events: SessionEvent[]
   questions: LiveQuestion[]
+  /** All steps so far, after this tick. Omitted when the tick changed nothing. */
+  steps?: LiveStep[]
+}
+
+export interface LiveStepNote {
+  /** Seconds since session start. */
+  at: number
+  text: string
+  /** `seen` = from a screenshot / app signal, `said` = the expert's answer. */
+  source: "seen" | "said"
+}
+
+/**
+ * A step as it forms during capture. Frames about the same subtask are grouped
+ * into one step, which collects notes as the expert keeps working on it.
+ * Becomes a WorkMapStep after the debrief.
+ */
+export interface LiveStep {
+  id: ID
+  /** Seconds since session start when the step first appeared. */
+  at: number
+  title: string
+  kind: StepKind
+  /** What the expert decided / did, as understood so far. */
+  decision: string
+  /** Oldest first; grows while the expert stays on this subtask. */
+  notes: LiveStepNote[]
+  /** Latest screenshot of this step. */
+  screenshotUrl?: string
+  /** Decided differently than the saved Work Map. */
+  deviation?: boolean
 }
 
 /* ------------------------------------------------------------------ */

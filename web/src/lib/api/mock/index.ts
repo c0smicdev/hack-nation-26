@@ -4,8 +4,10 @@ import type {
   CaptureSession,
   CaptureStatus,
   DecisionVerdict,
+  ErpSignal,
   ID,
   LiveQuestion,
+  LiveStep,
   Quote,
   SessionEvent,
   WorkMap,
@@ -37,6 +39,33 @@ const sessions: CaptureSession[] = fixtureSessions.filter((s) => s.id !== LIVE_S
 const events = new Map<ID, SessionEvent[]>()
 const startedAt = new Map<ID, number>()
 const lastQuestionAt = new Map<ID, number>()
+const liveSteps = new Map<ID, LiveStep[]>()
+
+/** What a signal is about ("Invoice 4471"), so signals about the same item group into one step. */
+const subject = (text: string) => /invoice\s+[\w-]+/i.exec(text)?.[0].toLowerCase() ?? text
+
+/** Groups ERP signals into steps the way the vision model would: same item → same step. */
+function addToSteps(sid: ID, signal: ErpSignal) {
+  const steps = liveSteps.get(sid) ?? []
+  liveSteps.set(sid, steps)
+  const note = { at: signal.at, text: signal.text, source: "seen" as const }
+  const last = steps.at(-1)
+  if (signal.kind !== "navigate" && last && subject(last.notes[0].text) === subject(signal.text)) {
+    last.notes.push(note)
+    last.decision = signal.text
+    if (signal.kind === "action") last.kind = "judgment"
+    return
+  }
+  steps.push({
+    id: id("st"),
+    at: signal.at,
+    title: signal.kind === "navigate" ? signal.text.replace(/^Opened/, "Open") : signal.text,
+    kind: signal.kind === "action" ? "judgment" : "routine",
+    decision: signal.text,
+    notes: [note],
+    screenshotUrl: "/mock/erp-invoice-4471.svg",
+  })
+}
 
 let captureStatus: CaptureStatus = {
   active: false,
@@ -192,6 +221,11 @@ export const mockApi: SocratesApi = {
     return [...(events.get(sid) ?? [])]
   },
 
+  async listLiveSteps(sid) {
+    await delay(100)
+    return structuredClone(liveSteps.get(sid) ?? [])
+  },
+
   async recordEvent(sid, event) {
     await delay(50)
     if (captureStatus.offTheRecord && event.kind !== "off_record") {
@@ -204,6 +238,7 @@ export const mockApi: SocratesApi = {
   async postTick(sid, tick) {
     await delay(300)
     if (captureStatus.offTheRecord) return { processed: false, events: [], questions: [] }
+    tick.erp.forEach((signal) => addToSteps(sid, signal))
     const created = tick.erp.map((signal) =>
       push(sid, {
         at: signal.at,
@@ -224,7 +259,8 @@ export const mockApi: SocratesApi = {
         screen: "current",
       })
     }
-    return { processed: true, screen: "current", events: created, questions }
+    const steps = tick.erp.length ? structuredClone(liveSteps.get(sid) ?? []) : undefined
+    return { processed: true, screen: "current", events: created, questions, steps }
   },
 
   async getCaptureStatus() {

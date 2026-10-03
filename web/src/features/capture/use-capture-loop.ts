@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { api, type ErpSignal, type ID, type LiveQuestion } from "@/lib/api"
+import { api, type ErpSignal, type ID, type LiveQuestion, type LiveStep } from "@/lib/api"
 import { changed, grabFrame } from "@/lib/capture/screen"
 import { openErpChannel } from "@/lib/erp/bridge"
 import type { VoiceAgent } from "@/lib/voice/use-voice-agent"
@@ -38,6 +38,7 @@ export function useCaptureLoop({
   video,
   live,
   agent,
+  onSteps,
 }: {
   sessionId: ID
   /** ISO start time; `at` is seconds since then. */
@@ -46,6 +47,8 @@ export function useCaptureLoop({
   /** Capturing and on the record. */
   live: boolean
   agent: VoiceAgent
+  /** Fresh step list after a tick that changed it. */
+  onSteps?: (steps: LiveStep[]) => void
 }) {
   const [queue, setQueue] = useState<Queued[]>([])
   const [screen, setScreen] = useState<string>()
@@ -69,8 +72,10 @@ export function useCaptureLoop({
 
   // Exact signals from the mock ERP: typing (never interrupt) and field changes (precise events).
   const agentRef = useRef(agent)
+  const onStepsRef = useRef(onSteps)
   useEffect(() => {
     agentRef.current = agent
+    onStepsRef.current = onSteps
   })
   useEffect(() => {
     if (!live) return
@@ -126,6 +131,7 @@ export function useCaptureLoop({
           sent: s.sent + 1,
           visionMs: result.processed ? Math.round(performance.now() - t0) : s.visionMs,
         }))
+        if (result.steps) onStepsRef.current?.(result.steps)
         if (result.screen) {
           screenRef.current = result.screen
           setScreen(result.screen)
