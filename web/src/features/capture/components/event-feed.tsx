@@ -15,11 +15,17 @@ const KIND: Record<SessionEventKind, { icon: typeof Monitor; label: string; clas
   off_record: { icon: EyeOff, label: "Privacy", className: "text-amber-700 dark:text-amber-400" },
 }
 
-/** Newest-first list of what the extension + vision model produced. */
-export function EventFeed({ events }: { events: SessionEvent[] }) {
+/** What the extension + vision model produced; newest first unless `order="oldest"`. */
+export function EventFeed({
+  events,
+  order = "newest",
+}: {
+  events: SessionEvent[]
+  order?: "newest" | "oldest"
+}) {
   return (
     <ol className="space-y-1">
-      {[...events].reverse().map((event) => {
+      {(order === "newest" ? [...events].reverse() : events).map((event) => {
         const { icon: Icon, label, className } = KIND[event.kind]
         return (
           <li
@@ -33,7 +39,9 @@ export function EventFeed({ events }: { events: SessionEvent[] }) {
               {formatTimestamp(event.at)}
             </span>
             <Icon className={cn("mt-0.5 size-4 shrink-0", className)} aria-label={label} />
-            <span className={className}>{event.text}</span>
+            <span className={cn(className, event.important && "font-medium text-foreground")}>
+              {event.text}
+            </span>
           </li>
         )
       })}

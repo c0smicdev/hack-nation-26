@@ -66,7 +66,8 @@ const agents = {
     envKey: "ELEVENLABS_INTERVIEWER_AGENT_ID",
     name: "Socrates · Interviewer",
     prompt: "interviewer",
-    firstMessage: "Hi {{expert_name}}, I'm Socrates. What are you about to work on?",
+    firstMessage:
+      "I'm watching. Go ahead whenever you're ready; I'll mostly listen and ask a few things along the way.",
     placeholders: { expert_name: "Sabine", task: "Process supplier invoices" },
     // Experts pause to think while they work: don't jump in.
     turn: { turn_eagerness: "patient", turn_timeout: 15 },

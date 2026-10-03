@@ -28,6 +28,7 @@ import {
   type CaptureSession,
   type ID,
   type LiveStep,
+  type SessionEvent,
   type WorkMap,
   type WorkMapSummary,
 } from "@/lib/api"
@@ -49,6 +50,7 @@ import {
   useDraftWorkMap,
   useLiveSteps,
   useSession,
+  useSessionEvents,
   useSetOffTheRecord,
 } from "./hooks"
 import { useCaptureLoop } from "./use-capture-loop"
@@ -81,6 +83,7 @@ function SessionView({ session }: { session: CaptureSession }) {
   const offRecord = !!status?.offTheRecord && status.liveSessionId === session.id
   const recording = session.status === "intake" || session.status === "live"
   const steps = useLiveSteps(session.id, { live: recording })
+  const events = useSessionEvents(session.id, { live: recording })
   const draft = useDraftWorkMap(session.workMapId)
 
   // Shared from the "Create workflow" click, if the browser allowed it there.
@@ -329,6 +332,7 @@ function SessionView({ session }: { session: CaptureSession }) {
       <RecordingView
         session={session}
         steps={steps.data ?? []}
+        events={events.data ?? []}
         elapsed={elapsed}
         offRecord={offRecord}
         agent={agent}
@@ -414,6 +418,7 @@ function SessionView({ session }: { session: CaptureSession }) {
 function RecordingView({
   session,
   steps,
+  events,
   elapsed,
   offRecord,
   agent,
@@ -432,6 +437,7 @@ function RecordingView({
 }: {
   session: CaptureSession
   steps: LiveStep[]
+  events: SessionEvent[]
   elapsed: number
   offRecord: boolean
   agent: VoiceAgent
@@ -541,6 +547,7 @@ function RecordingView({
           <div className="min-h-0 flex-1 overflow-y-auto">
             <LiveStepList
               steps={steps}
+              events={events}
               openId={openId}
               onToggle={(id) => setOpenId((open) => (open === id ? undefined : id))}
             />

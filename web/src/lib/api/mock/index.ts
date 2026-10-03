@@ -41,28 +41,17 @@ const startedAt = new Map<ID, number>()
 const lastQuestionAt = new Map<ID, number>()
 const liveSteps = new Map<ID, LiveStep[]>()
 
-/** What a signal is about ("Invoice 4471"), so signals about the same item group into one step. */
-const subject = (text: string) => /invoice\s+[\w-]+/i.exec(text)?.[0].toLowerCase() ?? text
-
-/** Groups ERP signals into steps the way the vision model would: same item → same step. */
+/** Like the vision model: every decision in the ERP becomes a step. */
 function addToSteps(sid: ID, signal: ErpSignal) {
+  if (signal.kind === "navigate") return
   const steps = liveSteps.get(sid) ?? []
   liveSteps.set(sid, steps)
-  const note = { at: signal.at, text: signal.text, source: "seen" as const }
-  const last = steps.at(-1)
-  if (signal.kind !== "navigate" && last && subject(last.notes[0].text) === subject(signal.text)) {
-    last.notes.push(note)
-    last.decision = signal.text
-    if (signal.kind === "action") last.kind = "judgment"
-    return
-  }
   steps.push({
     id: id("st"),
     at: signal.at,
-    title: signal.kind === "navigate" ? signal.text.replace(/^Opened/, "Open") : signal.text,
+    title: signal.text,
     kind: signal.kind === "action" ? "judgment" : "routine",
     decision: signal.text,
-    notes: [note],
     screenshotUrl: "/mock/erp-invoice-4471.svg",
   })
 }

@@ -1,22 +1,26 @@
-import { ChevronRight, Eye, MessageSquareQuote } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 import { Badge } from "@/components/ui/badge"
-import type { ID, LiveStep } from "@/lib/api"
+import type { ID, LiveStep, SessionEvent } from "@/lib/api"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
+import { EventFeed } from "./event-feed"
+
 /**
- * "Your steps" while recording: one item per subtask, stamped with when it began
- * (time since recording started). Opening an item shows everything Socrates has
- * gathered about it so far; the list grows as the expert keeps working.
+ * "Your steps" while recording: one item per step, stamped with when it began
+ * (time since recording started). Opening an item shows the session events from
+ * that step until the next one: what Socrates saw, asked and heard.
  */
 export function LiveStepList({
   steps,
+  events,
   openId,
   onToggle,
 }: {
   steps: LiveStep[]
+  events: SessionEvent[]
   openId?: ID
   onToggle: (id: ID) => void
 }) {
@@ -25,19 +29,26 @@ export function LiveStepList({
     openRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }, [openId])
 
-  if (!steps.length) {
-    return (
-      <p className="px-4 py-6 text-sm text-muted-foreground">
-        Start working. Socrates groups what you do into steps here.
-      </p>
-    )
-  }
+  const before = steps.length ? events.filter((e) => e.at < steps[0].at) : events
 
   return (
     <ol className="divide-y">
+      {before.length > 0 && (
+        <li className="px-4 py-3">
+          <p className="pb-2 text-xs font-medium text-muted-foreground">Getting started</p>
+          <EventFeed events={before} order="oldest" />
+        </li>
+      )}
+      {!steps.length && (
+        <li className="px-4 py-6 text-sm text-muted-foreground">
+          Start working. Your steps appear here as Socrates understands them.
+        </li>
+      )}
       {steps.map((step, i) => {
         const open = step.id === openId
         const current = i === steps.length - 1
+        const end = steps[i + 1]?.at ?? Infinity
+        const own = events.filter((e) => e.at >= step.at && e.at < end)
         return (
           <li key={step.id} ref={open ? openRef : undefined}>
             <button
@@ -62,7 +73,7 @@ export function LiveStepList({
                 <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                   {step.kind === "judgment" && <Badge variant="secondary">Decision</Badge>}
                   {step.deviation && <Badge variant="destructive">Differs from memory</Badge>}
-                  {pluralize(step.notes.length, "observation")}
+                  {pluralize(own.length, "event")}
                 </span>
               </span>
               <ChevronRight
@@ -72,42 +83,24 @@ export function LiveStepList({
                 )}
               />
             </button>
-            {open && <StepDetail step={step} />}
+            {open && (
+              <div className="space-y-3 bg-muted/30 px-4 pt-1 pb-4">
+                {step.decision !== step.title && (
+                  <p className="pl-[3.75rem] text-sm">{step.decision}</p>
+                )}
+                <EventFeed events={own} order="oldest" />
+                {step.screenshotUrl && (
+                  <img
+                    src={step.screenshotUrl}
+                    alt={`Screen during: ${step.title}`}
+                    className="w-full rounded-md border"
+                  />
+                )}
+              </div>
+            )}
           </li>
         )
       })}
     </ol>
-  )
-}
-
-function StepDetail({ step }: { step: LiveStep }) {
-  return (
-    <div className="space-y-3 bg-muted/30 px-4 pt-1 pb-4 pl-[4.75rem] text-sm">
-      {step.decision !== step.title && <p>{step.decision}</p>}
-      <ul className="space-y-2">
-        {step.notes.map((note, i) => (
-          <li key={i} className="flex gap-2">
-            {note.source === "said" ? (
-              <MessageSquareQuote className="mt-0.5 size-3.5 shrink-0 text-primary" />
-            ) : (
-              <Eye className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-            )}
-            <span className="min-w-0 flex-1">
-              <span className={cn(note.source === "said" && "italic")}>{note.text}</span>
-              <span className="ml-2 font-mono text-xs text-muted-foreground tabular-nums">
-                {formatTimestamp(note.at)}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ul>
-      {step.screenshotUrl && (
-        <img
-          src={step.screenshotUrl}
-          alt={`Screen during: ${step.title}`}
-          className="w-full rounded-md border"
-        />
-      )}
-    </div>
   )
 }
