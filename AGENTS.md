@@ -229,7 +229,23 @@ npm run build        # typecheck + production build
 
 ---
 
-## 9. Code conventions
+## 9. Git workflow
+
+Several people work on this repo at the same time, so **every new feature or fix goes on its own branch**. Never commit or push directly to `main`.
+
+1. **Start from an up-to-date `main`:** `git switch main && git pull`, then `git switch -c <type>/<short-name>`.
+   - Types: `feat/`, `fix/`, `docs/`, `chore/`. Examples: `feat/memory-lookup`, `feat/mock-erp`, `fix/tick-throttle`.
+2. **Keep branches small and short-lived.** One feature per branch; merge within hours, not days.
+3. **Stay in sync:** merge `main` into your branch regularly (`git merge origin/main`) and before opening a PR.
+4. **Open a pull request into `main`.** Say what changed and how to test it. Vercel builds a preview deployment for every branch; link it in the PR.
+5. **Contract changes** (`web/src/lib/api/types.ts`) must be called out in the PR title or description and announced to the team, because they affect everyone.
+6. **Merge only when** typecheck, lint and build pass and the app still runs on mock data.
+
+AI agents: if you're on `main` when starting a task, create a branch first. Don't push or open PRs unless asked.
+
+---
+
+## 10. Code conventions
 
 See [`web/README.md`](web/README.md) for the full structure and recipes. The essentials:
 
@@ -246,7 +262,7 @@ See [`web/README.md`](web/README.md) for the full structure and recipes. The ess
 
 ---
 
-## 10. Out of scope for the MVP
+## 11. Out of scope for the MVP
 
 - Browser extension (only if we need apps we don't control)
 - Detecting "listening to someone" from system/tab audio (fragile across browsers)
