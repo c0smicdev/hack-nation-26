@@ -96,10 +96,14 @@ export function useVoiceAgent({
           onVadScore: ({ vadScore }) => {
             if (vadScore > 0.6) lastUserVoiceAt.current = Date.now()
           },
-          onError: (message) => setError(message),
+          onConnect: () => setMode("voice"),
+          onError: (message) => {
+            setError(message)
+            // Couldn't connect (e.g. microphone denied): keep going in text mode.
+            setMode((m) => (m === "connecting" ? "text" : m))
+          },
           onDisconnect: () => setMode((m) => (m === "voice" ? "idle" : m)),
         })
-        setMode("voice")
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e))
         setMode("error")
@@ -113,32 +117,35 @@ export function useVoiceAgent({
     setMode("idle")
   }, [conversation])
 
-  /** Make the agent respond (e.g. ask a question now). */
-  const prompt = useCallback(
-    (text: string) => {
-      if (mode !== "voice") return false
-      conversation.sendUserMessage(text)
-      return true
+  /** Sends to the agent if a conversation is live; never throws. */
+  const send = useCallback(
+    (kind: "message" | "context", text: string) => {
+      if (mode !== "voice" || conversation.status !== "connected") return false
+      try {
+        if (kind === "message") conversation.sendUserMessage(text)
+        else conversation.sendContextualUpdate(text)
+        return true
+      } catch {
+        return false
+      }
     },
     [conversation, mode],
   )
 
+  /** Make the agent respond (e.g. ask a question now). False if there's no live agent. */
+  const prompt = useCallback((text: string) => send("message", text), [send])
+
   /** Tell the agent what's on screen without making it talk. */
-  const context = useCallback(
-    (text: string) => {
-      if (mode === "voice") conversation.sendContextualUpdate(text)
-    },
-    [conversation, mode],
-  )
+  const context = useCallback((text: string) => void send("context", text), [send])
 
   /** Typed instead of spoken: same path as a transcript. */
   const type = useCallback(
     (text: string) => {
       append("user", text)
-      if (mode === "voice") conversation.sendUserMessage(text)
+      send("message", text)
       onUserTextRef.current?.(text)
     },
-    [append, conversation, mode],
+    [append, send],
   )
 
   return {

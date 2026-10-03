@@ -7,7 +7,7 @@ import type { Guardrail, WorkMapStep } from "@/lib/api"
 
 import { GUARDRAIL, JUDGMENT_CLASS } from "../labels"
 import { QuoteBlock } from "./quote-block"
-import { ScreenMomentView } from "./screen-moment-view"
+import { ScreenMomentView } from "@/components/screen-moment-view"
 
 function Section({
   title,

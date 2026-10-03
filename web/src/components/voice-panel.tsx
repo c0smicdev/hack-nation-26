@@ -55,7 +55,7 @@ export function VoicePanel({
               ? "Speaking"
               : "Listening"
             : agent.mode === "text"
-              ? "Text mode (no voice agent)"
+              ? "Text mode"
               : agent.mode === "connecting"
                 ? "Connecting…"
                 : agent.mode === "error"
