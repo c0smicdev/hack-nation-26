@@ -1,5 +1,5 @@
-import { sessions as fixtureSessions, LIVE_SESSION_ID } from "../src/lib/api/mock/fixtures.ts"
-import { toSummary } from "../src/lib/api/summary.ts"
+import { sessions as fixtureSessions, LIVE_SESSION_ID } from "../src/lib/api/mock/fixtures.js"
+import { toSummary } from "../src/lib/api/summary.js"
 import type {
   AskRequest,
   CaptureStatus,
@@ -11,7 +11,7 @@ import type {
   Tick,
   VoiceRole,
   WorkflowDraftRequest,
-} from "../src/lib/api/types.ts"
+} from "../src/lib/api/types.js"
 import {
   createSession,
   findRelatedWorkMaps,
@@ -20,10 +20,10 @@ import {
   recordEvent,
   sessionView,
   updateSession,
-} from "./capture.ts"
-import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.ts"
-import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.ts"
-import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.ts"
+} from "./capture.js"
+import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
+import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
+import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
 
 type Params = Record<string, string>
 type Handler = (ctx: { params: Params; body: () => Promise<unknown>; url: URL }) => unknown

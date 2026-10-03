@@ -12,8 +12,8 @@ import type {
   Tick,
   TickResult,
   WorkMap,
-} from "../src/lib/api/types.ts"
-import { imageBlock, models, prompt, structured, text } from "./llm.ts"
+} from "../src/lib/api/types.js"
+import { imageBlock, models, prompt, structured, text } from "./llm.js"
 import {
   addEvent,
   type CandidateStep,
@@ -27,7 +27,7 @@ import {
   type SessionRuntime,
   sessionAt,
   store,
-} from "./store.ts"
+} from "./store.js"
 
 /* Sessions ---------------------------------------------------------- */
 

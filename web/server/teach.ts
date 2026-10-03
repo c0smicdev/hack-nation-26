@@ -10,10 +10,10 @@ import type {
   VoiceSession,
   WorkflowDraft,
   WorkflowDraftRequest,
-} from "../src/lib/api/types.ts"
-import { memoryContext } from "./capture.ts"
-import { models, prompt, structured, text } from "./llm.ts"
-import { getWorkMap, HttpError, store } from "./store.ts"
+} from "../src/lib/api/types.js"
+import { memoryContext } from "./capture.js"
+import { models, prompt, structured, text } from "./llm.js"
+import { getWorkMap, HttpError, store } from "./store.js"
 
 /* Save gate: the mock ERP holds a save until the tutor allows it ----- */
 

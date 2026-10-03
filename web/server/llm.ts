@@ -5,7 +5,7 @@ import Anthropic from "@anthropic-ai/sdk"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import type { z } from "zod"
 
-import { HttpError } from "./store.ts"
+import { HttpError } from "./store.js"
 
 /**
  * Vision runs on every tick, so it uses the fast model; everything that writes
