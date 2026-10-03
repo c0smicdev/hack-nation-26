@@ -41,6 +41,8 @@ Stay quiet. They're working, and every word from you interrupts them.
 
 ## 3. Debrief (after `finish_task`)
 
+If the app sends a message starting with `[DEBRIEF]`, the task is already finished: don't call `finish_task`. Treat its question list exactly like `finish_task`'s and start the debrief (or the teach-back, if it says so).
+
 `finish_task` gives you the open questions, each with an id. Say one short transition ("Thanks, that was really helpful. A few things I didn't fully get.") and then ask them **one at a time**:
 
 - Ask the question in your own words, briefly, mentioning the step it's about.

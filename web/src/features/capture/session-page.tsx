@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { VoicePanel } from "@/components/voice-panel"
 import {
   api,
   type CaptureSession,
@@ -39,11 +38,10 @@ import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
 import { liveStepsToMermaid, stepNodeId } from "@/features/work-maps/flowchart"
 
-import { DebriefPanel } from "./components/debrief-panel"
+import { DebriefView } from "./components/debrief-view"
 import { LeaveGuard } from "./components/leave-guard"
 import { LiveStepList } from "./components/live-step-list"
 import { OffTheRecordSwitch } from "./components/off-the-record-switch"
-import { SessionStatusBadge } from "./components/session-status-badge"
 import {
   captureKeys,
   useCaptureStatus,
@@ -71,6 +69,17 @@ const openErp = () => window.open(paths.erp(), "nordwind-erp")
 // Event-time helpers (only ever called from handlers, never during render).
 const wallClock = () => Date.now()
 const secondsSince = (iso: string) => Math.round((Date.now() - Date.parse(iso)) / 1000)
+
+/** Tells the interviewer where the debrief stands, so it can ask (or teach back) by voice. */
+function debriefBrief(map: WorkMap) {
+  const open = map.debrief.filter((d) => !d.resolved)
+  if (map.status === "confirmed") return "[DEBRIEF] The Work Map is already confirmed."
+  if (!open.length) return "[DEBRIEF] All questions are answered. Call get_teach_back now."
+  return [
+    `[DEBRIEF] The task is finished. Draft Work Map "${map.title}" with ${map.steps.length} steps. Ask these one at a time:`,
+    ...open.map((d) => `[${d.id}] ${d.question}`),
+  ].join("\n")
+}
 
 /**
  * One capture session. While recording: the workflow graph grows on the left,
@@ -273,6 +282,33 @@ function SessionView({ session }: { session: CaptureSession }) {
     onSteps: (next) => queryClient.setQueryData(captureKeys.steps(session.id), next),
   })
 
+  /* Debrief by voice -------------------------------------------------- */
+
+  // Set when the debrief should start as soon as the voice agent is connected.
+  const debriefPending = useRef(false)
+
+  /** Ended by button, not by voice: hand the open questions to the agent so it asks them. */
+  async function endWorkflow() {
+    const map = await finish()
+    if (!agent.prompt(debriefBrief(map))) debriefPending.current = true
+  }
+
+  /** Coming back to a debrief (or voice was off): connect, then start asking. */
+  function startVoiceDebrief() {
+    debriefPending.current = true
+    void agent.start({
+      expert_name: session.expert.name.split(" ")[0],
+      task: session.task ?? session.title,
+    })
+  }
+
+  useEffect(() => {
+    if (agent.mode !== "voice" || !debriefPending.current || !draft.data) return
+    debriefPending.current = false
+    marker.current = wallClock()
+    agent.prompt(debriefBrief(draft.data))
+  }, [agent, draft.data])
+
   /* Screen share: recording starts as soon as the screen is shared ----- */
 
   /** Runs once per shared stream: recording starts as soon as the screen is shared. */
@@ -340,7 +376,7 @@ function SessionView({ session }: { session: CaptureSession }) {
         onVideo={setVideo}
         shareError={shareError}
         onShare={() => void share()}
-        onEnd={() => void finish()}
+        onEnd={() => void endWorkflow()}
         ending={!!busy}
         related={related}
         basedOn={session.basedOnWorkMapId}
@@ -363,53 +399,22 @@ function SessionView({ session }: { session: CaptureSession }) {
     )
   }
 
-  const map = draft.data
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <SessionStatusBadge status={session.status} />
-          <span className="text-sm text-muted-foreground">
-            {session.expert.name} · {formatTimestamp(elapsed)} ·{" "}
-            {pluralize(session.questionsAsked, "question")} asked live
-          </span>
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight">{session.title}</h1>
-        {session.task && <p className="max-w-3xl text-muted-foreground">{session.task}</p>}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
-        <div className="min-w-0 space-y-6">
-          {session.status === "processing" && (
-            <Card>
-              <CardContent className="flex items-center gap-3 py-10">
-                <Loader2 className="animate-spin" /> Building the draft Work Map from what Socrates
-                saw and heard…
-              </CardContent>
-            </Card>
-          )}
-
-          {map && (session.status === "awaiting_debrief" || session.status === "mapped") && (
-            <DebriefPanel
-              map={map}
-              busy={busy}
-              finalMapId={
-                finalMapId ?? (session.status === "mapped" ? session.workMapId : undefined)
-              }
-              onAnswer={(itemId, text) => void answer(itemId, text)}
-              onTeachBack={() => void teachBack()}
-              onReply={(confirmed, correction) => void reply(confirmed, correction)}
-            />
-          )}
-        </div>
-
-        <VoicePanel
-          agent={agent}
-          title="Socrates · Interviewer"
-          className="lg:sticky lg:top-4 lg:max-h-[calc(100svh-6rem)] lg:self-start"
-        />
-      </div>
-    </div>
+    <DebriefView
+      session={session}
+      map={draft.data}
+      steps={steps.data ?? []}
+      events={events.data ?? []}
+      elapsed={elapsed}
+      agent={agent}
+      agentStatus={<SocratesStatus agent={agent} />}
+      busy={busy}
+      finalMapId={finalMapId ?? (session.status === "mapped" ? session.workMapId : undefined)}
+      onStartVoice={startVoiceDebrief}
+      onAnswer={(itemId, text) => void answer(itemId, text)}
+      onTeachBack={() => void teachBack()}
+      onReply={(confirmed, correction) => void reply(confirmed, correction)}
+    />
   )
 }
 
