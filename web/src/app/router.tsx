@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router"
 
 import { AskPage } from "@/features/ask/ask-page"
 import { CapturePage } from "@/features/capture/capture-page"
+import { SessionPage } from "@/features/capture/session-page"
 import { ErpLayout } from "@/features/erp/erp-layout"
 import { InvoiceListPage } from "@/features/erp/invoice-list-page"
 import { InvoicePage } from "@/features/erp/invoice-page"
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: "work-maps/:workMapId", element: <WorkMapPage /> },
       { path: "ask", element: <AskPage /> },
       { path: "capture", element: <CapturePage /> },
+      { path: "capture/:sessionId", element: <SessionPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

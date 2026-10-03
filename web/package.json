@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "setup:agents": "node scripts/setup-agents.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
