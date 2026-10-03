@@ -22,6 +22,13 @@ export type VoiceMode = "idle" | "connecting" | "voice" | "text" | "error"
 /** Messages we inject start with a tag ("[QUESTION …]"); they're not the user's words. */
 const isAppMessage = (text: string) => /^\[[A-Z]+/.test(text.trim())
 
+/** The voice speaks tone tags ("[warmly]", "[curious]") but they shouldn't show up in the chat. */
+const stripToneTags = (text: string) =>
+  text
+    .replace(/\[[^[\]\n]{1,40}\]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+
 /**
  * One ElevenAgents conversation (interviewer or tutor). Must be used inside a
  * <ConversationProvider>. The signed URL comes from our backend, so the API key
@@ -90,7 +97,8 @@ export function useVoiceAgent({
               append("user", message)
               onUserTextRef.current?.(message)
             } else {
-              append("agent", message)
+              const text = stripToneTags(message)
+              if (text) append("agent", text)
             }
           },
           onVadScore: ({ vadScore }) => {
