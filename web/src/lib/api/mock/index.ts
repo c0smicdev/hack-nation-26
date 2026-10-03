@@ -1,120 +1,124 @@
 import type { SocratesApi } from "../client"
+import { toSummary } from "../summary"
 import type {
-  AskResponse,
+  CaptureSession,
   CaptureStatus,
-  Citation,
+  DecisionVerdict,
+  ID,
+  LiveQuestion,
+  Quote,
   SessionEvent,
   WorkMap,
-  WorkMapStep,
-  WorkMapSummary,
 } from "../types"
-import { LIVE_SESSION_ID, liveScript, sessions, workMaps } from "./fixtures"
+import { answer } from "./ask"
+import {
+  LIVE_SESSION_ID,
+  sessions as fixtureSessions,
+  workMaps as fixtureWorkMaps,
+} from "./fixtures"
 
-/** In-memory backend so the UI works before the real one exists. */
+/**
+ * In-memory backend so the whole flow (capture → debrief → teach) runs without
+ * the server or any API key. No vision or voice here: ERP signals become events
+ * and the agent's questions are canned.
+ */
 
 const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms))
+let seq = 0
+const id = (prefix: string) => `${prefix}-${++seq}`
 
 function notFound(what: string): never {
   throw new Error(`${what} not found`)
 }
 
-function toSummary(map: WorkMap): WorkMapSummary {
-  return {
-    id: map.id,
-    title: map.title,
-    summary: map.summary,
-    domain: map.domain,
-    expert: map.expert,
-    status: map.status,
-    updatedAt: map.updatedAt,
-    stepCount: map.steps.length,
-    judgmentCount: map.steps.filter((s) => s.kind === "judgment").length,
-    guardrailCount: map.steps.reduce((n, s) => n + s.guardrails.length, 0),
-    openQuestionCount: map.debrief.filter((d) => !d.resolved).length,
-    cover: map.steps[0]?.screen,
-  }
-}
-
-/* Live capture ------------------------------------------------------ */
-
-const liveStartedAt = Date.parse(sessions.find((s) => s.id === LIVE_SESSION_ID)!.startedAt)
-const elapsedSec = () => Math.floor((Date.now() - liveStartedAt) / 1000)
-const offRecordEvents: SessionEvent[] = []
+const workMaps: WorkMap[] = structuredClone(fixtureWorkMaps)
+const sessions: CaptureSession[] = fixtureSessions.filter((s) => s.id !== LIVE_SESSION_ID)
+const events = new Map<ID, SessionEvent[]>()
+const startedAt = new Map<ID, number>()
+const lastQuestionAt = new Map<ID, number>()
 
 let captureStatus: CaptureStatus = {
-  extensionConnected: true,
-  signals: { screen: true, microphone: true, keystrokes: true },
+  active: false,
+  signals: { screen: false, microphone: false, erp: false },
   offTheRecord: false,
-  liveSessionId: LIVE_SESSION_ID,
 }
 
-function liveEvents(): SessionEvent[] {
-  const t = elapsedSec()
-  const scripted = liveScript
-    .filter((e) => e.at <= t)
-    .map((e, i) => ({ ...e, id: `live-${i}`, sessionId: LIVE_SESSION_ID }))
-  return [...scripted, ...offRecordEvents].sort((a, b) => a.at - b.at)
+const findMap = (mapId: ID) => workMaps.find((m) => m.id === mapId) ?? notFound(`Work map ${mapId}`)
+const findSession = (sid: ID) => sessions.find((s) => s.id === sid) ?? notFound(`Session ${sid}`)
+const elapsed = (sid: ID) => Math.round((Date.now() - (startedAt.get(sid) ?? Date.now())) / 1000)
+
+function push(sessionId: ID, event: Omit<SessionEvent, "id" | "sessionId">) {
+  const list = events.get(sessionId) ?? []
+  const full = { id: id("ev"), sessionId, ...event }
+  list.push(full)
+  events.set(sessionId, list)
+  findSession(sessionId).eventCount = list.length
+  return full
 }
 
-/* Ask --------------------------------------------------------------- */
+/* Teach: rule-of-thumb checks that mirror Sabine's guardrails ---------- */
 
-const STOPWORDS = new Set(
-  "a an and are be do does for how i if in is it of on or should the this to what when where which who why with you".split(
-    " ",
-  ),
-)
-const tokenize = (text: string) =>
-  text
-    .toLowerCase()
-    .split(/[^a-z0-9€äöüß]+/)
-    .filter((w) => w.length > 2 && !STOPWORDS.has(w))
-
-function stepText(step: WorkMapStep) {
-  return [
-    step.title,
-    step.decision,
-    step.reason?.text,
-    step.screen.caption,
-    ...step.guardrails.map((g) => g.rule),
-    ...step.edgeCases.flatMap((e) => [e.when, e.then]),
-  ].join(" ")
-}
-
-function answer(question: string, scope: WorkMap[]): AskResponse {
-  const terms = tokenize(question)
-  const ranked = scope
-    .flatMap((map) => map.steps.map((step) => ({ map, step })))
-    .map((hit) => {
-      const words = new Set(tokenize(stepText(hit.step)))
-      return { ...hit, score: terms.filter((t) => words.has(t)).length }
-    })
-    .filter((hit) => hit.score > 0)
-    .sort((a, b) => b.score - a.score)
-    // Only cite runners-up that are nearly as relevant as the best hit.
-    .filter((hit, _, all) => hit.score >= all[0].score / 2 + 0.5)
-    .slice(0, 2)
-
-  if (ranked.length === 0) {
-    const experts = [...new Set(scope.map((m) => m.expert.name))].join(" or ")
+function verdict(map: WorkMap, action: string, record: Record<string, unknown>): DecisionVerdict {
+  const step = (stepId: string) => map.steps.find((s) => s.id === stepId)
+  const block = (stepId: string, message: string, guardrailId?: string): DecisionVerdict => {
+    const s = step(stepId)
+    const guardrail = s?.guardrails.find((g) => g.id === guardrailId)
     return {
-      answer: `I couldn't find that in the recorded workflows yet. I've noted it so ${experts} can be asked in the next debrief.`,
-      citations: [],
+      allow: false,
+      message,
+      stepId: s?.id,
+      guardrailId: guardrail?.id,
+      quote: guardrail?.quote ?? s?.reason,
+      screen: s?.screen,
     }
   }
-
-  const { map, step } = ranked[0]
-  const parts = [`${map.expert.name} covers this in “${step.title}”: ${step.decision}`]
-  if (step.reason) parts.push(`In their words: “${step.reason.text}”`)
-  const rules = step.guardrails.map((g) => g.rule)
-  if (rules.length) parts.push(`Watch out: ${rules.join(" ")}`)
-
-  const citations: Citation[] = ranked.map(({ map, step }) => ({
-    workMapId: map.id,
-    workMapTitle: map.title,
-    stepId: step.id,
-    stepTitle: step.title,
-  }))
-  return { answer: parts.join("\n\n"), citations }
+  const amount = Number(
+    String(record.netAmount ?? "0")
+      .replace(/[^\d,]/g, "")
+      .replace(",", "."),
+  )
+  const account = String(record.account ?? "")
+  const capex = account.includes("capex")
+  if (
+    action === "post" &&
+    amount > 5000 &&
+    !capex &&
+    /equipment|machin|pump|spindle/i.test(String(record.description))
+  ) {
+    return block(
+      "s4",
+      `${map.expert.name} would stop here: this is equipment over €5,000. Where do you think it should be booked?`,
+    )
+  }
+  if (action === "post" && capex && String(record.assetNumber).includes("empty")) {
+    return block(
+      "s4",
+      "Capex without an asset number. What would you need first?",
+      "g-asset-number",
+    )
+  }
+  if (
+    action === "post" &&
+    record.intercompany === true &&
+    String(record.secondApprover).includes("none")
+  ) {
+    return block(
+      "s5",
+      "This supplier is part of our group. What's different about posting it?",
+      "g-intercompany",
+    )
+  }
+  if (
+    action === "post" &&
+    /weber/i.test(String(record.supplier)) &&
+    /-12-/.test(String(record.invoiceDate))
+  ) {
+    return block(
+      "s6",
+      "A Weber invoice in December, with the same route as an earlier one. What would you check first?",
+    )
+  }
+  return { allow: true, message: "That's how it's done. Go ahead." }
 }
 
 /* API --------------------------------------------------------------- */
@@ -125,28 +129,101 @@ export const mockApi: SocratesApi = {
     return workMaps.map(toSummary)
   },
 
-  async getWorkMap(id) {
+  async getWorkMap(mapId) {
     await delay()
-    return workMaps.find((m) => m.id === id) ?? notFound(`Work map ${id}`)
+    return findMap(mapId)
+  },
+
+  async findRelatedWorkMaps(task) {
+    await delay(400)
+    const invoice = /invoice|rechnung|supplier|payable/i.test(task)
+    return invoice ? workMaps.filter((m) => m.id === "wm-ap-month-end").map(toSummary) : []
   },
 
   async listSessions() {
     await delay()
-    return sessions.map((s) => {
-      if (s.id !== LIVE_SESSION_ID) return s
-      const events = liveEvents()
-      return {
-        ...s,
-        durationSec: elapsedSec(),
-        eventCount: events.length,
-        questionsAsked: events.filter((e) => e.kind === "question").length,
-      }
-    })
+    return sessions.map((s) =>
+      s.status === "intake" || s.status === "live" ? { ...s, durationSec: elapsed(s.id) } : s,
+    )
   },
 
-  async listSessionEvents(sessionId) {
+  async getSession(sid) {
     await delay(100)
-    return sessionId === LIVE_SESSION_ID ? liveEvents() : []
+    return findSession(sid)
+  },
+
+  async createSession(input) {
+    await delay()
+    const session: CaptureSession = {
+      id: id("ses"),
+      title: input.title || input.task.slice(0, 60),
+      task: input.task,
+      expert: { id: id("p"), name: input.expertName, role: input.expertRole || "Expert" },
+      startedAt: new Date().toISOString(),
+      durationSec: 0,
+      status: "intake",
+      eventCount: 0,
+      questionsAsked: 0,
+    }
+    sessions.unshift(session)
+    startedAt.set(session.id, Date.now())
+    captureStatus = {
+      ...captureStatus,
+      active: true,
+      offTheRecord: false,
+      liveSessionId: session.id,
+    }
+    return session
+  },
+
+  async updateSession(sid, patch) {
+    await delay(100)
+    const session = findSession(sid)
+    if (patch.task) session.task = patch.task
+    if (patch.basedOnWorkMapId !== undefined)
+      session.basedOnWorkMapId = patch.basedOnWorkMapId ?? undefined
+    if (patch.status === "live" && session.status === "intake") session.status = "live"
+    return { ...session }
+  },
+
+  async listSessionEvents(sid) {
+    await delay(100)
+    return [...(events.get(sid) ?? [])]
+  },
+
+  async recordEvent(sid, event) {
+    await delay(50)
+    if (captureStatus.offTheRecord && event.kind !== "off_record") {
+      return { id: "not-recorded", sessionId: sid, ...event }
+    }
+    if (event.kind === "question") findSession(sid).questionsAsked += 1
+    return push(sid, event)
+  },
+
+  async postTick(sid, tick) {
+    await delay(300)
+    if (captureStatus.offTheRecord) return { processed: false, events: [], questions: [] }
+    const created = tick.erp.map((signal) =>
+      push(sid, {
+        at: signal.at,
+        kind: "screen",
+        text: signal.text,
+        important: signal.kind !== "navigate",
+      }),
+    )
+    const questions: LiveQuestion[] = []
+    const change = tick.erp.find((s) => s.kind === "field_change" || s.kind === "action")
+    if (change && tick.at - (lastQuestionAt.get(sid) ?? -999) > 45) {
+      lastQuestionAt.set(sid, tick.at)
+      questions.push({
+        id: id("q"),
+        question: `${change.text}. What made you decide that, and is there a case where you wouldn't?`,
+        guardrail: true,
+        at: tick.at,
+        screen: "current",
+      })
+    }
+    return { processed: true, screen: "current", events: created, questions }
   },
 
   async getCaptureStatus() {
@@ -154,19 +231,135 @@ export const mockApi: SocratesApi = {
     return captureStatus
   },
 
+  async setCaptureStatus(patch) {
+    await delay(50)
+    captureStatus = {
+      ...captureStatus,
+      ...patch,
+      signals: { ...captureStatus.signals, ...patch.signals },
+    }
+    return captureStatus
+  },
+
   async setOffTheRecord(offTheRecord) {
     await delay(150)
+    const sid = captureStatus.liveSessionId
+    if (sid && offTheRecord !== captureStatus.offTheRecord && startedAt.has(sid)) {
+      push(sid, {
+        at: elapsed(sid),
+        kind: "off_record",
+        text: offTheRecord
+          ? "Expert went off the record — nothing is captured"
+          : "Back on the record",
+      })
+    }
     captureStatus = { ...captureStatus, offTheRecord }
-    offRecordEvents.push({
-      id: `off-${offRecordEvents.length}`,
-      sessionId: LIVE_SESSION_ID,
-      at: elapsedSec(),
-      kind: "off_record",
-      text: offTheRecord
-        ? "Expert went off the record — nothing is captured"
-        : "Back on the record",
-    })
     return captureStatus
+  },
+
+  async finishCapture(sid) {
+    await delay(1200)
+    const session = findSession(sid)
+    if (session.workMapId) return findMap(session.workMapId)
+    const important = (events.get(sid) ?? []).filter((e) => e.important)
+    const screen = (at: number, caption: string) => ({
+      sessionId: sid,
+      at,
+      screenshotUrl: "/mock/erp-invoice-4471.svg",
+      caption,
+    })
+    const map: WorkMap = {
+      id: id("wm"),
+      title: session.title,
+      summary: session.task ?? session.title,
+      domain: "Accounts payable",
+      trigger: "When the AP inbox has invoices due before the close.",
+      expert: session.expert,
+      status: "in_debrief",
+      updatedAt: new Date().toISOString(),
+      sessionIds: [sid],
+      steps: (important.length ? important : [{ at: 0, text: "Work the task" }]).map((e, i) => ({
+        id: `s${i + 1}`,
+        title: e.text,
+        kind: i % 2 ? "judgment" : "routine",
+        screen: screen(e.at, e.text),
+        decision: e.text,
+        guardrails: [],
+        edgeCases: [],
+      })),
+      debrief: [
+        "Does the €5,000 limit apply per line or to the whole invoice?",
+        "Who do you ask when you're unsure, and how fast do they usually answer?",
+        "Is there a case where you'd post an invoice without a goods receipt?",
+      ].map((question, i) => ({ id: `d${i + 1}`, question, resolved: false })),
+    }
+    workMaps.unshift(map)
+    session.status = "awaiting_debrief"
+    session.durationSec = elapsed(sid)
+    session.workMapId = map.id
+    captureStatus = { ...captureStatus, active: false }
+    return map
+  },
+
+  async answerDebrief(mapId, itemId, reply) {
+    await delay(200)
+    const map = findMap(mapId)
+    const item = map.debrief.find((d) => d.id === itemId) ?? notFound(`Question ${itemId}`)
+    item.answer = {
+      text: reply.text,
+      speaker: map.expert,
+      source: "debrief",
+      prompt: item.question,
+      at: reply.at,
+    }
+    item.resolved = true
+    return structuredClone(map)
+  },
+
+  async requestTeachBack(mapId) {
+    await delay(800)
+    const map = findMap(mapId)
+    const steps = map.steps.map((s) => s.title.toLowerCase()).join(", then ")
+    map.teachBack = {
+      summary: `Here's how I understand it: you ${steps}. Did I get that right?`,
+      confirmed: false,
+      corrections: map.teachBack?.corrections ?? [],
+    }
+    return structuredClone(map)
+  },
+
+  async replyTeachBack(mapId, reply) {
+    await delay(800)
+    const map = findMap(mapId)
+    if (!map.teachBack) throw new Error("Request a teach-back first")
+    if (reply.correction) {
+      const correction: Quote = {
+        text: reply.correction,
+        speaker: map.expert,
+        source: "debrief",
+        prompt: "Did I get that right?",
+        at: reply.at,
+      }
+      map.teachBack.corrections.push(correction)
+    }
+    if (reply.confirmed) {
+      map.teachBack.confirmed = true
+      if (map.debrief.every((d) => d.resolved)) {
+        map.status = "confirmed"
+        const session = sessions.find((s) => s.workMapId === map.id)
+        if (session) session.status = "mapped"
+      }
+    }
+    return structuredClone(map)
+  },
+
+  async checkDecision(mapId, check) {
+    await delay(700)
+    return verdict(findMap(mapId), check.action, check.record)
+  },
+
+  async getVoiceSession() {
+    return null
   },
 
   async ask({ question, workMapId }) {

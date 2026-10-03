@@ -9,30 +9,52 @@ export class ApiError extends Error {
   }
 }
 
-/** REST client. Endpoint paths are the proposed contract with the backend. */
+/** REST client for the backend in server/router.ts. */
 export function createHttpApi(baseUrl: string): SocratesApi {
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await fetch(`${baseUrl}${path}`, {
       ...init,
       headers: { "Content-Type": "application/json", ...init?.headers },
     })
-    if (!res.ok) throw new ApiError(res.status, await res.text())
+    if (!res.ok) {
+      const text = await res.text()
+      let message = text
+      try {
+        message = (JSON.parse(text) as { error?: string }).error ?? text
+      } catch {
+        // not JSON
+      }
+      throw new ApiError(res.status, message)
+    }
     return res.json() as Promise<T>
   }
+  const post = <T>(path: string, body?: unknown, method = "POST") =>
+    request<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) })
 
   return {
     listWorkMaps: () => request("/workmaps"),
     getWorkMap: (id) => request(`/workmaps/${id}`),
+    findRelatedWorkMaps: (task) => post("/workmaps/related", { task }),
 
     listSessions: () => request("/sessions"),
+    getSession: (id) => request(`/sessions/${id}`),
+    createSession: (input) => post("/sessions", input),
+    updateSession: (id, patch) => post(`/sessions/${id}`, patch, "PATCH"),
     listSessionEvents: (sessionId) => request(`/sessions/${sessionId}/events`),
+    recordEvent: (sessionId, event) => post(`/sessions/${sessionId}/events`, event),
+    postTick: (sessionId, tick) => post(`/sessions/${sessionId}/ticks`, tick),
     getCaptureStatus: () => request("/capture/status"),
-    setOffTheRecord: (offTheRecord) =>
-      request("/capture/status", {
-        method: "PATCH",
-        body: JSON.stringify({ offTheRecord }),
-      }),
+    setCaptureStatus: (patch) => post("/capture/status", patch, "PATCH"),
+    setOffTheRecord: (offTheRecord) => post("/capture/status", { offTheRecord }, "PATCH"),
 
-    ask: (body) => request("/ask", { method: "POST", body: JSON.stringify(body) }),
+    finishCapture: (sessionId) => post(`/sessions/${sessionId}/finish`),
+    answerDebrief: (id, itemId, answer) => post(`/workmaps/${id}/debrief/${itemId}`, answer),
+    requestTeachBack: (id) => post(`/workmaps/${id}/teach-back`),
+    replyTeachBack: (id, reply) => post(`/workmaps/${id}/teach-back/reply`, reply),
+
+    checkDecision: (id, check) => post(`/workmaps/${id}/check`, check),
+    getVoiceSession: (role) => request(`/voice/${role}`),
+
+    ask: (body) => post("/ask", body),
   }
 }

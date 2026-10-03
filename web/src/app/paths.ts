@@ -7,4 +7,9 @@ export const paths = {
     stepId ? `/work-maps/${id}?step=${stepId}` : `/work-maps/${id}`,
   ask: () => "/ask",
   capture: () => "/capture",
+  session: (id: ID) => `/capture/${id}`,
+  teach: (workMapId?: ID) => (workMapId ? `/teach/${workMapId}` : "/teach"),
+  /** Mock ERP (opens in its own tab). */
+  erp: () => "/erp",
+  erpInvoice: (id: string) => `/erp/invoices/${id}`,
 }

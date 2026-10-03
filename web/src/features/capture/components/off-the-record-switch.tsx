@@ -19,7 +19,7 @@ export function OffTheRecordSwitch({ id = "off-the-record" }: { id?: string }) {
       <Switch
         id={id}
         checked={checked}
-        disabled={!status?.extensionConnected}
+        disabled={!status?.active}
         onCheckedChange={(value) => setOffTheRecord.mutate(value)}
       />
     </div>

@@ -1,6 +1,6 @@
 /**
- * Shared data contract between the frontend, the backend and the browser
- * extension. If you change a shape here, tell the others — the backend's
+ * Shared data contract between the frontend, the backend (server/) and the
+ * mock ERP. If you change a shape here, tell the others — the backend's
  * Work Map JSON (LLM output) must match these types.
  *
  * Conventions:
@@ -158,10 +158,12 @@ export interface WorkMapSummary {
 }
 
 /* ------------------------------------------------------------------ */
-/* Capture — what the browser extension streams in                     */
+/* Capture — screen ticks from the web app + signals from the mock ERP */
 /* ------------------------------------------------------------------ */
 
-export type SessionStatus = "live" | "processing" | "awaiting_debrief" | "mapped"
+export type SessionStatus =
+  /** Expert is describing the task; nothing is sampled yet. */
+  "intake" | "live" | "processing" | "awaiting_debrief" | "mapped"
 
 export interface CaptureSession {
   id: ID
@@ -173,6 +175,17 @@ export interface CaptureSession {
   eventCount: number
   questionsAsked: number
   workMapId?: ID
+  /** What the expert said they're about to do. */
+  task?: string
+  /** Saved Work Map (memory) this session extends, if the expert confirmed a match. */
+  basedOnWorkMapId?: ID
+}
+
+export interface NewSession {
+  title: string
+  task: string
+  expertName: string
+  expertRole: string
 }
 
 export type SessionEventKind =
@@ -191,15 +204,123 @@ export interface SessionEvent {
   at: number
   kind: SessionEventKind
   text: string
+  /** Matters to the workflow: became (or linked to) a candidate step. */
+  important?: boolean
+  /** Screenshot of the tick that produced this event. */
+  screenshotUrl?: string
+  /** Step in the matched (memory) Work Map this event corresponds to. */
+  matchedStepId?: ID
+  /** Expert decided differently than the matched step. */
+  deviation?: boolean
+  /** For `question` / answer `speech` events: the question this belongs to. */
+  questionId?: ID
+}
+
+/** What the session page posts when something happens outside the tick loop. */
+export interface NewSessionEvent {
+  at: number
+  kind: SessionEventKind
+  text: string
+  questionId?: ID
 }
 
 export interface CaptureStatus {
-  extensionConnected: boolean
-  /** Signals the extension currently streams. */
-  signals: { screen: boolean; microphone: boolean; keystrokes: boolean }
+  /** A capture session is running in some tab. */
+  active: boolean
+  /** Signals currently captured. `erp` = typing/field events from the mock ERP. */
+  signals: { screen: boolean; microphone: boolean; erp: boolean }
   /** Expert took the current moment off the record. */
   offTheRecord: boolean
   liveSessionId?: ID
+}
+
+/** Something the mock ERP reported between two ticks (exact, unlike vision). */
+export interface ErpSignal {
+  at: number
+  kind: "navigate" | "field_change" | "action"
+  text: string
+}
+
+/** One sample, every ~1–2 s. */
+export interface Tick {
+  at: number
+  /** Downscaled JPEG, base64 without the data: prefix. Omitted if the frame didn't change. */
+  image?: string
+  typing: boolean
+  speaking: boolean
+  erp: ErpSignal[]
+}
+
+/** A question the agent may ask live, if a natural pause comes soon enough. */
+export interface LiveQuestion {
+  id: ID
+  question: string
+  stepId?: ID
+  /** About a limit, an exception or when to stop and ask someone. */
+  guardrail: boolean
+  /** Seconds since session start. */
+  at: number
+  /** The screen the question is about; it expires once the screen moves on. */
+  screen: string
+}
+
+export interface TickResult {
+  /** False if the tick was dropped because a vision call was still running. */
+  processed: boolean
+  /** Short label of what's on screen now, e.g. "Invoice 4471 detail". */
+  screen?: string
+  events: SessionEvent[]
+  questions: LiveQuestion[]
+}
+
+/* ------------------------------------------------------------------ */
+/* Debrief — closing the gaps after the task                           */
+/* ------------------------------------------------------------------ */
+
+export interface DebriefAnswer {
+  text: string
+  at: number
+}
+
+export interface TeachBackReply {
+  confirmed: boolean
+  /** The expert's correction, in their words. */
+  correction?: string
+  at: number
+}
+
+/* ------------------------------------------------------------------ */
+/* Teach — guiding a new hire through a Work Map                       */
+/* ------------------------------------------------------------------ */
+
+/** A save the mock ERP is holding until the tutor allows it. */
+export interface DecisionCheck {
+  /** "post" | "hold" | "request_approval" */
+  action: string
+  /** The record as it would be saved (field → value). */
+  record: Record<string, unknown>
+}
+
+export interface DecisionVerdict {
+  allow: boolean
+  /** One or two sentences for the learner, in the expert's reasoning. */
+  message: string
+  stepId?: ID
+  guardrailId?: ID
+  /** The expert's own words backing the verdict. */
+  quote?: Quote
+  screen?: ScreenMoment
+}
+
+/* ------------------------------------------------------------------ */
+/* Voice — ElevenAgents                                                */
+/* ------------------------------------------------------------------ */
+
+export type VoiceRole = "interviewer" | "tutor"
+
+export interface VoiceSession {
+  /** Signed WebSocket URL; the API key never reaches the browser. */
+  signedUrl: string
 }
 
 /* ------------------------------------------------------------------ */

@@ -109,7 +109,7 @@ function ExtensionCard({ status }: { status: CaptureStatus | undefined }) {
   const signals = [
     { label: "Screen", on: status?.signals.screen },
     { label: "Microphone", on: status?.signals.microphone },
-    { label: "Keystrokes", on: status?.signals.keystrokes },
+    { label: "Mock ERP", on: status?.signals.erp },
   ]
   return (
     <Card>
