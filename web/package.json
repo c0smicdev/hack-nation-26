@@ -11,7 +11,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc -b",
     "preview": "vite preview",
-    "setup:agents": "node scripts/setup-agents.ts"
+    "setup:agents": "node scripts/setup-agents.ts",
+    "dev:mock": "vite --mode mock"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

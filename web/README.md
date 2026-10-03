@@ -1,73 +1,109 @@
 # Socrates — web
 
-React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui (Radix) · React Router · TanStack Query
+React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui (Radix) · React Router · TanStack Query · `@elevenlabs/react` · Claude (`@anthropic-ai/sdk`)
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 (runs on mock data)
+npm run dev          # http://localhost:5173 — app + backend (/api) in one process
+npm run dev:mock     # same UI on in-memory mocks, no keys needed
+npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents
 ```
 
-| Script              | What it does                         |
-| ------------------- | ------------------------------------ |
-| `npm run dev`       | Dev server with HMR                  |
-| `npm run build`     | Typecheck + production build         |
-| `npm run lint`      | ESLint                               |
-| `npm run format`    | Prettier (with Tailwind class order) |
-| `npm run typecheck` | `tsc -b` only                        |
+| Script                 | What it does                                                         |
+| ---------------------- | -------------------------------------------------------------------- |
+| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                 |
+| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend          |
+| `npm run setup:agents` | Pushes `prompts/interviewer.md` + `prompts/tutor.md` to ElevenAgents |
+| `npm run build`        | Typecheck + production build                                         |
+| `npm run lint`         | ESLint                                                               |
+| `npm run format`       | Prettier (with Tailwind class order)                                 |
+| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                          |
+
+## Setup (real backend + voice)
+
+1. `cp .env.example .env.local` and fill in `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`, and `VITE_API_URL=/api`. `.env.local` is gitignored; never prefix secrets with `VITE_`.
+2. `npm run setup:agents`: creates both agents and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts.
+3. `npm run dev`. Use Chrome (tab sharing + microphone).
+
+Without agent ids (or if the mic is blocked) the voice panel falls back to **text mode**: questions, debrief and teach-back still work with buttons and text boxes.
 
 ## Pages
 
-| Route            | Page                                                                                                                                                                               |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`              | **Work Maps** library: search and filter captured workflows                                                                                                                        |
-| `/work-maps/:id` | **Work Map**: step timeline, screen moment, decision, the expert's reason, guardrails, edge cases, debrief and teach-back. `?step=s4` deep-links a step; ← / → moves between steps |
-| `/ask`           | **Ask Socrates**: Q&A across all workflows, answers cite the exact step                                                                                                            |
-| `/capture`       | **Capture**: extension status, live event feed, off-the-record switch, sessions                                                                                                    |
+| Route                  | Page                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| `/`                    | **Work Maps** library                                                                                  |
+| `/work-maps/:id`       | **Work Map**: steps, screen moments, reasons, guardrails, clickable **flowchart**, debrief, teach-back |
+| `/ask`                 | **Ask Socrates**: Q&A across Work Maps, answers cite the step                                          |
+| `/capture`             | **Capture**: start a session, list sessions                                                            |
+| `/capture/:id`         | **Live session**: intake (memory lookup) → screen capture with live questions → debrief → teach-back   |
+| `/teach`, `/teach/:id` | **Teach**: a new hire works training cases in the ERP; the tutor holds wrong saves                     |
+| `/erp`                 | **Mock ERP** (Nordwind): open in its own tab, share it during capture                                  |
+
+## Demo script
+
+1. **Capture.** `/capture` → _Open mock ERP_ → _Start session_ → _Share screen & start talking_ and pick the "Nordwind ERP" tab. Tell Socrates what you're doing; it checks memory (the seeded AP Work Map matches, so say "it's new" to document from scratch, or "same" to see it skip known steps).
+2. Work the **Month-end batch**: re-code 4471 to `0400` capex, send 4472 (Plzeň) for a second approval, hold 4473 (Weber, December), post 4474. Think out loud. Socrates asks at pauses (never while you type or talk, max 5 per 10 min).
+3. Say "I'm done". Answer the debrief questions, then confirm (or correct) the teach-back. The Work Map is saved to memory with a flowchart.
+4. **Teach.** Open the Work Map → _Teach a new hire_ → _Start lesson_. In the ERP switch to **Training cases** and try to post 4480 as opex: the save is held and the tutor explains it in the expert's words.
 
 ## Structure
 
 ```
+server/                backend (runs in the Vite dev server, and on Vercel via api/index.ts)
+  router.ts            REST routes
+  capture.ts           sessions, ticks → vision → events/questions, memory lookup
+  workmap.ts           draft Work Map, debrief, teach-back, merge into memory
+  teach.ts             save checks, ElevenLabs signed URLs, Ask
+  llm.ts               Claude calls (structured output, validated with zod)
+  store.ts             in-memory storage (MVP)
+prompts/               one markdown file per prompt (vision, Work Map, tutor, agents…)
+scripts/setup-agents.ts  ElevenAgents config as code
 src/
   app/                 shell: router, providers, layout, paths
-  components/          shared app components (page header, empty/error states)
-  components/ui/       shadcn components (generated, don't hand-edit much)
+  components/          shared components (voice panel, screen moment, page header…)
   features/
-    work-maps/         library + work map document
+    work-maps/         library, Work Map document, flowchart
     ask/               Q&A panel and page
-    capture/           extension status, live feed, sessions
+    capture/           session list, live session, debrief
+    teach/             lesson with the tutor
+    erp/               mock ERP (separate shell)
   lib/
-    api/
-      types.ts         ← THE data contract (shared with backend + extension)
-      client.ts        SocratesApi interface
-      http.ts          real backend (REST)
-      mock/            in-memory fixtures (default)
-    format.ts          timestamps, durations, pluralize…
-public/mock/           fake ERP screenshots used by the fixtures
+    api/               types.ts (THE contract), client.ts, http.ts, mock/
+    voice/             useVoiceAgent (ElevenAgents)
+    capture/           screen sampling + frame diff
+    erp/               ERP demo data + BroadcastChannel protocol
 ```
 
-Each feature folder owns its pages, components and `hooks.ts` (React Query). Features may import from `lib/`, `components/` and `app/paths`, but not each other's internals. The one exception is `AskPanel`, which the Work Map page reuses.
+Each feature folder owns its pages, components and `hooks.ts` (React Query). Features may import from `lib/`, `components/` and `app/paths`, not from each other (except `AskPanel`).
+
+## How the pieces talk
+
+- **Mock ERP ↔ Socrates:** same origin, so a `BroadcastChannel` (`lib/erp/bridge.ts`): screen, field changes, typing, actions, and a save gate (`save_request` → `save_pending` → `save_decision`) that only waits while a Teach lesson sends a heartbeat.
+- **Capture:** the session page samples the shared tab every 1.5 s, skips unchanged frames, keeps one vision call in flight (stale frames are dropped), and posts `Tick`s. Vision (Claude Haiku 4.5) returns events, candidate steps and at most one question; the page decides _when_ to ask.
+- **Voice:** the browser gets a signed URL from `/api/voice/:role`; the agent calls client tools (`lookup_memory`, `start_capture`, `set_off_record`, `finish_task`, `record_debrief_answer`, `get_teach_back`, `reply_teach_back`, `finish_lesson`). Screen events reach it as contextual updates; live questions as `[QUESTION …]` messages.
+- **Quotes:** Work Map JSON from Claude references transcript utterances by id; the backend copies the expert's exact words, so every reason and guardrail links to what they actually said.
 
 ## Working with the backend
 
-- **Mock by default.** Without `VITE_API_URL`, `api` is `mockApi`, so the UI works before the backend exists.
-- **Real backend:** copy `.env.example` to `.env.local` and set `VITE_API_URL=http://localhost:8000/api`. Endpoints are listed in `src/lib/api/http.ts`.
-- **Changing the contract:** edit `lib/api/types.ts`, then update `client.ts`, `http.ts` and `mock/`. Tell the team, because the backend's Work Map JSON (LLM output) has to match these types.
-- **Live data** is polled every 2 s (`features/capture/hooks.ts`). Swap in SSE or WebSocket there without touching the pages.
+- **Mock by default.** Without `VITE_API_URL`, `api` is `mockApi` (no vision or voice; ERP signals become events and questions are canned).
+- **Changing the contract:** edit `lib/api/types.ts`, then update `client.ts`, `http.ts`, `mock/` and `server/`. Tell the team.
+- **Storage is in memory** (`server/store.ts`): restart = clean slate, seeded with the fixture Work Maps. Move to Postgres + Blob before relying on Vercel (each warm function has its own copy).
+- **Models:** vision `claude-haiku-4-5`, everything else `claude-opus-5-5`; override with `SOCRATES_VISION_MODEL` / `SOCRATES_REASONING_MODEL`. The voice agents run Claude Sonnet 5.5 inside ElevenAgents (`ELEVENLABS_LLM` in the setup script).
 
 ## Recipes
 
 **Add a page:** create `features/<name>/<name>-page.tsx`, add a route in `app/router.tsx`, add a path in `app/paths.ts`, and add a nav item in `app/app-layout.tsx`.
 
-**Add an API call:** add the method to `SocratesApi` in `client.ts`, implement it in `http.ts` and `mock/index.ts`, then wrap it in a hook in the feature's `hooks.ts`.
+**Add an API call:** add the method to `SocratesApi` in `client.ts`, implement it in `http.ts`, `mock/index.ts` and a route in `server/router.ts`, then wrap it in a hook.
+
+**Tune a prompt:** edit `prompts/*.md`. Server prompts reload on the next call in dev; agent prompts need `npm run setup:agents`.
 
 **Add a shadcn component:** `npx shadcn@latest add <component>` (run from `web/`).
 
-**Voice (ElevenLabs):** add a `features/voice/` folder with `@elevenlabs/react`. The interviewer and tutor can call the same `api.ask` / Work Map data, and `AskPanel` is where the voice button goes.
-
 ## Privacy
 
-Screenshots should be redacted **server-side** (e.g. Presidio) before they reach the frontend. `ScreenMomentView` also draws `redactions` boxes on top as a second line of defence. Never rely on the overlay alone, because the raw image would still be downloadable.
+Off the record (switch or "take that off the record") stops frames, speech storage and questions; only the time span is logged. Screenshots are not yet redacted server-side (Presidio is still to do); `ScreenMomentView` draws `redactions` boxes as a second line of defence only. Demo with fake data only.
 
 ## Deploy (Vercel)
 
-Import the repo and set **Root Directory = `web`**. The framework preset is detected as Vite. `vercel.json` rewrites all routes to `index.html` for client-side routing. Set `VITE_API_URL` in the project's environment variables.
+Root Directory = `web`. `vercel.json` routes `/api/*` to the single function `api/index.ts` (prompts are bundled via `includeFiles`) and everything else to `index.html`. Set the server env vars and `VITE_API_URL=/api`. Not yet tested on Vercel, and in-memory storage won't persist there.
