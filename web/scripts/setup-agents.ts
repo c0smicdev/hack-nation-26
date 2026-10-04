@@ -305,6 +305,17 @@ const agents = {
         45,
       ),
       clientTool(
+        "lookup_guardrail",
+        "Look up the expert's guardrails and edge cases (limits, exceptions, who to ask) for a topic, with their own words and the step id. Use it before you state a rule, an amount or an exception.",
+        {
+          topic: {
+            type: "string",
+            description:
+              "What the rule is about, e.g. 'capex limit', 'Czech subsidiary', 'December double billing'",
+          },
+        },
+      ),
+      clientTool(
         "show_step",
         "Show the learner the Work Map step your answer or heads-up is about: what the expert did on screen and why.",
         { step_id: { type: "string", description: "Id of the Work Map step, e.g. s4" } },

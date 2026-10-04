@@ -43,6 +43,7 @@ import { stepNodeId, workMapToMermaid } from "@/features/work-maps/flowchart"
 
 import { supervisorBrief } from "./brief"
 import { type ChatItem, ChatPanel } from "./components/chat-panel"
+import { lookupGuardrails } from "./guardrails"
 import { LeaveGuard } from "./components/leave-guard"
 import { MentorSteps } from "./components/mentor-steps"
 import { useSupervisedWorkMap } from "./hooks"
@@ -158,6 +159,8 @@ function SuperviseView({ map }: { map: WorkMap }) {
         // The agent tends to end its turn after a tool call: tell it to keep talking.
         return `${answer}\n\n(What you see on their screen. Now say this to the learner, briefly, in your own words.${stepId ? ` The step [${stepId}] is already linked in their chat: don't call show_step for it.` : ""})`
       },
+      lookup_guardrail: ({ topic }) =>
+        `${lookupGuardrails(map, String(topic ?? ""))}\n\n(Quote ${expertFirst}'s words when you answer, and call show_step with the step id if it helps. Never invent a rule that isn't listed.)`,
       show_step: ({ step_id }) => {
         const step = map.steps.find((s) => s.id === String(step_id))
         if (!step) {
