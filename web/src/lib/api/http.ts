@@ -1,3 +1,5 @@
+import { accessToken } from "@/lib/auth/supabase"
+
 import type { SocratesApi } from "./client"
 
 export class ApiError extends Error {
@@ -12,9 +14,14 @@ export class ApiError extends Error {
 /** REST client for the backend in server/router.ts. */
 export function createHttpApi(baseUrl: string): SocratesApi {
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    const token = await accessToken()
     const res = await fetch(`${baseUrl}${path}`, {
       ...init,
-      headers: { "Content-Type": "application/json", ...init?.headers },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...init?.headers,
+      },
     })
     if (!res.ok) {
       const text = await res.text()
