@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { api, type ID } from "@/lib/api"
 
-/** Only confirmed Work Maps are safe to learn from. */
+/** Only confirmed workflows are safe to learn from. */
 export function useConfirmedWorkMaps() {
   return useQuery({
     queryKey: ["work-maps"],

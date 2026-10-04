@@ -88,7 +88,7 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
           to={paths.library()}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ChevronLeft className="size-4" /> Work Maps
+          <ChevronLeft className="size-4" /> Workflows
         </Link>
 
         <div className="flex flex-wrap items-start justify-between gap-4">

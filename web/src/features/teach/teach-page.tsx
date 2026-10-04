@@ -16,7 +16,7 @@ export function TeachPage() {
     <div className="mx-auto max-w-4xl space-y-8">
       <PageHeader
         title="Teach"
-        description="Pick a confirmed Work Map. Socrates guides a new hire through real cases in the ERP by voice, in the expert's words, and stops them before a wrong decision is saved."
+        description="Pick a confirmed workflow. Socrates guides a new hire through real cases in the ERP by voice, in the expert's words, and stops them before a wrong decision is saved."
       />
       {maps.isError ? (
         <ErrorState error={maps.error} retry={maps.refetch} />

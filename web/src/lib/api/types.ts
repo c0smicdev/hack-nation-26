@@ -1,7 +1,7 @@
 /**
  * Shared data contract between the frontend, the backend (server/) and the
  * mock ERP. If you change a shape here, tell the others — the backend's
- * Work Map JSON (LLM output) must match these types.
+ * workflow JSON (LLM output) must match these types.
  *
  * Conventions:
  * - Timestamps inside a session (`at`) are seconds since the session started.
@@ -43,7 +43,7 @@ export interface Profile {
 export type ProfilePatch = Partial<Pick<Profile, "displayName" | "role" | "preferences">>
 
 /* ------------------------------------------------------------------ */
-/* Work Map — the "brief, interactive document" for one workflow       */
+/* workflow — the "brief, interactive document" for one workflow       */
 /* ------------------------------------------------------------------ */
 
 export type WorkMapStatus =
@@ -202,7 +202,7 @@ export interface CaptureSession {
   workMapId?: ID
   /** What the expert said they're about to do. */
   task?: string
-  /** Saved Work Map (memory) this session extends, if the expert confirmed a match. */
+  /** Saved workflow (memory) this session extends, if the expert confirmed a match. */
   basedOnWorkMapId?: ID
 }
 
@@ -233,7 +233,7 @@ export interface SessionEvent {
   important?: boolean
   /** Screenshot of the tick that produced this event. */
   screenshotUrl?: string
-  /** Step in the matched (memory) Work Map this event corresponds to. */
+  /** Step in the matched (memory) workflow this event corresponds to. */
   matchedStepId?: ID
   /** Expert decided differently than the matched step. */
   deviation?: boolean
@@ -315,7 +315,7 @@ export interface LiveStep {
   decision: string
   /** Latest screenshot of this step. */
   screenshotUrl?: string
-  /** Decided differently than the saved Work Map. */
+  /** Decided differently than the saved workflow. */
   deviation?: boolean
 }
 
@@ -336,7 +336,7 @@ export interface TeachBackReply {
 }
 
 /* ------------------------------------------------------------------ */
-/* Teach — guiding a new hire through a Work Map                       */
+/* Teach — guiding a new hire through a workflow                       */
 /* ------------------------------------------------------------------ */
 
 /** A save the mock ERP is holding until the tutor allows it. */

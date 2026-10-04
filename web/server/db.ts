@@ -89,7 +89,7 @@ async function pull(supabase: SupabaseClient) {
   let mapsChanged = false
   let sessionsChanged = false
 
-  for (const row of check(maps, "load work maps") as Row<WorkMap>[]) {
+  for (const row of check(maps, "load workflows") as Row<WorkMap>[]) {
     latest = max(latest, row.updated_at)
     const json = stable(row.data)
     if (state.hashes.work_maps.get(row.id) === json) continue
@@ -100,7 +100,7 @@ async function pull(supabase: SupabaseClient) {
     else store.workMaps[i] = row.data
   }
   // Drafts merged into a saved map get deleted; drop them here too.
-  const live = new Set((check(ids, "list work maps") as { id: string }[]).map((r) => r.id))
+  const live = new Set((check(ids, "list workflows") as { id: string }[]).map((r) => r.id))
   for (const id of state.hashes.work_maps.keys()) {
     if (live.has(id)) continue
     state.hashes.work_maps.delete(id)

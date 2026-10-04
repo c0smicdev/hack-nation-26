@@ -67,7 +67,7 @@ const split = (s: unknown) =>
 /**
  * A new hire works training cases in the mock ERP while the tutor (ElevenAgents)
  * guides them. Every save is held until Claude checks it against the expert's
- * Work Map, so a wrong decision is caught before it's saved.
+ * workflow, so a wrong decision is caught before it's saved.
  */
 function Lesson({ map }: { map: WorkMap }) {
   const { data: me } = useMe()
@@ -253,7 +253,7 @@ function Lesson({ map }: { map: WorkMap }) {
                 <CardTitle>Decisions</CardTitle>
                 <CardDescription>
                   {checks.length === 0
-                    ? "Work a case in the ERP. Each save is checked against the Work Map first."
+                    ? "Work a case in the ERP. Each save is checked against the workflow first."
                     : `${checks.length} checked · ${caught} caught before saving`}
                 </CardDescription>
               </CardHeader>
@@ -360,7 +360,7 @@ function HeldCard({
           )}
           {step && (
             <Link to={paths.workMap(map.id, step.id)} className="text-xs underline">
-              See the step in the Work Map
+              See the step in the workflow
             </Link>
           )}
         </div>

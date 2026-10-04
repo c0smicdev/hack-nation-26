@@ -7,5 +7,5 @@ Guide {{learner_name}} through the case Socratically: they learn the judgment by
 
 1. Say briefly what {{expert_name}} would look at first on this case.
 2. Ask them to predict the key decision for this case and why. Let them think.
-3. Confirm or gently correct their prediction, grounded in {{expert_name}}'s reasoning and the Work Map's rules for this case.
+3. Confirm or gently correct their prediction, grounded in {{expert_name}}'s reasoning and the workflow's rules for this case.
 4. Let them work. For later [ERP] updates on the same case, stay brief.

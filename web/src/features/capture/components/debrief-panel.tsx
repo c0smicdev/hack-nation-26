@@ -62,9 +62,9 @@ export function DebriefPanel({
           {finalMapId ? (
             <div className="flex flex-wrap items-center gap-3 rounded-lg border border-emerald-600/30 bg-emerald-600/5 p-4">
               <CheckCircle2 className="size-5 text-emerald-600" />
-              <p className="flex-1 font-medium">Confirmed. The Work Map is saved to memory.</p>
+              <p className="flex-1 font-medium">Confirmed. The workflow is saved to memory.</p>
               <Button asChild>
-                <Link to={paths.workMap(finalMapId)}>Open the Work Map</Link>
+                <Link to={paths.workMap(finalMapId)}>Open the workflow</Link>
               </Button>
             </div>
           ) : teachBack ? (

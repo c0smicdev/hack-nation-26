@@ -1,7 +1,7 @@
 import type { WorkMap } from "@/lib/api"
 import { eur, type Invoice, net } from "@/lib/erp/data"
 
-/** The Work Map as plain text for the tutor's prompt ({{work_map}}). */
+/** The workflow as plain text for the tutor's prompt ({{work_map}}). */
 export function workMapBrief(map: WorkMap) {
   const steps = map.steps.map((s, i) => {
     const lines = [`${i + 1}. ${s.title} (${s.kind}). What ${map.expert.name} does: ${s.decision}`]
