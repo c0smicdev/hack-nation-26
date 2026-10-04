@@ -15,7 +15,7 @@ import { memoryContext } from "./capture.js"
 import { models, prompt, structured, text } from "./llm.js"
 import { getWorkMap, HttpError, store } from "./store.js"
 
-/* Save gate: the mock ERP holds a save until the tutor allows it ----- */
+/* Save gate: the mock ERP holds a save until Socrates allows it --- */
 
 const VerdictOut = z.object({
   allow: z.boolean(),
@@ -61,19 +61,41 @@ export async function checkDecision(workMapId: ID, check: DecisionCheck): Promis
 
 /* Voice: signed URLs keep the ElevenLabs key on the server ----------- */
 
-const agentEnv: Record<VoiceRole, string> = {
-  interviewer: "ELEVENLABS_INTERVIEWER_AGENT_ID",
-  tutor: "ELEVENLABS_TUTOR_AGENT_ID",
-  drafter: "ELEVENLABS_DRAFTER_AGENT_ID",
+/** Env var with the agent id, and the name `npm run setup:agents` gives the agent. */
+const agents: Record<VoiceRole, { env: string; name: string }> = {
+  interviewer: { env: "ELEVENLABS_INTERVIEWER_AGENT_ID", name: "Socrates · Interviewer" },
+  drafter: { env: "ELEVENLABS_DRAFTER_AGENT_ID", name: "Socrates · New workflow" },
+  supervisor: { env: "ELEVENLABS_SUPERVISOR_AGENT_ID", name: "Socrates · Supervisor" },
+}
+const agentIdsByName = new Map<string, string>()
+
+/**
+ * The agent id from the env, or else from the account by name: a missing id (a new agent a
+ * teammate created, not yet in every .env.local or on Vercel) shouldn't silently turn voice off.
+ */
+async function agentId(role: VoiceRole, apiKey: string): Promise<string | undefined> {
+  const { env, name } = agents[role]
+  if (process.env[env]) return process.env[env]
+  if (!agentIdsByName.has(name)) {
+    const res = await fetch("https://api.elevenlabs.io/v1/convai/agents?page_size=100", {
+      headers: { "xi-api-key": apiKey },
+    })
+    if (!res.ok) throw new HttpError(502, `ElevenLabs: ${res.status} ${await res.text()}`)
+    const { agents: list } = (await res.json()) as { agents: { agent_id: string; name: string }[] }
+    for (const agent of list) agentIdsByName.set(agent.name, agent.agent_id)
+  }
+  return agentIdsByName.get(name)
 }
 
 export async function voiceSession(role: VoiceRole): Promise<VoiceSession | null> {
+  if (!Object.hasOwn(agents, role)) throw new HttpError(404, `No voice agent "${role}"`)
   const apiKey = process.env.ELEVENLABS_API_KEY
-  const agentId = process.env[agentEnv[role]]
   // No agent configured → the UI falls back to text.
-  if (!apiKey || !agentId) return null
+  if (!apiKey) return null
+  const id = await agentId(role, apiKey)
+  if (!id) return null
   const res = await fetch(
-    `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${encodeURIComponent(agentId)}`,
+    `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${encodeURIComponent(id)}`,
     { headers: { "xi-api-key": apiKey } },
   )
   if (!res.ok) throw new HttpError(502, `ElevenLabs: ${res.status} ${await res.text()}`)

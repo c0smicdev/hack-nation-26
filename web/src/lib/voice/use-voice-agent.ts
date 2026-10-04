@@ -30,7 +30,7 @@ const stripToneTags = (text: string) =>
     .trim()
 
 /**
- * One ElevenAgents conversation (interviewer or tutor). Must be used inside a
+ * One ElevenAgents conversation (interviewer, supervisor or drafter). Must be used inside a
  * <ConversationProvider>. The signed URL comes from our backend, so the API key
  * never reaches the browser. Without a configured agent it falls back to `text`
  * mode and the page drives the flow with buttons instead.

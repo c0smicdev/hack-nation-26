@@ -48,6 +48,8 @@ Prefer questions that reveal a **reason** or a **guardrail** (a limit, an except
 
 Set `guardrail` true whenever the question probes a limit or threshold, an approval, an exception, or when to stop and ask someone, even if it's phrased as "why". Use `aboutEventIndex` to point at the event the question is about (index into your `events`), or `aboutCandidateStepId` for an existing step. `debriefQuestions` is usually empty; never repeat a question from the lists.
 
+**Coaching style** (named in the context): **balanced** follows the live budget above as it is. **silent**: the expert wants as few interruptions as possible, so Ask now only for a guardrail, a deviation or a high-risk action; queue everything else for the debrief. **active**: the expert wants to be asked more, so the live budget goes up to 8 per 10 minutes and every decision whose reason is unknown is worth asking now, not only until 3 are live.
+
 ## Screen
 
 `screen`: a short label of what's on screen now, specific enough to tell work items apart (e.g. "Invoice 4471 detail", "Invoice list").

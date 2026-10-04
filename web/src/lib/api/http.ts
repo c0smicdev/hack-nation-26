@@ -64,6 +64,11 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     replyTeachBack: (id, reply) => post(`/workmaps/${id}/teach-back/reply`, reply),
 
     checkDecision: (id, check) => post(`/workmaps/${id}/check`, check),
+    startSupervision: (id, input) => post(`/workmaps/${id}/supervisions`, input),
+    postSupervisionTick: (supervisionId, tick) =>
+      post(`/supervisions/${supervisionId}/ticks`, tick),
+    askAboutScreen: (supervisionId, question) =>
+      post(`/supervisions/${supervisionId}/ask`, question),
     getVoiceSession: (role) => request(`/voice/${role}`),
 
     ask: (body) => post("/ask", body),
