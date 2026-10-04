@@ -27,6 +27,23 @@ const TTS_MODEL = "eleven_v3_conversational"
 
 type AudioTag = { tag: string; description: string }
 
+/** The app's languages (src/lib/i18n/languages.ts). */
+const SPOKEN_LANGUAGES = [
+  "en",
+  "de",
+  "fr",
+  "es",
+  "it",
+  "pt",
+  "nl",
+  "pl",
+  "tr",
+  "hi",
+  "zh",
+  "ja",
+  "ko",
+]
+
 function readEnv(): Record<string, string> {
   if (!existsSync(ENV_FILE)) return {}
   return Object.fromEntries(
@@ -364,6 +381,8 @@ async function main() {
       conversation_config: {
         agent: {
           first_message: agent.firstMessage,
+          // The greeting is short; a cough or "mhm" shouldn't cut it off.
+          disable_first_message_interruptions: true,
           language: "en",
           dynamic_variables: {
             dynamic_variable_placeholders: { ...agent.placeholders, language: "English" },
@@ -376,7 +395,16 @@ async function main() {
         },
         // Scribe v2 Realtime: listening + pause detection.
         asr: { provider: "scribe_realtime", quality: "high" },
-        turn: agent.turn,
+        // Backchannels ("mhm", "ja", "d'accord") never interrupt Socrates, in every language the
+        // app speaks; by default ElevenLabs only knows the English ones, so German or French
+        // fillers cut the voice off after a second or two.
+        turn: {
+          ...agent.turn,
+          interruption_ignore_term_languages: SPOKEN_LANGUAGES,
+          merge_with_default_ignore_terms: true,
+        },
+        // Someone talking in the background (a colleague, a call) isn't the user.
+        vad: { background_voice_detection: true },
         tts: {
           model_id: TTS_MODEL,
           expressive_mode: true,
