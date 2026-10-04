@@ -8,11 +8,13 @@ import type {
   NewSession,
   NewSessionEvent,
   Person,
+  ScreenMoment,
   SessionEvent,
   Tick,
   TickResult,
   WorkMap,
 } from "../src/lib/api/types.js"
+import { locateFocus } from "./focus.js"
 import { imageBlock, models, prompt, structured, text } from "./llm.js"
 import {
   addEvent,
@@ -60,6 +62,7 @@ export function createSession(input: NewSession): CaptureSession {
     questions: [],
     visionBusy: false,
     pendingErp: [],
+    pendingFocus: new Set(),
   })
   store.captureStatus = {
     ...store.captureStatus,
@@ -95,8 +98,6 @@ export function updateSession(
 
 /* Ticks ------------------------------------------------------------- */
 
-const Rect = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() })
-
 const VisionResult = z.object({
   screen: z.string(),
   events: z.array(
@@ -109,7 +110,6 @@ const VisionResult = z.object({
       decision: z.string().nullable(),
       matchedStepId: z.string().nullable(),
       sameDecision: z.boolean().nullable(),
-      focus: Rect.nullable(),
     }),
   ),
   question: z
@@ -124,7 +124,24 @@ const VisionResult = z.object({
   debriefQuestions: z.array(z.string()),
 })
 
-const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
+/**
+ * Boxes the step's element on its screenshot without holding up the tick (one more model call);
+ * finishCapture waits for these before the Work Map is written. A failed lookup leaves no box.
+ */
+function locateInBackground(runtime: SessionRuntime, screen: ScreenMoment, frameId: ID) {
+  const frame = store.frames.get(frameId)
+  if (!frame) return
+  const job = locateFocus(frame.data, screen.caption, frame.mime)
+    .then((focus) => {
+      screen.focus = focus
+    })
+    .catch((error: unknown) => {
+      console.warn(`[focus] no box for "${screen.caption}":`, error)
+    })
+    .finally(() => runtime.pendingFocus.delete(job))
+  runtime.pendingFocus.add(job)
+}
+
 const normalize = (q: string) =>
   q
     .toLowerCase()
@@ -271,20 +288,13 @@ function applyVision(
     // Known step with the same decision: link it, don't create a step and don't ask.
     const known = matchedStepId && !deviation
     if (e.important && !known) {
-      const screen = {
+      const screen: ScreenMoment = {
         sessionId: session.id,
         at,
         screenshotUrl,
         caption: e.text,
-        focus: e.focus
-          ? {
-              x: clamp01(e.focus.x),
-              y: clamp01(e.focus.y),
-              width: clamp01(e.focus.width),
-              height: clamp01(e.focus.height),
-            }
-          : undefined,
       }
+      locateInBackground(runtime, screen, frameId)
       const existing = runtime.candidates.find((c) => c.id === e.candidateStepId)
       if (existing) {
         existing.decision = e.decision ?? existing.decision

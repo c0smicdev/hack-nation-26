@@ -60,6 +60,8 @@ export interface SessionRuntime {
   visionBusy: boolean
   /** ERP signals from ticks that were dropped while vision was busy. */
   pendingErp: ErpSignal[]
+  /** Focus boxes still being located for candidate step screenshots. */
+  pendingFocus: Set<Promise<void>>
   /** Draft Work Map built at the end of capture. */
   draftWorkMapId?: ID
 }

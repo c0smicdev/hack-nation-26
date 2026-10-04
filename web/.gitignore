@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Eval screenshots are real screen recordings (file names, accounts): keep them local
+eval/focus/frames/
