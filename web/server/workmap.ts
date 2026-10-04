@@ -118,6 +118,8 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   if (store.captureStatus.liveSessionId === sessionId) {
     store.captureStatus = { ...store.captureStatus, active: false, offTheRecord: false }
   }
+  // Steps keep their candidate's screen moment, so wait until its focus box is in.
+  await Promise.all(runtime.pendingFocus)
 
   const expert = session.expert
   const pool: QuotePool = new Map()

@@ -14,6 +14,7 @@ npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents a
 | `npm run dev`          | Dev server with HMR; serves the backend under `/api`                                           |
 | `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend                                    |
 | `npm run setup:agents` | Pushes `prompts/interviewer.md` + `prompts/tutor.md` and `prompts/procedures/` to ElevenAgents |
+| `npm run eval:focus`   | Scores step-screenshot focus boxes against `eval/focus/labels.json` (needs the API key)        |
 | `npm run build`        | Typecheck + production build                                                                   |
 | `npm run lint`         | ESLint                                                                                         |
 | `npm run format`       | Prettier (with Tailwind class order)                                                           |
@@ -52,6 +53,7 @@ Without agent ids (or if the mic is blocked) the voice panel falls back to **tex
 server/                backend (runs in the Vite dev server, and on Vercel via api/index.ts)
   router.ts            REST routes
   capture.ts           sessions, ticks → vision → events/questions, memory lookup
+  focus.ts             focus box for a step's screenshot (one grounding call per important event)
   workmap.ts           draft Work Map, debrief, teach-back, merge into memory
   teach.ts             save checks, ElevenLabs signed URLs, Ask
   llm.ts               Claude calls (structured output, validated with zod)
@@ -60,6 +62,7 @@ prompts/               one markdown file per prompt (vision, Work Map, tutor, ag
   procedures/          ElevenLabs Procedures, one file per phase: interviewer/ (Intake → Capture →
                        Debrief → Teach-back) and tutor/ (lesson start, case, held save, saved, wrap-up)
 scripts/setup-agents.ts  ElevenAgents config as code (agents, tools, procedures)
+scripts/eval-focus.ts    focus-box eval; frames live in eval/focus/frames/ (gitignored, real recordings)
 src/
   app/                 shell: router, providers, layout, paths
   components/          shared components (voice panel, screen moment, page header…)
@@ -90,7 +93,7 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 - **Mock by default.** Without `VITE_API_URL`, `api` is `mockApi` (no vision or voice; ERP signals become events and questions are canned).
 - **Changing the contract:** edit `lib/api/types.ts`, then update `client.ts`, `http.ts`, `mock/` and `server/`. Tell the team.
 - **Storage is in memory** (`server/store.ts`): restart = clean slate, seeded with the fixture Work Maps. Move to Postgres + Blob before relying on Vercel (each warm function has its own copy).
-- **Models:** vision `claude-haiku-4-5`, everything else `claude-opus-5-5`; override with `SOCRATES_VISION_MODEL` / `SOCRATES_REASONING_MODEL`. The voice agents run Claude Sonnet 5.5 inside ElevenAgents (`ELEVENLABS_LLM` in the setup script) and speak in [Expressive Mode](https://elevenlabs.io/docs/eleven-agents/customization/voice/expressive-mode): Eleven v3 Conversational TTS plus the `turn_v3` turn-taking model. Each agent gets suggested audio tags (`audioTags` in the setup script) and tone rules in its prompt's "Your voice" section; `use-voice-agent.ts` strips the tags from the on-screen transcript.
+- **Models:** vision and focus boxes `claude-haiku-4-5`, everything else `claude-opus-5-5`; override with `SOCRATES_VISION_MODEL` / `SOCRATES_FOCUS_MODEL` / `SOCRATES_REASONING_MODEL`. The voice agents run Claude Sonnet 5.5 inside ElevenAgents (`ELEVENLABS_LLM` in the setup script) and speak in [Expressive Mode](https://elevenlabs.io/docs/eleven-agents/customization/voice/expressive-mode): Eleven v3 Conversational TTS plus the `turn_v3` turn-taking model. Each agent gets suggested audio tags (`audioTags` in the setup script) and tone rules in its prompt's "Your voice" section; `use-voice-agent.ts` strips the tags from the on-screen transcript.
 
 ## Recipes
 

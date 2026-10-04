@@ -12,6 +12,7 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "setup:agents": "node scripts/setup-agents.ts",
+    "eval:focus": "node scripts/eval-focus.ts",
     "dev:mock": "vite --mode mock"
   },
   "dependencies": {

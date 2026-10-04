@@ -341,7 +341,7 @@ async function main() {
         tts: {
           model_id: TTS_MODEL,
           expressive_mode: true,
-          suggested_audio_tags: agent.audioTags,
+          suggested_audio_tags: "audioTags" in agent ? agent.audioTags : undefined,
         },
       },
     }

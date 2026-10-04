@@ -9,10 +9,12 @@ import { HttpError } from "./store.js"
 
 /**
  * Vision runs on every tick, so it uses the fast model; everything that writes
- * the Work Map or judges a learner's decision uses Opus. Override via env.
+ * the Work Map or judges a learner's decision uses Opus. Focus boxes are only
+ * located for important events and need precise grounding. Override via env.
  */
 export const models = {
   vision: process.env.SOCRATES_VISION_MODEL ?? "claude-haiku-4-5",
+  focus: process.env.SOCRATES_FOCUS_MODEL ?? "claude-haiku-4-5",
   reasoning: process.env.SOCRATES_REASONING_MODEL ?? "claude-opus-5-5",
 }
 
