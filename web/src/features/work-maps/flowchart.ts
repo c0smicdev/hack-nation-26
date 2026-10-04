@@ -1,7 +1,7 @@
 import type { Guardrail, ID, LiveStep, WorkMap } from "@/lib/api"
 
 /**
- * Work Map → Mermaid, deterministically. Steps become nodes (judgment steps are
+ * workflow → Mermaid, deterministically. Steps become nodes (judgment steps are
  * decision diamonds), guardrails hang off their step as side notes. The LLM
  * never writes Mermaid itself: it breaks the syntax too easily.
  */
@@ -88,7 +88,7 @@ const CLASS_DEFS = [
 
 /**
  * Steps recorded so far → Mermaid, for the graph that grows during recording.
- * Same shapes as the Work Map; while recording, a dashed node marks what's next.
+ * Same shapes as the workflow; while recording, a dashed node marks what's next.
  */
 export function liveStepsToMermaid(steps: LiveStep[]) {
   const lines = ["flowchart TD", '  start(["Start"])']

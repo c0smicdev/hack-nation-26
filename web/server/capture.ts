@@ -3,6 +3,7 @@ import { z } from "zod"
 import type {
   CaptureSession,
   Chattiness,
+  ErpSignal,
   ID,
   LiveQuestion,
   LiveStep,
@@ -133,7 +134,7 @@ const VisionResult = z.object({
 
 /**
  * Boxes the step's element on its screenshot without holding up the tick (one more model call);
- * finishCapture waits for these before the Work Map is written. A failed lookup leaves no box.
+ * finishCapture waits for these before the workflow is written. A failed lookup leaves no box.
  */
 function locateInBackground(runtime: SessionRuntime, screen: ScreenMoment, frameId: ID) {
   const frame = store.frames.get(frameId)
@@ -155,9 +156,9 @@ const normalize = (q: string) =>
     .replace(/[^a-z0-9€]+/g, " ")
     .trim()
 
-/** What the saved Work Map (memory) already knows, so vision doesn't ask it again. */
+/** What the saved workflow (memory) already knows, so vision doesn't ask it again. */
 export function memoryContext(map: WorkMap | undefined) {
-  if (!map) return "No saved Work Map matches this task. Everything is new."
+  if (!map) return "No saved workflow matches this task. Everything is new."
   const steps = map.steps.map((s) => {
     const rules = s.guardrails.map((g) => `      guardrail (${g.kind}): ${g.rule}`)
     const cases = s.edgeCases.map((e) => `      edge case: if ${e.when} → ${e.then}`)
@@ -174,7 +175,7 @@ export function memoryContext(map: WorkMap | undefined) {
     .filter((d) => d.answer)
     .map((d) => `  Q: ${d.question}\n  A: "${d.answer!.text}"`)
   return [
-    `Saved Work Map "${map.title}" by ${map.expert.name}:`,
+    `Saved workflow "${map.title}" by ${map.expert.name}:`,
     ...steps,
     answered.length ? `Answered in an earlier debrief:\n${answered.join("\n")}` : "",
   ]
@@ -193,10 +194,12 @@ function contextFor(runtime: SessionRuntime, erpLines: string[]) {
   const base = session.basedOnWorkMapId ? getWorkMap(session.basedOnWorkMapId) : undefined
   const recent = runtime.events.slice(-15).map((e) => `  ${e.at.toFixed(0)}s ${e.kind}: ${e.text}`)
   const candidates = runtime.candidates.map((c) => `  [${c.id}] ${c.title} — ${c.decision}`)
-  const asked = runtime.questions.map(
-    (q) =>
-      `  ${q.askedLive ? "asked" : "queued"}: ${q.question}${q.answer ? ` → "${q.answer.text}"` : ""}`,
-  )
+  // Live vs. debrief and guardrail flags let vision keep the 3–5 live questions (≥1 guardrail) budget.
+  const asked = runtime.questions.map((q) => {
+    const state = q.askedLive ? "asked live" : q.screen ? "waiting to ask live" : "for the debrief"
+    const answer = q.answer ? ` → "${q.answer.text}"` : ""
+    return `  ${state}${q.guardrail ? " (guardrail)" : ""}: ${q.question}${answer}`
+  })
   return [
     `Task (in the expert's words): ${session.task}`,
     `Expert: ${session.expert.name}, ${session.expert.role}`,
@@ -276,7 +279,7 @@ export async function processTick(sessionId: ID, tick: Tick): Promise<TickResult
     runtime.visionBusy = false
   }
 
-  return applyVision(runtime, tick.at, frameId, result)
+  return applyVision(runtime, tick.at, frameId, result, erp)
 }
 
 function applyVision(
@@ -284,6 +287,7 @@ function applyVision(
   at: number,
   frameId: ID,
   result: z.infer<typeof VisionResult>,
+  erp: ErpSignal[],
 ): TickResult {
   const { session } = runtime
   const screenshotUrl = frameUrl(frameId)
@@ -351,18 +355,25 @@ function applyVision(
     const stepId =
       (q.aboutEventIndex != null ? stepForEvent[q.aboutEventIndex] : undefined) ??
       runtime.candidates.find((c) => c.id === q.aboutCandidateStepId)?.id
+    // Hard rule: never ask live before the expert has decided something, or the question leads them
+    // ("should this go to another account?") and spoils the decision we want to learn. ERP signals
+    // are exact; without any, trust vision's judgment events. A blocked question waits for the debrief.
+    const decided = erp.length
+      ? erp.some((s) => s.kind !== "navigate")
+      : result.events.some((e) => e.important && e.stepKind === "judgment")
+    const live = q.timeSensitive && decided
     const open: OpenQuestion = {
       id: newId("q"),
       at,
       question: q.text,
       stepId,
       guardrail: q.guardrail,
-      screen: q.timeSensitive ? result.screen : undefined,
+      screen: live ? result.screen : undefined,
       askedLive: false,
     }
     runtime.questions.push(open)
     seen.add(normalize(q.text))
-    if (q.timeSensitive) {
+    if (live) {
       questions.push({
         id: open.id,
         question: open.question,
@@ -421,7 +432,7 @@ const MemoryMatch = z.object({
   matches: z.array(z.object({ workMapId: z.string(), why: z.string() })),
 })
 
-/** Confirmed Work Maps that describe the same (or an overlapping) task. */
+/** Confirmed workflows that describe the same (or an overlapping) task. */
 export async function findRelatedWorkMaps(task: string) {
   const confirmed = store.workMaps.filter((m) => m.status === "confirmed")
   if (!task.trim() || confirmed.length === 0) return []
@@ -437,7 +448,7 @@ export async function findRelatedWorkMaps(task: string) {
     maxTokens: 2000,
     system: prompt("memory-match"),
     schema: MemoryMatch,
-    content: [text(`Task the expert is about to do:\n${task}\n\nSaved Work Maps:\n${catalog}`)],
+    content: [text(`Task the expert is about to do:\n${task}\n\nSaved workflows:\n${catalog}`)],
   })
   return matches
     .map((match) => confirmed.find((m) => m.id === match.workMapId))

@@ -5,7 +5,7 @@ import type { ID, WorkMap } from "@/lib/api"
 
 import { stepNodeId, workMapToMermaid } from "../flowchart"
 
-/** Clickable flowchart of a Work Map. Clicking a step selects it in the document. */
+/** Clickable flowchart of a workflow. Clicking a step selects it in the document. */
 export function Flowchart({
   workMap,
   onSelectStep,

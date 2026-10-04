@@ -12,4 +12,4 @@ Prove you understood by explaining the whole process back. You're done only when
 3. Act on what `reply_teach_back` returns:
    - A corrected explanation: read the changed part back briefly, ask "Did I get that right now?", and go back to step 2.
    - Open questions that are still unanswered: ask them one at a time as in [procedure name="Debrief"], then come back here.
-   - The Work Map is saved: thank them in one sentence and say goodbye.
+   - The workflow is saved: say in one or two sentences that you've understood it now, because every question is answered and they confirmed your explanation, and that you can teach it to new colleagues from here. Thank them and say goodbye.

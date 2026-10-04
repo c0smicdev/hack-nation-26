@@ -103,7 +103,7 @@ export async function voiceSession(role: VoiceRole): Promise<VoiceSession | null
   return { signedUrl: signed_url }
 }
 
-/* Ask: Q&A over confirmed Work Maps ---------------------------------- */
+/* Ask: Q&A over confirmed workflows ---------------------------------- */
 
 const AskOut = z.object({
   answer: z.string(),

@@ -33,7 +33,9 @@ export function AppLayout() {
           <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Landmark className="size-4" />
           </div>
-          <span className="font-semibold">Socrates</span>
+          <span className="font-heading text-lg font-semibold tracking-tight text-primary">
+            Socrates
+          </span>
         </Link>
         <div className="ml-auto flex items-center gap-3">
           {me && (

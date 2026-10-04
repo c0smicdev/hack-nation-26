@@ -214,15 +214,15 @@ const agents = {
     tools: [
       clientTool(
         "lookup_memory",
-        "Find saved Work Maps for this task, so you don't document a workflow twice.",
+        "Find saved workflows for this task, so you don't document a workflow twice.",
         {
           task: { type: "string", description: "One-line description of the task" },
         },
       ),
-      clientTool("set_base_work_map", "Record whether this session extends a saved Work Map.", {
+      clientTool("set_base_work_map", "Record whether this session extends a saved workflow.", {
         work_map_id: {
           type: "string",
-          description: "Id of the saved Work Map, or 'none' if the task is new",
+          description: "Id of the saved workflow, or 'none' if the task is new",
         },
       }),
       clientTool("start_capture", "Start watching the screen once you understand the task.", {

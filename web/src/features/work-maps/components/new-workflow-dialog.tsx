@@ -136,7 +136,8 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
         // Let Socrates finish its "let's start" line before the dialog closes.
         for (let i = 0; i < 20 && agentRef.current.agentSpeaking; i++) await wait(200)
         await createWorkflow()
-        return "Created. Capture is starting."
+        // Worded so the agent stays quiet: the dialog closes and the interviewer takes over.
+        return "Created. This conversation is over and the interviewer takes over now. Say nothing more."
       },
     },
   })

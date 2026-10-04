@@ -1,5 +1,5 @@
 /**
- * Fake data for the mock ERP (our sandbox at /erp). Matches the Work Map
+ * Fake data for the mock ERP (our sandbox at /erp). Matches the workflow
  * fixtures: Sabine's month-end batch (4471–4474) and training cases she never
  * showed (4480–4483) for Teach.
  */

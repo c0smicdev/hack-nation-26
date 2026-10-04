@@ -1,6 +1,6 @@
 import type { WorkMap } from "@/lib/api"
 
-/** The Work Map as plain text for the supervisor's prompt ({{work_map}}), with step ids for show_step. */
+/** The workflow as plain text for the supervisor's prompt ({{work_map}}), with step ids for show_step. */
 export function supervisorBrief(map: WorkMap) {
   const steps = map.steps.map((s, i) => {
     const lines = [

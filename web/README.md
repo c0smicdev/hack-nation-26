@@ -33,9 +33,9 @@ Without agent ids (or if the mic is blocked) the voice panel falls back to **tex
 
 | Route            | Page                                                                                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`              | **Work Maps** library                                                                                                                       |
-| `/work-maps/:id` | **Work Map**: steps, screen moments, reasons, guardrails, clickable **flowchart**, debrief, teach-back                                      |
-| `/ask`           | **Ask Socrates**: Q&A across Work Maps, answers cite the step                                                                               |
+| `/`              | **Workflows** library                                                                                                                       |
+| `/work-maps/:id` | **Workflow**: steps, screen moments, reasons, guardrails, clickable **flowchart**, debrief, teach-back                                      |
+| `/ask`           | **Ask Socrates**: Q&A across workflows, answers cite the step                                                                               |
 | `/capture`       | **Capture**: start a session, list sessions                                                                                                 |
 | `/capture/:id`   | **Live session**: intake (memory lookup) → screen capture with live questions → debrief → teach-back                                        |
 | `/supervise/:id` | **Supervise**: a new hire runs the workflow on a shared screen; Socrates stays quiet, answers when asked and steps in only before a mistake |
@@ -43,10 +43,10 @@ Without agent ids (or if the mic is blocked) the voice panel falls back to **tex
 
 ## Demo script
 
-1. **Capture.** `/capture` → _Open mock ERP_ → _Start session_ → _Share screen & start talking_ and pick the "Nordwind ERP" tab. Tell Socrates what you're doing; it checks memory (the seeded AP Work Map matches, so say "it's new" to document from scratch, or "same" to see it skip known steps).
+1. **Capture.** `/capture` → _Open mock ERP_ → _Start session_ → _Share screen & start talking_ and pick the "Nordwind ERP" tab. Tell Socrates what you're doing; it checks memory (the seeded AP workflow matches, so say "it's new" to document from scratch, or "same" to see it skip known steps).
 2. Work the **Month-end batch**: re-code 4471 to `0400` capex, send 4472 (Plzeň) for a second approval, hold 4473 (Weber, December), post 4474. Think out loud. Socrates asks at pauses (never while you type or talk, max 5 per 10 min).
-3. Say "I'm done". Answer the debrief questions, then confirm (or correct) the teach-back. The Work Map is saved to memory with a flowchart.
-4. **Supervise.** Open the Work Map → _Supervise a run_ → _Share screen & start_ and pick the ERP tab (switch it to **Training cases**). Work a case without help; the graph lights up as you go. Ask "Socrates, which account for this?" (or type it in the chat). Code the €11,900 pump (4480) as opex: Socrates gives a heads-up in Sabine's words, and a post is held. Toggle the right panel to _What Sabine did_ to see her steps.
+3. Say "I'm done". Answer the debrief questions, then confirm (or correct) the teach-back. The workflow is saved to memory with a flowchart.
+4. **Supervise.** Open the workflow → _Supervise a run_ → _Share screen & start_ and pick the ERP tab (switch it to **Training cases**). Work a case without help; the graph lights up as you go. Ask "Socrates, which account for this?" (or type it in the chat). Code the €11,900 pump (4480) as opex: Socrates gives a heads-up in Sabine's words, and a post is held. Toggle the right panel to _What Sabine did_ to see her steps.
 
 ## Structure
 
@@ -55,12 +55,12 @@ server/                backend (runs in the Vite dev server, and on Vercel via a
   router.ts            REST routes
   capture.ts           sessions, ticks → vision → events/questions, memory lookup
   focus.ts             focus box for a step's screenshot (one grounding call per important event)
-  workmap.ts           draft Work Map, debrief, teach-back, merge into memory
+  workmap.ts           draft workflow, debrief, teach-back, merge into memory
   teach.ts             save gate checks, ElevenLabs signed URLs, Ask
   supervise.ts         supervised runs: where the learner is, heads-ups (Haiku flags, Opus verifies)
   llm.ts               Claude calls (structured output, validated with zod)
   store.ts             in-memory storage (MVP)
-prompts/               one markdown file per prompt (vision, Work Map, supervisor, agents…)
+prompts/               one markdown file per prompt (vision, workflow, supervisor, agents…)
   procedures/          ElevenLabs Procedures, one file per phase: interviewer/ (Intake → Capture →
                        Debrief → Teach-back), supervisor/ (stand by, answer, heads-up, wrap-up)
                        and drafter/ (describe → create workflow, hand edit)
@@ -70,7 +70,7 @@ src/
   app/                 shell: router, providers, layout, paths
   components/          shared components (voice panel, screen moment, page header…)
   features/
-    work-maps/         library, Work Map document, flowchart
+    work-maps/         library, workflow document, flowchart
     ask/               Q&A panel and page
     capture/           session list, live session, debrief
     supervise/         supervised run: progress graph, chat, the mentor's steps
@@ -88,9 +88,9 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 
 - **Mock ERP ↔ Socrates:** same origin, so a `BroadcastChannel` (`lib/erp/bridge.ts`): screen, field changes, typing, actions, and a save gate (`save_request` → `save_pending` → `save_decision`) that only waits while a supervised run sends a heartbeat.
 - **Capture:** the session page samples the shared tab every 1.5 s, skips unchanged frames, keeps one vision call in flight (stale frames are dropped), and posts `Tick`s. Vision (Claude Haiku 4.5) returns events, candidate steps and at most one question; the page decides _when_ to ask.
-- **Supervise:** same tick loop as capture, but `/supervisions/:id/ticks` returns where the learner is (current + done steps) and, rarely, a heads-up: the vision model flags a possible mistake, Opus double-checks it against the Work Map before anyone hears it, and each step gets at most one heads-up until the learner moves on. ERP saves go through the save gate. The supervisor agent (`prompts/supervisor.md`) uses `skip_turn` unless addressed and speaks unprompted only for `[WARNING]` / `[HOLD]` messages; For every question it calls `look_at_screen`: the browser grabs the current frame and `/supervisions/:id/ask` has Claude answer from that screenshot plus the Work Map (`prompts/supervise-ask.md`); `show_step` links the answer to the expert's step. Typed questions take the same path, so they see the screen too.
+- **Supervise:** same tick loop as capture, but `/supervisions/:id/ticks` returns where the learner is (current + done steps) and, rarely, a heads-up: the vision model flags a possible mistake, Opus double-checks it against the workflow before anyone hears it, and each step gets at most one heads-up until the learner moves on. ERP saves go through the save gate. The supervisor agent (`prompts/supervisor.md`) uses `skip_turn` unless addressed and speaks unprompted only for `[WARNING]` / `[HOLD]` messages; For every question it calls `look_at_screen`: the browser grabs the current frame and `/supervisions/:id/ask` has Claude answer from that screenshot plus the workflow (`prompts/supervise-ask.md`); `show_step` links the answer to the expert's step. Typed questions take the same path, so they see the screen too.
 - **Voice:** the browser gets a signed URL from `/api/voice/:role`; the agent calls client tools (`lookup_memory`, `start_capture`, `set_off_record`, `finish_task`, `record_debrief_answer`, `get_teach_back`, `reply_teach_back`, `look_at_screen`, `show_step`). Screen events reach it as contextual updates; live questions as `[QUESTION …]` messages.
-- **Quotes:** Work Map JSON from Claude references transcript utterances by id; the backend copies the expert's exact words, so every reason and guardrail links to what they actually said.
+- **Quotes:** workflow JSON from Claude references transcript utterances by id; the backend copies the expert's exact words, so every reason and guardrail links to what they actually said.
 
 ## Working with the backend
 

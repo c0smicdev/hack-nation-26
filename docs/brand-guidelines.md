@@ -1,6 +1,6 @@
 # Brand guidelines
 
-Visual rules for the Socrates UI. Warm paper tones with a deep forest-green accent: calm, trustworthy, a little scholarly.
+Visual rules for the Socrates UI. Cool, faintly green-tinted grays with a deep forest-green accent: calm, trustworthy, a little scholarly.
 
 ## Typography
 
@@ -16,8 +16,8 @@ Visual rules for the Socrates UI. Warm paper tones with a deep forest-green acce
 
 | Name | Hex | Use |
 | --- | --- | --- |
-| **Paper** (main) | `#FDFAF6` | Page background, cards, popovers |
-| **Sand** | `#FAF1E6` | Less prominent surfaces: muted/secondary areas, sidebar, inputs at rest |
+| **Mist** (main) | `#F6F8F7` | Page background, cards, popovers |
+| **Fog** | `#EDF1EF` | Less prominent surfaces: muted/secondary areas, sidebar, inputs at rest |
 | **Forest** (dark accent) | `#064420` | Socrates wordmark, primary buttons, focus ring, links, active nav |
 | **Mint** (light accent) | `#E4EFE7` | Hover and selected states, highlights, badges, success hints |
 
@@ -26,8 +26,8 @@ Derived neutrals (not part of the core palette, tune if needed):
 | Name | Hex | Use |
 | --- | --- | --- |
 | Ink | `#1A2620` | Body text (green-tinted near-black) |
-| Stone | `#6E6A62` | Muted text, captions, timestamps |
-| Seam | `#EADFCF` | Borders, dividers, input outlines |
+| Stone | `#66706B` | Muted text (green-gray), captions, timestamps |
+| Seam | `#DDE4E0` | Borders, dividers (green-gray), input outlines |
 
 Keep the existing red for `--destructive`.
 
@@ -37,15 +37,15 @@ Set in `:root` in `web/src/index.css`:
 
 | Token | Color |
 | --- | --- |
-| `--background`, `--card`, `--popover` | Paper `#FDFAF6` |
+| `--background`, `--card`, `--popover` | Mist `#F6F8F7` |
 | `--foreground`, `--card-foreground`, `--popover-foreground` | Ink `#1A2620` |
 | `--primary`, `--sidebar-primary`, `--ring` | Forest `#064420` |
-| `--primary-foreground`, `--sidebar-primary-foreground` | Paper `#FDFAF6` |
-| `--secondary`, `--muted`, `--sidebar` | Sand `#FAF1E6` |
+| `--primary-foreground`, `--sidebar-primary-foreground` | Mist `#F6F8F7` |
+| `--secondary`, `--muted`, `--sidebar` | Fog `#EDF1EF` |
 | `--secondary-foreground`, `--accent-foreground`, `--sidebar-accent-foreground` | Forest `#064420` |
-| `--muted-foreground` | Stone `#6E6A62` |
+| `--muted-foreground` | Stone `#66706B` |
 | `--accent`, `--sidebar-accent` | Mint `#E4EFE7` |
-| `--border`, `--input`, `--sidebar-border` | Seam `#EADFCF` |
+| `--border`, `--input`, `--sidebar-border` | Seam `#DDE4E0` |
 | `--chart-1` … `--chart-5` | Shades of Forest, light to dark |
 
 Fonts, in the same file:
@@ -67,12 +67,12 @@ No dark mode for now. Leave `.dark` alone.
 
 ## Logo
 
-- Wordmark: "Socrates" in Rethink Sans SemiBold, Forest.
-- Icon tile: Forest background, Paper icon, `rounded-lg`.
+- Wordmark: "Socrates" in the same style as page titles (Rethink Sans SemiBold, `tracking-tight`), in Forest.
+- Icon tile: Forest background, Mist icon, `rounded-lg`.
 
 ## Don'ts
 
-- No pure white (`#FFFFFF`) or cool gray surfaces. Use Paper and Sand.
+- No pure white (`#FFFFFF`) or warm beige surfaces. Use Mist and Fog.
 - Use Forest for emphasis (text, buttons, small marks), not for large fills.
 - Don't introduce new accent colors. Use Mint for highlights.
 - The **mock ERP** (`features/erp/`) keeps its own neutral slate look, so it reads as a separate app in the demo.

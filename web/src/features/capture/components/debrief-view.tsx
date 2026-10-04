@@ -91,7 +91,7 @@ export function DebriefView({
         <section className="relative min-h-80 overflow-hidden bg-muted/20">
           {session.status === "processing" || !map ? (
             <div className="flex size-full items-center justify-center gap-3 p-8 text-muted-foreground">
-              <Loader2 className="animate-spin" /> Building the draft Work Map from what Socrates
+              <Loader2 className="animate-spin" /> Building the draft workflow from what Socrates
               saw and heard…
             </div>
           ) : (
@@ -166,7 +166,7 @@ export function DebriefView({
               {finalMapId ? (
                 <Button asChild>
                   <Link to={paths.workMap(finalMapId)}>
-                    <CheckCircle2 /> Open the Work Map
+                    <CheckCircle2 /> Open the workflow
                   </Link>
                 </Button>
               ) : map.teachBack ? (

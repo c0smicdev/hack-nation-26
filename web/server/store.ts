@@ -63,7 +63,7 @@ export interface SessionRuntime {
   pendingErp: ErpSignal[]
   /** Focus boxes still being located for candidate step screenshots. */
   pendingFocus: Set<Promise<void>>
-  /** Draft Work Map built at the end of capture. */
+  /** Draft workflow built at the end of capture. */
   draftWorkMapId?: ID
   /** The expert's coaching style (their profile), so vision asks as much as they want. */
   chattiness?: Chattiness
@@ -100,7 +100,7 @@ interface Store {
 
 function createStore(): Store {
   return {
-    // Starts empty: the team's own confirmed Work Maps become the agent's memory.
+    // Starts empty: the team's own confirmed workflows become the agent's memory.
     workMaps: [],
     sessions: new Map(),
     supervisions: new Map(),
@@ -129,7 +129,7 @@ export function getRuntime(sessionId: ID): SessionRuntime {
 
 export function getWorkMap(id: ID): WorkMap {
   const map = store.workMaps.find((m) => m.id === id)
-  if (!map) throw new HttpError(404, `Work map ${id} not found`)
+  if (!map) throw new HttpError(404, `Workflow ${id} not found`)
   return map
 }
 

@@ -74,7 +74,7 @@ let captureStatus: CaptureStatus = {
   offTheRecord: false,
 }
 
-const findMap = (mapId: ID) => workMaps.find((m) => m.id === mapId) ?? notFound(`Work map ${mapId}`)
+const findMap = (mapId: ID) => workMaps.find((m) => m.id === mapId) ?? notFound(`Workflow ${mapId}`)
 const findSession = (sid: ID) => sessions.find((s) => s.id === sid) ?? notFound(`Session ${sid}`)
 const elapsed = (sid: ID) => Math.round((Date.now() - (startedAt.get(sid) ?? Date.now())) / 1000)
 

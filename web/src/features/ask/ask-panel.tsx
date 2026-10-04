@@ -13,7 +13,7 @@ import { useAsk } from "./hooks"
 type Turn = { id: number; question: string; response?: AskResponse; error?: string }
 
 /**
- * Text Q&A over the Work Maps. The ElevenLabs voice agent can reuse the same
+ * Text Q&A over the workflows. The ElevenLabs voice agent can reuse the same
  * `api.ask` endpoint (or replace this panel) without touching the pages.
  */
 export function AskPanel({

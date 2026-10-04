@@ -25,7 +25,7 @@ export function CapturePage() {
     <div className="mx-auto max-w-6xl space-y-8">
       <PageHeader
         title="Capture"
-        description="Do a real task while Socrates watches your screen. It asks why at natural pauses, closes the gaps in a short debrief, and turns it into a Work Map."
+        description="Do a real task while Socrates watches your screen. It asks why at natural pauses, closes the gaps in a short debrief, and turns it into a workflow."
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
