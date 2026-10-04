@@ -385,11 +385,13 @@ async function main() {
         conversation:
           "maxDurationSecs" in agent ? { max_duration_seconds: agent.maxDurationSecs } : undefined,
       },
-      // The app sets the language per conversation (the user's pick) and a greeting in it.
+      // The app sets the language per conversation (the user's pick), a greeting and a voice for it.
       platform_settings: {
         overrides: {
           conversation_config_override: {
             agent: { language: true, first_message: true },
+            // A native speaker's voice per language (src/lib/voice/voices.ts).
+            tts: { voice_id: true },
             conversation: { text_only: true },
           },
         },
