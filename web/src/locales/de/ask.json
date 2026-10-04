@@ -1,0 +1,11 @@
+{
+  "askPage": {
+    "title": "Frag Socrates",
+    "description": "Fragen zu jedem erfassten Workflow, beantwortet mit den eigenen Worten der Expert:innen – mit Link zum genauen Schritt."
+  },
+  "askPanel": {
+    "tryAsking": "Frag zum Beispiel",
+    "placeholder": "Frag, wie etwas gemacht wird – oder warum…",
+    "send": "Senden"
+  }
+}

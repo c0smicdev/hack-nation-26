@@ -1,5 +1,6 @@
 import { Landmark } from "lucide-react"
 import { type FormEvent, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Navigate, useLocation, useNavigate } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -11,6 +12,7 @@ import { useAuth } from "@/lib/auth/context"
 import { authEnabled } from "@/lib/auth/supabase"
 
 export function LoginPage() {
+  const { t } = useTranslation("auth")
   const { session, signIn, signUp } = useAuth()
   const navigate = useNavigate()
   const from = (useLocation().state as { from?: string } | null)?.from ?? paths.library()
@@ -45,14 +47,14 @@ export function LoginPage() {
           <div className="mb-2 flex aspect-square size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Landmark className="size-5" />
           </div>
-          <CardTitle>{mode === "signIn" ? "Sign in to Socrates" : "Create an account"}</CardTitle>
-          <CardDescription>Use your team email and password.</CardDescription>
+          <CardTitle>{mode === "signIn" ? t("signInTitle") : t("signUpTitle")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="flex flex-col gap-4">
             {mode === "signUp" && (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="name">Your name</Label>
+                <Label htmlFor="name">{t("name")}</Label>
                 <Input
                   id="name"
                   autoComplete="name"
@@ -63,7 +65,7 @@ export function LoginPage() {
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -74,7 +76,7 @@ export function LoginPage() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -87,7 +89,7 @@ export function LoginPage() {
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={busy}>
-              {mode === "signIn" ? "Sign in" : "Sign up"}
+              {mode === "signIn" ? t("signIn") : t("signUp")}
             </Button>
             <Button
               type="button"
@@ -97,7 +99,7 @@ export function LoginPage() {
                 setError(undefined)
               }}
             >
-              {mode === "signIn" ? "No account yet? Sign up" : "Already have an account? Sign in"}
+              {mode === "signIn" ? t("switchToSignUp") : t("switchToSignIn")}
             </Button>
           </form>
         </CardContent>

@@ -1,0 +1,133 @@
+{
+  "status": {
+    "confirmed": "Confirmado pelo especialista",
+    "in_debrief": "Em debrief",
+    "draft": "Rascunho"
+  },
+  "guardrail": {
+    "limit": "Limite",
+    "stop_and_ask": "Pare e pergunte",
+    "never": "Nunca"
+  },
+  "quoteSource": {
+    "narration": "enquanto trabalhava",
+    "live_question": "respondendo a uma pergunta ao vivo",
+    "debrief": "no debrief"
+  },
+  "counts": {
+    "steps_one": "{{count}} etapa",
+    "steps_many": "{{count}} de etapas",
+    "steps_other": "{{count}} etapas",
+    "judgmentCalls_one": "{{count}} decisão por critério",
+    "judgmentCalls_many": "{{count}} de decisões por critério",
+    "judgmentCalls_other": "{{count}} decisões por critério",
+    "guardrails_one": "{{count}} salvaguarda",
+    "guardrails_many": "{{count}} de salvaguardas",
+    "guardrails_other": "{{count}} salvaguardas",
+    "openQuestions_one": "{{count}} pergunta em aberto",
+    "openQuestions_many": "{{count}} de perguntas em aberto",
+    "openQuestions_other": "{{count}} perguntas em aberto"
+  },
+  "judgmentCall": "Decisão por critério",
+  "quoted": "“{{text}}”",
+  "flowchart": {
+    "when": "Quando: {{trigger}}",
+    "start": "Início",
+    "done": "Fim",
+    "edgeCase": "Se {{when}} → {{then}}",
+    "guardrail": {
+      "limit": "Limite",
+      "stop_and_ask": "Pare e pergunte",
+      "never": "Nunca"
+    }
+  },
+  "libraryPage": {
+    "title": "Fluxos de trabalho",
+    "description": "Guias curtos e interativos registrados com seus especialistas — cada etapa, decisão por critério e salvaguarda, nas palavras deles.",
+    "searchPlaceholder": "Buscar fluxos de trabalho, especialistas…",
+    "filters": {
+      "all": "Todos",
+      "confirmed": "Confirmados"
+    },
+    "newWorkflow": "Novo fluxo de trabalho",
+    "empty": {
+      "title": "Nenhum fluxo de trabalho encontrado",
+      "noWorkflows": "As sessões registradas viram fluxos de trabalho aqui.",
+      "noMatches": "Tente outra busca ou outro filtro."
+    }
+  },
+  "workMapPage": {
+    "back": "Fluxos de trabalho",
+    "updated": "atualizado {{when}}",
+    "supervise": "Supervisionar execução",
+    "when": "Quando:",
+    "flowchart": "Fluxograma"
+  },
+  "askSheet": {
+    "trigger": "Perguntar sobre isto",
+    "title": "Pergunte ao Socrates",
+    "description": "As respostas vêm das próprias palavras de {{expert}} neste fluxo de trabalho.",
+    "stopAndAsk": "Quando devo parar e perguntar a alguém?",
+    "howDoI": "Como faço para {{task}}?"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates:",
+    "caption": "{{speaker}}, {{source}} às {{time}}",
+    "original": "Original: “{{text}}”"
+  },
+  "stepDetail": {
+    "position": "Etapa {{index}} de {{total}}",
+    "decision": "Decisão",
+    "why": "Por quê",
+    "guardrails": "Salvaguardas",
+    "edgeCases": "Exceções",
+    "escalateTo": " · Pergunte a: {{who}}",
+    "if": "Se",
+    "previous": "Anterior",
+    "next": "Próxima"
+  },
+  "debrief": {
+    "title": "Debrief",
+    "description": "Perguntas que o Socrates fez após a tarefa para preencher as lacunas.",
+    "notStarted": "O debrief ainda não começou.",
+    "stillOpen": "Ainda em aberto — o Socrates vai perguntar no próximo debrief.",
+    "goToStep": "Ir para a etapa {{number}}",
+    "teachBack": "Teach-back",
+    "confirmed": "Confirmado",
+    "teachBackDescription": "O Socrates explica o processo de volta até o especialista dizer: sim, é assim que funciona.",
+    "correction": "Correção",
+    "teachBackPending": "Acontece depois que todas as perguntas do debrief forem respondidas."
+  },
+  "newWorkflow": {
+    "greeting": "Qual workflow você quer me mostrar? Conte o que você faz, para quem e quando. Eu preencho o título e a descrição.",
+    "draftError": "Desculpe, não consegui montar o rascunho: {{message}}",
+    "title": "Novo workflow",
+    "titlePlaceholder": "Workflow sem título",
+    "titleLabel": "Título",
+    "descriptionPlaceholderText": "O Socrates preenche isto enquanto você descreve o workflow…",
+    "descriptionPlaceholderVoice": "O Socrates preenche isto enquanto você fala…",
+    "descriptionLabel": "Descrição",
+    "voiceUnavailable": "A voz não está disponível aqui, então vamos digitar.",
+    "talkInstead": "Falar",
+    "typeInstead": "Digitar",
+    "cancel": "Cancelar",
+    "create": "Criar workflow",
+    "status": {
+      "connecting": "Conectando…",
+      "speaking": "O Socrates está falando",
+      "muted": "Microfone desativado — escreva para o Socrates abaixo",
+      "listening": "Ouvindo — é só falar"
+    },
+    "unmute": "Ativar microfone",
+    "mute": "Desativar microfone",
+    "writePlaceholderMuted": "Escreva para o Socrates…",
+    "writePlaceholder": "Ou escreva para o Socrates…",
+    "messageLabel": "Mensagem para o Socrates",
+    "send": "Enviar",
+    "textPlaceholder": "ex.: Eu reviso as notas fiscais de fornecedores antes do fechamento do mês…"
+  },
+  "translation": {
+    "pending": "Traduzindo este workflow para o seu idioma…",
+    "translatedFrom": "Tradução automática · idioma original: {{language}}. As citações também mostram as palavras do próprio especialista."
+  }
+}

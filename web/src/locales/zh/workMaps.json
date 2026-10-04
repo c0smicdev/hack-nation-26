@@ -1,0 +1,125 @@
+{
+  "status": {
+    "confirmed": "专家已确认",
+    "in_debrief": "复盘中",
+    "draft": "草稿"
+  },
+  "guardrail": {
+    "limit": "限制",
+    "stop_and_ask": "停下并询问",
+    "never": "禁止"
+  },
+  "quoteSource": {
+    "narration": "操作时",
+    "live_question": "回答现场提问时",
+    "debrief": "复盘时"
+  },
+  "counts": {
+    "steps_other": "{{count}} 个步骤",
+    "judgmentCalls_other": "{{count}} 个判断点",
+    "guardrails_other": "{{count}} 条护栏规则",
+    "openQuestions_other": "{{count}} 个待解答问题"
+  },
+  "judgmentCall": "判断点",
+  "quoted": "“{{text}}”",
+  "flowchart": {
+    "when": "触发条件：{{trigger}}",
+    "start": "开始",
+    "done": "完成",
+    "edgeCase": "如果{{when}} → {{then}}",
+    "guardrail": {
+      "limit": "限制",
+      "stop_and_ask": "停下并询问",
+      "never": "禁止"
+    }
+  },
+  "libraryPage": {
+    "title": "工作流程",
+    "description": "从专家实操中提炼的简短互动指南：每个步骤、判断点和护栏规则，都用专家自己的话讲清楚。",
+    "searchPlaceholder": "搜索工作流程、专家…",
+    "filters": {
+      "all": "全部",
+      "confirmed": "已确认"
+    },
+    "newWorkflow": "新建工作流程",
+    "empty": {
+      "title": "未找到工作流程",
+      "noWorkflows": "记录的会话会在这里生成工作流程。",
+      "noMatches": "换个搜索词或筛选条件试试。"
+    }
+  },
+  "workMapPage": {
+    "back": "工作流程",
+    "updated": "更新于{{when}}",
+    "supervise": "开始指导实操",
+    "when": "触发条件：",
+    "flowchart": "流程图"
+  },
+  "askSheet": {
+    "trigger": "就此提问",
+    "title": "问问 Socrates",
+    "description": "回答均来自 {{expert}} 在此工作流程中的原话。",
+    "stopAndAsk": "什么时候该停下来问人？",
+    "howDoI": "如何{{task}}？"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates：",
+    "caption": "{{speaker}}，{{time}} {{source}}",
+    "original": "原文：“{{text}}”"
+  },
+  "stepDetail": {
+    "position": "第 {{index}} 步，共 {{total}} 步",
+    "decision": "决策",
+    "why": "原因",
+    "guardrails": "护栏规则",
+    "edgeCases": "特殊情况",
+    "escalateTo": " · 询问：{{who}}",
+    "if": "如果",
+    "previous": "上一步",
+    "next": "下一步"
+  },
+  "debrief": {
+    "title": "复盘",
+    "description": "任务结束后 Socrates 为补全信息而提出的问题。",
+    "notStarted": "复盘尚未开始。",
+    "stillOpen": "仍待解答，Socrates 会在下次复盘时提问。",
+    "goToStep": "前往第 {{number}} 步",
+    "teachBack": "复述确认",
+    "confirmed": "已确认",
+    "teachBackDescription": "Socrates 会把流程复述给专家，直到专家确认：没错，就是这样。",
+    "correction": "更正",
+    "teachBackPending": "所有复盘问题回答完后进行。"
+  },
+  "newWorkflow": {
+    "greeting": "你想给我演示哪个工作流程？说说你做什么、为谁做、什么时候做，我来填写标题和描述。",
+    "draftError": "抱歉，我没能生成草稿：{{message}}",
+    "title": "新建工作流程",
+    "titlePlaceholder": "未命名工作流程",
+    "titleLabel": "标题",
+    "descriptionPlaceholderText": "你描述工作流程时，Socrates 会在这里填写…",
+    "descriptionPlaceholderVoice": "你说话时，Socrates 会在这里填写…",
+    "descriptionLabel": "描述",
+    "voiceUnavailable": "这里无法使用语音，我们打字吧。",
+    "talkInstead": "改用语音",
+    "typeInstead": "改用打字",
+    "cancel": "取消",
+    "create": "创建工作流程",
+    "status": {
+      "connecting": "正在连接…",
+      "speaking": "Socrates 正在说话",
+      "muted": "麦克风已静音，请在下方给 Socrates 留言",
+      "listening": "正在聆听，直接说吧"
+    },
+    "unmute": "取消麦克风静音",
+    "mute": "麦克风静音",
+    "writePlaceholderMuted": "给 Socrates 留言…",
+    "writePlaceholder": "或者给 Socrates 留言…",
+    "messageLabel": "给 Socrates 的消息",
+    "send": "发送",
+    "textPlaceholder": "例如：我在月末结账前审核供应商发票…"
+  },
+  "translation": {
+    "pending": "正在将此工作流程翻译成你的语言…",
+    "translatedFrom": "已自动翻译 · 原文语言：{{language}}。引用内容也会显示专家的原话。"
+  }
+}

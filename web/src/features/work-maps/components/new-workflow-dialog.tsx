@@ -1,6 +1,7 @@
 import { ConversationProvider } from "@elevenlabs/react"
 import { ArrowUp, Keyboard, Landmark, Loader2, Mic, MicOff } from "lucide-react"
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -17,9 +18,6 @@ import { useVoiceAgent } from "@/lib/voice/use-voice-agent"
 import { useCreateSession } from "@/features/capture/hooks"
 
 import { useDraftWorkflow } from "../hooks"
-
-const GREETING =
-  "Which workflow do you want to show me? Tell me what you do, for whom, and when. I'll fill in the title and description."
 
 export function NewWorkflowDialog({ trigger }: { trigger: ReactNode }) {
   const [open, setOpen] = useState(false)
@@ -56,6 +54,7 @@ function useFlash() {
 }
 
 function NewWorkflowBody({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation("workMaps")
   const navigate = useNavigate()
   const draft = useDraftWorkflow()
   const create = useCreateSession()
@@ -73,7 +72,8 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
   // Voice first; text only when the user picks it (or voice isn't available).
   const [typing, setTyping] = useState(false)
   const [messages, setMessages] = useState<WorkflowDraftMessage[]>([
-    { role: "assistant", content: GREETING },
+    // Shown in the chat and sent along as history, in the UI language.
+    { role: "assistant", content: t("newWorkflow.greeting") },
   ])
 
   // Latest field values, also written synchronously by `apply`, so a create right
@@ -116,7 +116,7 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
         expertRole: meRef.current?.role ?? "Expert",
       })
       .catch((e: unknown) => {
-        stream?.getTracks().forEach((t) => t.stop())
+        stream?.getTracks().forEach((track) => track.stop())
         throw e
       })
       .finally(() => (creating.current = false))
@@ -151,9 +151,9 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
   })
   useEffect(() => {
     if (typing) return
-    const t = setTimeout(() => void agentRef.current.start({}), 0)
+    const timer = setTimeout(() => void agentRef.current.start({}), 0)
     return () => {
-      clearTimeout(t)
+      clearTimeout(timer)
       agentRef.current.stop()
     }
   }, [typing])
@@ -197,7 +197,7 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
         onError: (e) =>
           setMessages((m) => [
             ...m,
-            { role: "assistant", content: `Sorry, I couldn't draft that: ${e.message}` },
+            { role: "assistant", content: t("newWorkflow.draftError", { message: e.message }) },
           ]),
       },
     )
@@ -208,14 +208,14 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
       {/* The workflow, filled in live from the conversation */}
       <div className="space-y-1 px-6 pt-6 pb-4">
         <DialogTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          New workflow
+          {t("newWorkflow.title")}
         </DialogTitle>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={editedByHand}
-          placeholder="Untitled workflow"
-          aria-label="Title"
+          placeholder={t("newWorkflow.titlePlaceholder")}
+          aria-label={t("newWorkflow.titleLabel")}
           className={cn(
             "-mx-2 w-[calc(100%+1rem)] rounded-md bg-transparent px-2 py-1 text-2xl font-semibold transition-colors outline-none placeholder:text-muted-foreground/50 focus-visible:bg-muted/50",
             titleFlash && "bg-primary/10",
@@ -227,10 +227,10 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
           onBlur={editedByHand}
           placeholder={
             textMode
-              ? "Socrates fills this in as you describe the workflow…"
-              : "Socrates fills this in as you talk…"
+              ? t("newWorkflow.descriptionPlaceholderText")
+              : t("newWorkflow.descriptionPlaceholderVoice")
           }
-          aria-label="Description"
+          aria-label={t("newWorkflow.descriptionLabel")}
           rows={2}
           className={cn(
             "-mx-2 field-sizing-content max-h-40 min-h-12 w-[calc(100%+1rem)] resize-none rounded-md bg-transparent px-2 py-1 text-sm leading-relaxed text-muted-foreground transition-colors outline-none placeholder:text-muted-foreground/50 focus-visible:bg-muted/50 focus-visible:text-foreground",
@@ -246,9 +246,7 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
             pending={draft.isPending}
             onSend={send}
             notice={
-              voiceDown && !typing
-                ? (agent.error ?? "Voice isn't available here, so let's type.")
-                : undefined
+              voiceDown && !typing ? (agent.error ?? t("newWorkflow.voiceUnavailable")) : undefined
             }
           />
         ) : (
@@ -264,23 +262,23 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
             onClick={() => setTyping(false)}
             disabled={voiceDown && !typing}
           >
-            <Mic /> Talk instead
+            <Mic /> {t("newWorkflow.talkInstead")}
           </Button>
         ) : (
           <Button variant="ghost" size="sm" onClick={switchToText}>
-            <Keyboard /> Type instead
+            <Keyboard /> {t("newWorkflow.typeInstead")}
           </Button>
         )}
         <div className="flex gap-2">
           <Button variant="ghost" onClick={onClose} disabled={create.isPending}>
-            Cancel
+            {t("newWorkflow.cancel")}
           </Button>
           <Button
             onClick={() => void createWorkflow({ share: true }).catch(() => undefined)}
             disabled={create.isPending || !title.trim()}
           >
             {create.isPending && <Loader2 className="animate-spin" />}
-            Create workflow
+            {t("newWorkflow.create")}
           </Button>
         </div>
       </div>
@@ -289,17 +287,18 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
 }
 
 function VoiceStage({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
+  const { t } = useTranslation("workMaps")
   const lastAgent = agent.transcript.findLast((l) => l.role === "agent")
   const lastUser = agent.transcript.findLast((l) => l.role === "user")
   const live = agent.mode === "voice"
   const listening = live && !agent.muted
   const status = !live
-    ? "Connecting…"
+    ? t("newWorkflow.status.connecting")
     : agent.agentSpeaking
-      ? "Socrates is speaking"
+      ? t("newWorkflow.status.speaking")
       : agent.muted
-        ? "Mic muted — write to Socrates below"
-        : "Listening — just talk"
+        ? t("newWorkflow.status.muted")
+        : t("newWorkflow.status.listening")
 
   return (
     <>
@@ -336,7 +335,9 @@ function VoiceStage({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
         <div className="min-h-16 max-w-md space-y-2">
           {lastAgent && <p className="text-sm leading-relaxed">{lastAgent.text}</p>}
           {lastUser && lastUser.at > (lastAgent?.at ?? 0) && (
-            <p className="text-sm text-muted-foreground italic">“{lastUser.text}”</p>
+            <p className="text-sm text-muted-foreground italic">
+              {t("quoted", { text: lastUser.text })}
+            </p>
           )}
         </div>
       </div>
@@ -347,6 +348,7 @@ function VoiceStage({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
 
 /** Mute the mic and write to the same live conversation; Socrates still answers out loud. */
 function VoiceComposer({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
+  const { t } = useTranslation("workMaps")
   const [input, setInput] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -372,8 +374,8 @@ function VoiceComposer({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
         size="icon"
         onClick={toggleMute}
         aria-pressed={agent.muted}
-        aria-label={agent.muted ? "Unmute microphone" : "Mute microphone"}
-        title={agent.muted ? "Unmute microphone" : "Mute microphone"}
+        aria-label={agent.muted ? t("newWorkflow.unmute") : t("newWorkflow.mute")}
+        title={agent.muted ? t("newWorkflow.unmute") : t("newWorkflow.mute")}
       >
         {agent.muted ? <MicOff /> : <Mic />}
       </Button>
@@ -384,11 +386,13 @@ function VoiceComposer({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
           setInput(e.target.value)
           agent.activity()
         }}
-        placeholder={agent.muted ? "Write to Socrates…" : "Or write to Socrates…"}
-        aria-label="Message to Socrates"
+        placeholder={
+          agent.muted ? t("newWorkflow.writePlaceholderMuted") : t("newWorkflow.writePlaceholder")
+        }
+        aria-label={t("newWorkflow.messageLabel")}
         className="flex-1 bg-background"
       />
-      <Button type="submit" size="icon" disabled={!input.trim()} aria-label="Send">
+      <Button type="submit" size="icon" disabled={!input.trim()} aria-label={t("newWorkflow.send")}>
         <ArrowUp />
       </Button>
     </form>
@@ -406,6 +410,7 @@ function TextChat({
   onSend: (text: string) => void
   notice?: string
 }) {
+  const { t } = useTranslation("workMaps")
   const [input, setInput] = useState("")
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -462,7 +467,7 @@ function TextChat({
               submit()
             }
           }}
-          placeholder="e.g. I review supplier invoices before the month-end close…"
+          placeholder={t("newWorkflow.textPlaceholder")}
           rows={2}
           className="resize-none bg-background pr-12"
         />
@@ -471,7 +476,7 @@ function TextChat({
           size="icon-sm"
           disabled={!input.trim() || pending}
           className="absolute right-6 bottom-6"
-          aria-label="Send"
+          aria-label={t("newWorkflow.send")}
         >
           <ArrowUp />
         </Button>

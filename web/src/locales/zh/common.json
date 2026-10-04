@@ -1,0 +1,60 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Socrates 的协作方式",
+    "askSocrates": "问问 Socrates",
+    "logIn": "登录",
+    "logOut": "退出登录"
+  },
+  "profileMenu": {
+    "language": "语言",
+    "languageHint": "应用的显示语言。Socrates 也会用这种语言和你交流。"
+  },
+  "askSuggestions": {
+    "capex": "什么情况下发票应计入 capex 而不是 opex？",
+    "unknownSupplier": "遇到陌生供应商该怎么处理？",
+    "intercompany": "公司间发票由谁审批？"
+  },
+  "time": {
+    "justNow": "刚刚"
+  },
+  "dialog": {
+    "close": "关闭"
+  },
+  "mermaidDiagram": {
+    "error": "无法绘制图表：{{message}}",
+    "fitToView": "适应窗口",
+    "zoomIn": "放大",
+    "zoomOut": "缩小"
+  },
+  "queryState": {
+    "errorTitle": "出了点问题",
+    "retry": "重试"
+  },
+  "screenMoment": {
+    "redacted": "已遮盖"
+  },
+  "voicePanel": {
+    "placeholder": "不想说话？在这里输入…",
+    "mutedPlaceholder": "麦克风已静音。给 Socrates 发消息…",
+    "speaking": "正在说话",
+    "muted": "已静音",
+    "listening": "正在聆听",
+    "textMode": "文字模式",
+    "connecting": "正在连接…",
+    "voiceError": "语音出错",
+    "notConnected": "未连接",
+    "empty": "对话内容将显示在这里。",
+    "you": "你",
+    "mute": "麦克风静音",
+    "unmute": "取消麦克风静音",
+    "send": "发送"
+  },
+  "errorPages": {
+    "backToLibrary": "返回资料库",
+    "notFoundTitle": "页面不存在",
+    "notFoundMessage": "Socrates 还不认识这个页面。",
+    "brokeTitle": "出故障了",
+    "unknownError": "未知错误"
+  }
+}

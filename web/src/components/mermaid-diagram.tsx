@@ -1,5 +1,6 @@
 import { Minus, Plus, Scan } from "lucide-react"
 import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -54,6 +55,7 @@ export function MermaidDiagram({
   scrollToZoom?: boolean
   className?: string
 }) {
+  const { t } = useTranslation("common")
   const viewport = useRef<HTMLDivElement>(null)
   const container = useRef<HTMLDivElement>(null)
   const baseId = `mermaid-${useId().replace(/:/g, "")}`
@@ -324,7 +326,9 @@ export function MermaidDiagram({
         }}
       >
         {error && (
-          <p className="p-4 text-sm text-destructive">Couldn't draw the diagram: {error}</p>
+          <p className="p-4 text-sm text-destructive">
+            {t("mermaidDiagram.error", { message: error })}
+          </p>
         )}
         {!ready && !error && <Skeleton className="h-64 w-full" />}
         <div
@@ -341,7 +345,7 @@ export function MermaidDiagram({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Zoom out"
+            aria-label={t("mermaidDiagram.zoomOut")}
             onClick={() => zoom(1 / 1.25, undefined, true)}
           >
             <Minus />
@@ -352,12 +356,17 @@ export function MermaidDiagram({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Zoom in"
+            aria-label={t("mermaidDiagram.zoomIn")}
             onClick={() => zoom(1.25, undefined, true)}
           >
             <Plus />
           </Button>
-          <Button variant="ghost" size="icon-sm" aria-label="Fit to view" onClick={refit}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("mermaidDiagram.fitToView")}
+            onClick={refit}
+          >
             <Scan />
           </Button>
         </div>

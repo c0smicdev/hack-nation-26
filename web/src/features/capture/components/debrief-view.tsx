@@ -1,5 +1,6 @@
 import { CheckCircle2, ChevronRight, ListOrdered, Loader2, MessagesSquare, Mic } from "lucide-react"
-import { type ReactNode, useMemo, useState } from "react"
+import { type ReactNode, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -53,9 +54,11 @@ export function DebriefView({
   onTeachBack: () => void
   onReply: (confirmed: boolean, correction?: string) => void
 }) {
+  const { t } = useTranslation("capture")
   const [tab, setTab] = useState<Tab>("chat")
   const [openId, setOpenId] = useState<ID>()
-  const chart = useMemo(() => liveStepsToMermaid(steps), [steps])
+  // Not memoized: the labels are translated, and the diagram only redraws when the text changes.
+  const chart = liveStepsToMermaid(steps)
   const clicks = Object.fromEntries(
     steps.map((step, i) => [
       stepNodeId(i),
@@ -75,7 +78,7 @@ export function DebriefView({
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 md:px-6">
         <nav className="flex min-w-0 items-center gap-1.5 text-sm">
           <Link to={paths.library()} className="text-muted-foreground hover:text-foreground">
-            Workflows
+            {t("breadcrumbWorkflows")}
           </Link>
           <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
           <span className="truncate font-semibold">{session.title}</span>
@@ -91,8 +94,7 @@ export function DebriefView({
         <section className="relative min-h-80 overflow-hidden bg-muted/20">
           {session.status === "processing" || !map ? (
             <div className="flex size-full items-center justify-center gap-3 p-8 text-muted-foreground">
-              <Loader2 className="animate-spin" /> Building the draft workflow from what Socrates
-              saw and heard…
+              <Loader2 className="animate-spin" /> {t("debriefView.building")}
             </div>
           ) : (
             <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full" />
@@ -103,20 +105,30 @@ export function DebriefView({
         <aside className="flex min-h-0 flex-col border-t lg:border-t-0 lg:border-l">
           <div className="flex items-center gap-3 border-b px-4 py-3">
             <div className="min-w-0 flex-1">
-              <h2 className="font-semibold">{tab === "chat" ? "Debrief" : "Your steps"}</h2>
+              <h2 className="font-semibold">
+                {tab === "chat" ? t("debriefView.debrief") : t("yourSteps")}
+              </h2>
               <p className="text-xs text-muted-foreground">
                 {finalMapId
-                  ? "Confirmed and saved to memory"
+                  ? t("debriefView.confirmed")
                   : map?.teachBack
-                    ? "Teach-back: does Socrates get it?"
-                    : `${answered} of ${total} questions answered`}
+                    ? t("debriefView.teachBack")
+                    : t("debriefView.questionsAnswered", { answered, total })}
               </p>
             </div>
             <div className="flex rounded-md border p-0.5">
-              <TabButton active={tab === "chat"} onClick={() => setTab("chat")} label="Chat">
+              <TabButton
+                active={tab === "chat"}
+                onClick={() => setTab("chat")}
+                label={t("debriefView.chat")}
+              >
                 <MessagesSquare />
               </TabButton>
-              <TabButton active={tab === "steps"} onClick={() => setTab("steps")} label="Steps">
+              <TabButton
+                active={tab === "steps"}
+                onClick={() => setTab("steps")}
+                label={t("debriefView.steps")}
+              >
                 <ListOrdered />
               </TabButton>
             </div>
@@ -133,8 +145,8 @@ export function DebriefView({
             ) : voice || agent.mode === "connecting" ? (
               <VoicePanel
                 agent={agent}
-                title="Socrates · Debrief"
-                placeholder="Answer by voice, or type it here…"
+                title={t("debriefView.voiceTitle")}
+                placeholder={t("debriefView.voicePlaceholder")}
                 mutable
                 className="h-full rounded-none shadow-none ring-0"
               />
@@ -143,7 +155,7 @@ export function DebriefView({
                 <div className="space-y-4 p-4">
                   {!finalMapId && (
                     <Button variant="outline" className="w-full" onClick={onStartVoice}>
-                      <Mic /> Debrief by voice
+                      <Mic /> {t("debriefView.debriefByVoice")}
                     </Button>
                   )}
                   <DebriefPanel
@@ -166,12 +178,12 @@ export function DebriefView({
               {finalMapId ? (
                 <Button asChild>
                   <Link to={paths.workMap(finalMapId)}>
-                    <CheckCircle2 /> Open the workflow
+                    <CheckCircle2 /> {t("openWorkflow")}
                   </Link>
                 </Button>
               ) : map.teachBack ? (
                 <Button onClick={() => onReply(true)} disabled={!!busy}>
-                  Yes, that's right
+                  {t("confirmTeachBack")}
                 </Button>
               ) : null}
             </div>

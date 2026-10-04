@@ -1,0 +1,128 @@
+{
+  "captureState": {
+    "notCapturing": "記録停止中",
+    "offTheRecord": "オフレコ",
+    "capturing": "記録中"
+  },
+  "sessionStatus": {
+    "intake": "受付",
+    "live": "ライブ",
+    "processing": "マップ作成中",
+    "awaitingDebrief": "振り返り待ち",
+    "mapped": "マップ作成済み"
+  },
+  "eventKind": {
+    "screen": "画面",
+    "speech": "エキスパート",
+    "question": "Socratesの質問",
+    "offRecord": "プライバシー"
+  },
+  "capturePage": {
+    "title": "記録",
+    "description": "Socratesが画面を見守るなか、実際の業務を行ってください。Socratesは区切りのよいタイミングで理由を尋ね、短い振り返りで不明点を補い、ワークフローにまとめます。",
+    "howItWorks": {
+      "title": "使い方",
+      "step1": "1. 別のタブでモックERPを開き、セッションを開始してそのタブを共有します。これから何をするかをSocratesに伝えてください。",
+      "step2": "2. いつもどおり作業しながら、考えていることを声に出してください。Socratesは区切りのよいタイミングで3～5個の質問をします。",
+      "step3": "3. 終わったら「終わりました」と伝えてください。短い音声での振り返りの後、Socratesが内容を説明し返します。",
+      "offTheRecord": "いつでも「オフレコ」と言うか、スイッチを切り替えてください。記録を再開するまで何も記録されません。"
+    },
+    "sessions": "セッション"
+  },
+  "sessionRow": {
+    "events_other": "{{count}}件のイベント",
+    "liveQuestions_other": "ライブ質問 {{count}}件"
+  },
+  "newSession": {
+    "title": "新しいセッション",
+    "description": "誰が何を実演しますか?業務内容は音声で補足できます。",
+    "expert": "エキスパート",
+    "role": "役割",
+    "sessionTitle": "セッション名",
+    "task": "これから何をしますか?",
+    "defaultTitle": "月末の仕入先請求書",
+    "defaultTask": "月次決算の前に、今週分の仕入先請求書をERPで処理する。",
+    "start": "セッションを開始"
+  },
+  "openErp": "モックERPを開く",
+  "breadcrumbWorkflows": "ワークフロー",
+  "yourSteps": "あなたの手順",
+  "openWorkflow": "ワークフローを開く",
+  "confirmTeachBack": "はい、そのとおりです",
+  "busy": {
+    "buildingDraft": "ワークフローの下書きを作成中",
+    "writingTeachBack": "ティーチバックを作成中",
+    "savingToMemory": "メモリに保存中",
+    "updatingTeachBack": "ティーチバックを更新中"
+  },
+  "recording": {
+    "notRecording": "録画停止中",
+    "paused": "一時停止中",
+    "recording": "録画中",
+    "shareTitle": "画面を共有して録画を開始",
+    "shareHint": "作業するウィンドウ(例:モックERP)を選んでください。Socratesが作業を見守り、操作を手順ごとにまとめて、ここにワークフローを描きます。",
+    "shareScreen": "画面を共有",
+    "stepsSoFar_other": "現在 {{count}} ステップ",
+    "endWorkflow": "ワークフローを終了"
+  },
+  "socratesStatus": {
+    "speaking": "Socratesが話しています",
+    "listening": "Socratesが聞いています",
+    "connecting": "接続中…",
+    "text": "質問は画面に表示されます",
+    "off": "音声オフ"
+  },
+  "memoryMatch": {
+    "text": "{{expert}}さんが以前見せてくれた<strong>{{title}}</strong>に似ています。同じワークフローですか?",
+    "same": "同じワークフロー",
+    "new": "新しいワークフロー"
+  },
+  "textQuestion": {
+    "placeholder": "回答を入力",
+    "answer": "回答",
+    "later": "あとで"
+  },
+  "leaveGuard": {
+    "title": "この録画を破棄しますか?",
+    "description": "ワークフローはまだ記録中です。今ページを離れると記録が停止し、ここまでに記録された手順はワークフローになりません。",
+    "keep": "記録を続ける",
+    "abandon": "記録を破棄"
+  },
+  "offTheRecordSwitch": {
+    "label": "オフレコ"
+  },
+  "liveStepList": {
+    "gettingStarted": "はじめに",
+    "empty": "作業を始めてください。Socrates が理解した手順がここに表示されます。",
+    "decision": "判断",
+    "differsFromMemory": "記憶と異なる",
+    "events_other": "{{count}} 件のイベント",
+    "screenshotAlt": "画面：{{title}}"
+  },
+  "debriefView": {
+    "building": "Socrates が見聞きした内容からワークフローの下書きを作成しています…",
+    "debrief": "振り返り",
+    "confirmed": "確認済み・記憶に保存しました",
+    "teachBack": "ティーチバック：Socrates は理解できていますか？",
+    "questionsAnswered": "{{total}} 件中 {{answered}} 件の質問に回答済み",
+    "chat": "チャット",
+    "steps": "手順",
+    "voiceTitle": "Socrates · 振り返り",
+    "voicePlaceholder": "音声で回答するか、ここに入力してください…",
+    "debriefByVoice": "音声で振り返り"
+  },
+  "debriefPanel": {
+    "title": "振り返り",
+    "description": "未回答の質問 {{total}} 件中 {{answered}} 件に回答済みです。Socrates は質問を 1 つずつ行い、最後にプロセス全体を説明し直します。",
+    "teachBackTitle": "ティーチバック",
+    "teachBackDescription": "すべての質問に回答し、{{expert}} さんが説明を確認すると完了です。",
+    "confirmed": "確認しました。ワークフローを記憶に保存しました。",
+    "explainBack": "説明してもらう",
+    "about": "対象：{{title}}",
+    "answerPlaceholder": "音声で回答するか、ここに入力してください",
+    "save": "保存",
+    "updatedAfter_other": "{{count}} 件の修正を反映して更新しました。",
+    "correctionPlaceholder": "間違いがありますか？ご自身の言葉で修正してください。",
+    "correct": "修正する"
+  }
+}

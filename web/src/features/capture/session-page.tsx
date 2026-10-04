@@ -12,7 +12,8 @@ import {
   MonitorUp,
   Sparkles,
 } from "lucide-react"
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import { Link, useParams } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -35,7 +36,7 @@ import { useMe } from "@/lib/auth/hooks"
 import { claimStream } from "@/lib/capture/pending-stream"
 import { startScreenShare } from "@/lib/capture/screen"
 import { coachingStyle } from "@/lib/coaching"
-import { formatTimestamp, pluralize } from "@/lib/format"
+import { formatTimestamp } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
 import { liveStepsToMermaid, stepNodeId } from "@/features/work-maps/flowchart"
@@ -89,6 +90,7 @@ function debriefBrief(map: WorkMap) {
  * the steps on the right. After "End workflow": debrief and teach-back.
  */
 function SessionView({ session }: { session: CaptureSession }) {
+  const { t } = useTranslation("capture")
   const queryClient = useQueryClient()
   const { data: status } = useCaptureStatus()
   const setOffTheRecord = useSetOffTheRecord()
@@ -153,7 +155,7 @@ function SessionView({ session }: { session: CaptureSession }) {
   }
 
   async function finish() {
-    setBusy("Building the draft workflow")
+    setBusy(t("busy.buildingDraft"))
     try {
       stopSharing()
       const map = await api.finishCapture(session.id)
@@ -176,7 +178,7 @@ function SessionView({ session }: { session: CaptureSession }) {
   }
 
   async function teachBack() {
-    setBusy("Writing the teach-back")
+    setBusy(t("busy.writingTeachBack"))
     try {
       const map = await api.requestTeachBack(session.workMapId!)
       setMap(map)
@@ -188,7 +190,7 @@ function SessionView({ session }: { session: CaptureSession }) {
   }
 
   async function reply(confirmed: boolean, correction?: string) {
-    setBusy(confirmed ? "Saving to memory" : "Updating the teach-back")
+    setBusy(confirmed ? t("busy.savingToMemory") : t("busy.updatingTeachBack"))
     try {
       const map = await api.replyTeachBack(session.workMapId!, {
         confirmed,
@@ -469,8 +471,10 @@ function RecordingView({
   loopError?: string
   onAbandon: () => void
 }) {
+  const { t } = useTranslation("capture")
   const [openId, setOpenId] = useState<ID>()
-  const chart = useMemo(() => liveStepsToMermaid(steps), [steps])
+  // Not memoized: the labels are translated, and the diagram only redraws when the text changes.
+  const chart = liveStepsToMermaid(steps)
   const clicks = Object.fromEntries(
     steps.map((step, i) => [stepNodeId(i), () => setOpenId(step.id)]),
   )
@@ -484,7 +488,7 @@ function RecordingView({
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 md:px-6">
         <nav className="flex min-w-0 items-center gap-1.5 text-sm">
           <Link to={paths.library()} className="text-muted-foreground hover:text-foreground">
-            Workflows
+            {t("breadcrumbWorkflows")}
           </Link>
           <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
           <span className="truncate font-semibold">{session.title}</span>
@@ -497,8 +501,12 @@ function RecordingView({
               stream && !offRecord && "animate-pulse",
             )}
           />
-          {!stream ? "Not recording" : offRecord ? "Paused" : "Recording"} ·{" "}
-          {formatTimestamp(elapsed)}
+          {!stream
+            ? t("recording.notRecording")
+            : offRecord
+              ? t("recording.paused")
+              : t("recording.recording")}{" "}
+          · {formatTimestamp(elapsed)}
         </span>
         <SocratesStatus agent={agent} />
         <div className="ml-auto flex items-center gap-4">
@@ -506,7 +514,7 @@ function RecordingView({
             <OffTheRecordSwitch id="session-off-the-record" />
           </div>
           <Button variant="outline" size="sm" onClick={openErp}>
-            <ExternalLink /> Open mock ERP
+            <ExternalLink /> {t("openErp")}
           </Button>
         </div>
       </header>
@@ -526,14 +534,11 @@ function RecordingView({
             <div className="flex size-full flex-col items-center justify-center gap-4 p-8 text-center">
               <MonitorUp className="size-10 text-muted-foreground" />
               <div className="space-y-1">
-                <p className="font-medium">Share your screen to start recording</p>
-                <p className="max-w-sm text-sm text-muted-foreground">
-                  Pick the window you'll work in (e.g. the mock ERP). Socrates watches, groups what
-                  you do into steps and draws the workflow here.
-                </p>
+                <p className="font-medium">{t("recording.shareTitle")}</p>
+                <p className="max-w-sm text-sm text-muted-foreground">{t("recording.shareHint")}</p>
               </div>
               <Button onClick={onShare}>
-                <MonitorUp /> Share screen
+                <MonitorUp /> {t("recording.shareScreen")}
               </Button>
               {shareError && <p className="text-sm text-destructive">{shareError}</p>}
             </div>
@@ -549,12 +554,12 @@ function RecordingView({
               </div>
             )}
             <div className="min-w-0">
-              <h2 className="font-semibold">Your steps</h2>
+              <h2 className="font-semibold">{t("yourSteps")}</h2>
               <p className="text-xs text-muted-foreground">
                 {loopError ? (
                   <span className="text-destructive">{loopError}</span>
                 ) : (
-                  `${pluralize(steps.length, "step")} so far`
+                  t("recording.stepsSoFar", { count: steps.length })
                 )}
               </p>
             </div>
@@ -569,7 +574,8 @@ function RecordingView({
           </div>
           <div className="flex justify-end border-t px-4 py-3">
             <Button variant="destructive" onClick={onEnd} disabled={ending || !stream}>
-              {ending ? <Loader2 className="animate-spin" /> : <Flag />} End workflow
+              {ending ? <Loader2 className="animate-spin" /> : <Flag />}{" "}
+              {t("recording.endWorkflow")}
             </Button>
           </div>
         </aside>
@@ -580,6 +586,7 @@ function RecordingView({
 
 /** Compact voice status for the recording header: Socrates listens, asks at pauses. */
 function SocratesStatus({ agent }: { agent: VoiceAgent }) {
+  const { t } = useTranslation("capture")
   const last = agent.transcript.findLast((l) => l.role === "agent")
   const icon =
     agent.mode === "voice" ? (
@@ -594,13 +601,13 @@ function SocratesStatus({ agent }: { agent: VoiceAgent }) {
   const label =
     agent.mode === "voice"
       ? agent.agentSpeaking
-        ? "Socrates is speaking"
-        : "Socrates is listening"
+        ? t("socratesStatus.speaking")
+        : t("socratesStatus.listening")
       : agent.mode === "connecting"
-        ? "Connecting…"
+        ? t("socratesStatus.connecting")
         : agent.mode === "text"
-          ? "Questions appear on screen"
-          : "Voice off"
+          ? t("socratesStatus.text")
+          : t("socratesStatus.off")
   return (
     <span className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
       {icon}
@@ -621,18 +628,23 @@ function MemoryMatch({
   onSame: () => void
   onNew: () => void
 }) {
+  const { t } = useTranslation("capture")
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-background p-3 shadow-sm">
       <Sparkles className="size-4 shrink-0 text-primary" />
       <p className="min-w-0 flex-1 text-sm">
-        Looks like <span className="font-medium">{map.title}</span>, which {map.expert.name} already
-        showed me. Same workflow?
+        <Trans
+          t={t}
+          i18nKey="memoryMatch.text"
+          values={{ title: map.title, expert: map.expert.name }}
+          components={{ strong: <span className="font-medium" /> }}
+        />
       </p>
       <Button size="sm" variant="outline" onClick={onSame}>
-        Same workflow
+        {t("memoryMatch.same")}
       </Button>
       <Button size="sm" variant="ghost" onClick={onNew}>
-        It's new
+        {t("memoryMatch.new")}
       </Button>
     </div>
   )
@@ -678,6 +690,7 @@ function TextQuestion({
   onAnswer: (text: string) => void
   onSkip: () => void
 }) {
+  const { t } = useTranslation("capture")
   const [draft, setDraft] = useState("")
   return (
     <Card className="border-primary/40 bg-background shadow-sm">
@@ -697,11 +710,11 @@ function TextQuestion({
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Your answer"
+            placeholder={t("textQuestion.placeholder")}
           />
-          <Button type="submit">Answer</Button>
+          <Button type="submit">{t("textQuestion.answer")}</Button>
           <Button type="button" variant="ghost" onClick={onSkip}>
-            Later
+            {t("textQuestion.later")}
           </Button>
         </form>
       </CardContent>

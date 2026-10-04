@@ -1,0 +1,109 @@
+{
+  "notReady": {
+    "title": "Jeszcze nie można rozpocząć nadzoru",
+    "description": "Ekspert {{expert}} nie potwierdził jeszcze procesu „{{title}}”. Najpierw dokończ omówienie i teach-back, żeby Socrates prowadził tylko w oparciu o wiedzę potwierdzoną przez eksperta.",
+    "back": "Wróć do procesu"
+  },
+  "errors": {
+    "notStarted": "Sesja jeszcze się nie rozpoczęła",
+    "lookupFailed": "Niestety nie udało mi się tego sprawdzić ({{message}})."
+  },
+  "header": {
+    "workflows": "Procesy",
+    "supervisedRun": "Sesja pod nadzorem",
+    "supervising": "Nadzór: {{name}}",
+    "runEnded": "Sesja zakończona",
+    "paused": "Wstrzymano: ekran nie jest udostępniony",
+    "notStarted": "Nie rozpoczęto",
+    "checkingSave": "Sprawdzanie zapisu",
+    "openErp": "Otwórz testowy ERP",
+    "endRun": "Zakończ sesję"
+  },
+  "graph": {
+    "sharingStopped": "Udostępnianie ekranu zostało zatrzymane. Socrates nie widzi twojej pracy, dopóki znów go nie udostępnisz.",
+    "shareAgain": "Udostępnij ponownie",
+    "currentStep": "Krok {{index}} z {{total}}: {{title}}",
+    "startWorking": "Zacznij pracę. Tu zobaczysz swoje postępy."
+  },
+  "tabs": {
+    "chat": "Czat",
+    "mentor": "Jak robi to {{expert}}"
+  },
+  "voice": {
+    "cantHear": "Socrates cię nie słyszy: {{error}}",
+    "disconnected": "Głos Socratesa się rozłączył. Wpisz pytania poniżej albo włącz głos ponownie.",
+    "notSetUp": "Głos nie jest skonfigurowany dla sesji pod nadzorem (npm run setup:agents -- supervisor). Wpisz pytania poniżej.",
+    "turnOn": "Włącz głos"
+  },
+  "mentor": {
+    "intro": "Jak ekspert {{expert}} to robi – krok po kroku, własnymi słowami."
+  },
+  "start": {
+    "title": "Wykonaj ten proces, a Socrates będzie w pogotowiu",
+    "description": "Udostępnij okno, w którym będziesz pracować (np. testowy ERP w zakładce <strong>Przypadki szkoleniowe</strong>). Socrates się nie odzywa: pytaj, kiedy potrzebujesz pomocy, a wtrąci się tylko wtedy, gdy masz popełnić błąd, który wyłapałby ekspert {{expert}}.",
+    "yourName": "Twoje imię",
+    "share": "Udostępnij ekran i zacznij"
+  },
+  "warningBanner": {
+    "wouldStop": "Tutaj {{expert}} mówi: stop",
+    "headsUp": "Uwaga",
+    "openChat": "Otwórz czat",
+    "dismiss": "Zamknij"
+  },
+  "runSummary": {
+    "finished": "Sesja zakończona.",
+    "stepsDone": "Ukończone kroki: {{done}} z {{total}}",
+    "headsUps_one": "{{count}} uwaga",
+    "headsUps_few": "{{count}} uwagi",
+    "headsUps_many": "{{count}} uwag",
+    "headsUps_other": "{{count}} uwagi",
+    "questionsAsked_one": "{{count}} pytanie",
+    "questionsAsked_few": "{{count}} pytania",
+    "questionsAsked_many": "{{count}} pytań",
+    "questionsAsked_other": "{{count}} pytania",
+    "back": "Wróć do procesu"
+  },
+  "status": {
+    "speaking": "Socrates mówi",
+    "muted": "Mikrofon wyciszony",
+    "standingBy": "Socrates jest w pogotowiu",
+    "connecting": "Łączenie…",
+    "typing": "Pytaj na czacie",
+    "voiceOff": "Głos wyłączony"
+  },
+  "leaveGuard": {
+    "title": "Zakończyć sesję pod nadzorem?",
+    "description": "Socrates wciąż jest w pogotowiu. Jeśli teraz wyjdziesz, udostępnianie ekranu się zatrzyma, a Socrates nie pomoże ci w dalszej części sesji.",
+    "keepGoing": "Kontynuuj",
+    "endRun": "Zakończ sesję"
+  },
+  "chatPanel": {
+    "stepLink": "Krok {{index}}: {{title}}",
+    "emptyTitle": "Socrates jest w pogotowiu",
+    "emptyBody": "Pracuj jak zwykle. Pytaj o cokolwiek – na głos albo poniżej – a Socrates odpowie słowami eksperta ({{expert}}). Jeśli masz popełnić błąd, który ekspert by wyłapał, Socrates cię uprzedzi.",
+    "saveHeld": "Tutaj {{expert}} mówi: stop · zapis wstrzymany",
+    "headsUp": "Uwaga",
+    "socrates": "Socrates",
+    "you": "Ty",
+    "thinking": "Socrates patrzy na twój ekran…",
+    "mute": "Wycisz mikrofon",
+    "unmute": "Włącz mikrofon",
+    "placeholderShare": "Udostępnij ekran, aby zacząć",
+    "placeholderMuted": "Mikrofon wyciszony. Napisz do Socratesa…",
+    "placeholder": "Zapytaj Socratesa…",
+    "send": "Wyślij"
+  },
+  "mentorSteps": {
+    "here": "Tu jesteś",
+    "decision": "Decyzja",
+    "headsUpGiven": "Ostrzeżenie przekazane",
+    "whatDid": "Co zrobił(a) {{expert}}: ",
+    "ask": "Zapytaj: {{who}}",
+    "if": "Jeśli",
+    "guardrail": {
+      "limit": "Limit",
+      "stopAndAsk": "Zatrzymaj się i zapytaj",
+      "never": "Nigdy"
+    }
+  }
+}

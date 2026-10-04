@@ -11,10 +11,11 @@ export function formatDuration(seconds: number) {
   return `${Math.round(seconds / 60)} min`
 }
 
-const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
+import { i18n } from "@/lib/i18n"
 
-/** ISO string → "2 hours ago" */
+/** ISO string → "2 hours ago", in the UI language. */
 export function formatRelative(iso: string) {
+  const relative = new Intl.RelativeTimeFormat(i18n.language, { numeric: "auto" })
   const diffSec = (Date.parse(iso) - Date.now()) / 1000
   const units: [Intl.RelativeTimeFormatUnit, number][] = [
     ["year", 31_536_000],
@@ -26,7 +27,7 @@ export function formatRelative(iso: string) {
   for (const [unit, size] of units) {
     if (Math.abs(diffSec) >= size) return relative.format(Math.round(diffSec / size), unit)
   }
-  return "just now"
+  return i18n.t("common:time.justNow")
 }
 
 export function initials(name: string) {

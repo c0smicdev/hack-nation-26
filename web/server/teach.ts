@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import type {
+  Language,
   AskRequest,
   AskResponse,
   DecisionCheck,
@@ -24,7 +25,11 @@ const VerdictOut = z.object({
   guardrailId: z.string().nullable(),
 })
 
-export async function checkDecision(workMapId: ID, check: DecisionCheck): Promise<DecisionVerdict> {
+export async function checkDecision(
+  workMapId: ID,
+  check: DecisionCheck,
+  language?: Language,
+): Promise<DecisionVerdict> {
   const map = getWorkMap(workMapId)
   const guardrailIds = map.steps
     .flatMap((s) => s.guardrails.map((g) => `  [${g.id}] in step [${s.id}]: ${g.rule}`))
@@ -34,6 +39,7 @@ export async function checkDecision(workMapId: ID, check: DecisionCheck): Promis
     effort: "low",
     maxTokens: 4000,
     system: prompt("tutor-check", { expert: map.expert.name }),
+    language,
     schema: VerdictOut,
     content: [
       text(
@@ -75,6 +81,8 @@ const agentIdsByName = new Map<string, string>()
  */
 async function agentId(role: VoiceRole, apiKey: string): Promise<string | undefined> {
   const { env, name } = agents[role]
+  // Test copies (`npm run setup:agents -- --test`) for trying agent changes locally.
+  if (process.env.ELEVENLABS_USE_TEST_AGENTS === "1") return process.env[`${env}_TEST`]
   if (process.env[env]) return process.env[env]
   if (!agentIdsByName.has(name)) {
     const res = await fetch("https://api.elevenlabs.io/v1/convai/agents?page_size=100", {
@@ -110,7 +118,10 @@ const AskOut = z.object({
   citations: z.array(z.object({ workMapId: z.string(), stepId: z.string() })),
 })
 
-export async function ask({ question, workMapId }: AskRequest): Promise<AskResponse> {
+export async function ask(
+  { question, workMapId }: AskRequest,
+  language?: Language,
+): Promise<AskResponse> {
   const scope = workMapId ? [getWorkMap(workMapId)] : store.workMaps
   const catalog = scope.map((m) => `[map ${m.id}]\n${memoryContext(m)}`).join("\n\n")
   const out = await structured({
@@ -118,6 +129,7 @@ export async function ask({ question, workMapId }: AskRequest): Promise<AskRespo
     effort: "low",
     maxTokens: 4000,
     system: prompt("ask"),
+    language,
     schema: AskOut,
     content: [text(`${catalog}\n\nQuestion from a new employee: ${question}`)],
   })
@@ -140,11 +152,10 @@ const DraftOut = z.object({
   ready: z.boolean(),
 })
 
-export async function draftWorkflow({
-  messages,
-  title,
-  description,
-}: WorkflowDraftRequest): Promise<WorkflowDraft> {
+export async function draftWorkflow(
+  { messages, title, description }: WorkflowDraftRequest,
+  language?: Language,
+): Promise<WorkflowDraft> {
   const chat = messages
     .map((m) => `${m.role === "user" ? "Expert" : "Socrates"}: ${m.content}`)
     .join("\n")
@@ -153,6 +164,7 @@ export async function draftWorkflow({
     effort: "low",
     maxTokens: 2000,
     system: prompt("workflow-draft"),
+    language,
     schema: DraftOut,
     content: [
       text(

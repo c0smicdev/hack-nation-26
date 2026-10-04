@@ -1,0 +1,128 @@
+{
+  "captureState": {
+    "notCapturing": "未记录",
+    "offTheRecord": "不予记录",
+    "capturing": "记录中"
+  },
+  "sessionStatus": {
+    "intake": "准备中",
+    "live": "进行中",
+    "processing": "正在生成流程图",
+    "awaitingDebrief": "待复盘",
+    "mapped": "已生成流程图"
+  },
+  "eventKind": {
+    "screen": "屏幕",
+    "speech": "专家",
+    "question": "Socrates 提问",
+    "offRecord": "隐私"
+  },
+  "capturePage": {
+    "title": "记录",
+    "description": "在 Socrates 观看你屏幕的同时完成一项真实任务。它会在自然停顿时问你为什么,通过简短复盘补全细节,并整理成工作流程。",
+    "howItWorks": {
+      "title": "使用方式",
+      "step1": "1. 在另一个标签页打开模拟 ERP,开始会话并共享该标签页。告诉 Socrates 你要做什么。",
+      "step2": "2. 照常工作,边做边说出你的想法。Socrates 会在自然停顿时提出 3–5 个问题。",
+      "step3": "3. 说出你已完成:进行简短的语音复盘,然后 Socrates 会向你讲解一遍让你确认。",
+      "offTheRecord": "随时说出“不予记录”或拨动开关。恢复记录前,不会记录任何内容。"
+    },
+    "sessions": "会话"
+  },
+  "sessionRow": {
+    "events_other": "{{count}} 个事件",
+    "liveQuestions_other": "{{count}} 个实时提问"
+  },
+  "newSession": {
+    "title": "新会话",
+    "description": "谁来演示什么?你可以用语音进一步说明任务。",
+    "expert": "专家",
+    "role": "职位",
+    "sessionTitle": "会话标题",
+    "task": "你要做什么?",
+    "defaultTitle": "月末供应商发票",
+    "defaultTask": "在月末结账前,在 ERP 中处理本周的供应商发票。",
+    "start": "开始会话"
+  },
+  "openErp": "打开模拟 ERP",
+  "breadcrumbWorkflows": "工作流程",
+  "yourSteps": "你的步骤",
+  "openWorkflow": "打开工作流程",
+  "confirmTeachBack": "对,没错",
+  "busy": {
+    "buildingDraft": "正在生成工作流程草稿",
+    "writingTeachBack": "正在撰写讲解",
+    "savingToMemory": "正在保存到记忆",
+    "updatingTeachBack": "正在更新讲解"
+  },
+  "recording": {
+    "notRecording": "未录制",
+    "paused": "已暂停",
+    "recording": "录制中",
+    "shareTitle": "共享屏幕以开始录制",
+    "shareHint": "选择你要工作的窗口(例如模拟 ERP)。Socrates 会观看你的操作,将其归纳为步骤,并在此绘制工作流程。",
+    "shareScreen": "共享屏幕",
+    "stepsSoFar_other": "目前共 {{count}} 个步骤",
+    "endWorkflow": "结束工作流程"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates 正在说话",
+    "listening": "Socrates 正在聆听",
+    "connecting": "正在连接…",
+    "text": "问题将显示在屏幕上",
+    "off": "语音已关闭"
+  },
+  "memoryMatch": {
+    "text": "这看起来像是 {{expert}} 之前给我演示过的<strong>{{title}}</strong>。是同一个工作流程吗?",
+    "same": "同一个流程",
+    "new": "是新的"
+  },
+  "textQuestion": {
+    "placeholder": "你的回答",
+    "answer": "回答",
+    "later": "稍后"
+  },
+  "leaveGuard": {
+    "title": "放弃本次录制?",
+    "description": "工作流仍在录制中。如果现在离开，录制将停止，已记录的步骤不会生成工作流。",
+    "keep": "继续录制",
+    "abandon": "放弃录制"
+  },
+  "offTheRecordSwitch": {
+    "label": "不记录"
+  },
+  "liveStepList": {
+    "gettingStarted": "准备开始",
+    "empty": "开始操作吧。Socrates 理解你的步骤后，会显示在这里。",
+    "decision": "决策",
+    "differsFromMemory": "与记忆不一致",
+    "events_other": "{{count}} 个事件",
+    "screenshotAlt": "屏幕截图：{{title}}"
+  },
+  "debriefView": {
+    "building": "正在根据 Socrates 看到和听到的内容生成工作流草稿…",
+    "debrief": "复盘",
+    "confirmed": "已确认并保存到记忆",
+    "teachBack": "复述确认：Socrates 理解对了吗？",
+    "questionsAnswered": "已回答 {{answered}}/{{total}} 个问题",
+    "chat": "对话",
+    "steps": "步骤",
+    "voiceTitle": "Socrates · 复盘",
+    "voicePlaceholder": "用语音回答，或在此输入…",
+    "debriefByVoice": "语音复盘"
+  },
+  "debriefPanel": {
+    "title": "复盘",
+    "description": "已回答 {{answered}}/{{total}} 个待解答问题。Socrates 会逐一提问，然后把整个流程复述给你。",
+    "teachBackTitle": "复述确认",
+    "teachBackDescription": "所有问题都已回答，且 {{expert}} 确认了复述内容，才算完成。",
+    "confirmed": "已确认。工作流已保存到记忆。",
+    "explainBack": "复述一遍",
+    "about": "关于：{{title}}",
+    "answerPlaceholder": "用语音回答，或在此输入",
+    "save": "保存",
+    "updatedAfter_other": "已根据 {{count}} 处更正更新。",
+    "correctionPlaceholder": "有不对的地方？用你自己的话更正。",
+    "correct": "更正"
+  }
+}

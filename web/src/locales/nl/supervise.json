@@ -1,0 +1,105 @@
+{
+  "notReady": {
+    "title": "Nog niet klaar voor begeleiding",
+    "description": "{{title}} is nog niet bevestigd door {{expert}}. Rond eerst de debrief en de teach-back af, zodat Socrates alleen begeleidt met kennis die de expert heeft bevestigd.",
+    "back": "Terug naar de workflow"
+  },
+  "errors": {
+    "notStarted": "De run is nog niet gestart",
+    "lookupFailed": "Sorry, dat kon ik niet opzoeken ({{message}})."
+  },
+  "header": {
+    "workflows": "Workflows",
+    "supervisedRun": "Begeleide run",
+    "supervising": "{{name}} begeleiden",
+    "runEnded": "Run beëindigd",
+    "paused": "Gepauzeerd: scherm niet gedeeld",
+    "notStarted": "Niet gestart",
+    "checkingSave": "Opslaan wordt gecontroleerd",
+    "openErp": "Test-ERP openen",
+    "endRun": "Run beëindigen"
+  },
+  "graph": {
+    "sharingStopped": "Scherm delen is gestopt. Socrates kan je werk pas weer zien als je opnieuw deelt.",
+    "shareAgain": "Opnieuw delen",
+    "currentStep": "Stap {{index}} van {{total}}: {{title}}",
+    "startWorking": "Ga aan de slag. Je voortgang verschijnt hier."
+  },
+  "tabs": {
+    "chat": "Chat",
+    "mentor": "Wat {{expert}} deed"
+  },
+  "voice": {
+    "cantHear": "Socrates kan je niet horen: {{error}}",
+    "disconnected": "De stem van Socrates is verbroken. Typ je vragen hieronder of zet de stem weer aan.",
+    "notSetUp": "Stem is niet ingesteld voor begeleide runs (npm run setup:agents -- supervisor). Typ je vragen hieronder.",
+    "turnOn": "Stem aanzetten"
+  },
+  "mentor": {
+    "intro": "Hoe {{expert}} het doet, stap voor stap, in eigen woorden."
+  },
+  "start": {
+    "title": "Voer deze workflow uit met Socrates paraat",
+    "description": "Deel het venster waarin je gaat werken (bijv. de test-ERP, op <strong>Trainingscases</strong>). Socrates blijft stil: vraag om hulp wanneer je wilt, en Socrates grijpt alleen in als je op het punt staat een fout te maken die {{expert}} zou hebben opgemerkt.",
+    "yourName": "Je naam",
+    "share": "Scherm delen en starten"
+  },
+  "warningBanner": {
+    "wouldStop": "{{expert}} zou hier stoppen",
+    "headsUp": "Let op",
+    "openChat": "Chat openen",
+    "dismiss": "Sluiten"
+  },
+  "runSummary": {
+    "finished": "Run voltooid.",
+    "stepsDone": "{{done}} van {{total}} stappen gedaan",
+    "headsUps_one": "{{count}} waarschuwing",
+    "headsUps_other": "{{count}} waarschuwingen",
+    "questionsAsked_one": "{{count}} vraag gesteld",
+    "questionsAsked_other": "{{count}} vragen gesteld",
+    "back": "Terug naar de workflow"
+  },
+  "status": {
+    "speaking": "Socrates praat",
+    "muted": "Microfoon gedempt",
+    "standingBy": "Socrates staat paraat",
+    "connecting": "Verbinden…",
+    "typing": "Vraag het door te typen",
+    "voiceOff": "Stem uit"
+  },
+  "leaveGuard": {
+    "title": "Deze begeleide run beëindigen?",
+    "description": "Socrates staat nog paraat. Als je nu weggaat, stopt het scherm delen en kan Socrates je niet meer helpen met de rest van deze run.",
+    "keepGoing": "Doorgaan",
+    "endRun": "Run beëindigen"
+  },
+  "chatPanel": {
+    "stepLink": "Stap {{index}}: {{title}}",
+    "emptyTitle": "Socrates staat paraat",
+    "emptyBody": "Werk zoals je normaal zou doen. Vraag wat je wilt, hardop of hieronder, en Socrates antwoordt in de woorden van {{expert}}. Sta je op het punt een fout te maken die {{expert}} zou hebben opgemerkt, dan hoor je dat.",
+    "saveHeld": "{{expert}} zou hier stoppen · opslaan tegengehouden",
+    "headsUp": "Let op",
+    "socrates": "Socrates",
+    "you": "Jij",
+    "thinking": "Socrates kijkt naar je scherm…",
+    "mute": "Microfoon dempen",
+    "unmute": "Microfoon aanzetten",
+    "placeholderShare": "Deel je scherm om te starten",
+    "placeholderMuted": "Microfoon gedempt. Typ naar Socrates…",
+    "placeholder": "Vraag het Socrates…",
+    "send": "Versturen"
+  },
+  "mentorSteps": {
+    "here": "Je bent hier",
+    "decision": "Beslissing",
+    "headsUpGiven": "Heads-up gegeven",
+    "whatDid": "Wat {{expert}} deed: ",
+    "ask": "Vraag het aan: {{who}}",
+    "if": "Als",
+    "guardrail": {
+      "limit": "Limiet",
+      "stopAndAsk": "Stop & vraag",
+      "never": "Nooit"
+    }
+  }
+}

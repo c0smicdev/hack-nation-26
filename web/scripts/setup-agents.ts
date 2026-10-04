@@ -5,6 +5,10 @@
  *
  *   npm run setup:agents               # all agents
  *   npm run setup:agents -- supervisor # only the named ones
+ *   npm run setup:agents -- --test     # copies named "… (test)", ids in *_AGENT_ID_TEST
+ *
+ * Test copies let you try prompt or config changes without touching the agents everyone uses:
+ * set ELEVENLABS_USE_TEST_AGENTS=1 in .env.local and the local server connects to them.
  *
  * Reads ELEVENLABS_API_KEY from .env.local and writes the agent ids back into it.
  */
@@ -22,6 +26,23 @@ const LLM = process.env.ELEVENLABS_LLM ?? "claude-sonnet-5-5"
 const TTS_MODEL = "eleven_v3_conversational"
 
 type AudioTag = { tag: string; description: string }
+
+/** The app's languages (src/lib/i18n/languages.ts). */
+const SPOKEN_LANGUAGES = [
+  "en",
+  "de",
+  "fr",
+  "es",
+  "it",
+  "pt",
+  "nl",
+  "pl",
+  "tr",
+  "hi",
+  "zh",
+  "ja",
+  "ko",
+]
 
 function readEnv(): Record<string, string> {
   if (!existsSync(ENV_FILE)) return {}
@@ -346,19 +367,26 @@ async function main() {
   if (!apiKey) throw new Error(`Set ELEVENLABS_API_KEY in ${ENV_FILE}`)
 
   // Optional role names: sync only those agents and leave the others as they are.
-  const only = process.argv.slice(2)
+  const args = process.argv.slice(2)
+  const test = args.includes("--test")
+  const only = args.filter((a) => !a.startsWith("--"))
   const unknown = only.filter((role) => !(role in agents))
   if (unknown.length) throw new Error(`Unknown agent(s): ${unknown.join(", ")}`)
   const selected = Object.entries(agents).filter(([role]) => !only.length || only.includes(role))
 
   for (const [role, agent] of selected) {
+    const envKey = test ? `${agent.envKey}_TEST` : agent.envKey
     const body = {
-      name: agent.name,
+      name: test ? `${agent.name} (test)` : agent.name,
       conversation_config: {
         agent: {
           first_message: agent.firstMessage,
+          // The greeting is short; a cough or "mhm" shouldn't cut it off.
+          disable_first_message_interruptions: true,
           language: "en",
-          dynamic_variables: { dynamic_variable_placeholders: agent.placeholders },
+          dynamic_variables: {
+            dynamic_variable_placeholders: { ...agent.placeholders, language: "English" },
+          },
           prompt: {
             prompt: readFileSync(`prompts/${agent.prompt}.md`, "utf8"),
             llm: LLM,
@@ -367,7 +395,16 @@ async function main() {
         },
         // Scribe v2 Realtime: listening + pause detection.
         asr: { provider: "scribe_realtime", quality: "high" },
-        turn: agent.turn,
+        // Backchannels ("mhm", "ja", "d'accord") never interrupt Socrates, in every language the
+        // app speaks; by default ElevenLabs only knows the English ones, so German or French
+        // fillers cut the voice off after a second or two.
+        turn: {
+          ...agent.turn,
+          interruption_ignore_term_languages: SPOKEN_LANGUAGES,
+          merge_with_default_ignore_terms: true,
+        },
+        // Someone talking in the background (a colleague, a call) isn't the user.
+        vad: { background_voice_detection: true },
         tts: {
           model_id: TTS_MODEL,
           expressive_mode: true,
@@ -376,9 +413,20 @@ async function main() {
         conversation:
           "maxDurationSecs" in agent ? { max_duration_seconds: agent.maxDurationSecs } : undefined,
       },
+      // The app sets the language per conversation (the user's pick), a greeting and a voice for it.
+      platform_settings: {
+        overrides: {
+          conversation_config_override: {
+            agent: { language: true, first_message: true },
+            // A native speaker's voice per language (src/lib/voice/voices.ts).
+            tts: { voice_id: true },
+            conversation: { text_only: true },
+          },
+        },
+      },
     }
 
-    const existing = env[agent.envKey]
+    const existing = env[envKey]
     const res = await fetch(existing ? `${API}/agents/${existing}` : `${API}/agents/create`, {
       method: existing ? "PATCH" : "POST",
       headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
@@ -399,8 +447,8 @@ async function main() {
       if (!patch.ok)
         throw new Error(`${agent.name} (skip_turn): ${patch.status} ${await patch.text()}`)
     }
-    writeEnv(agent.envKey, agent_id)
-    console.log(`${existing ? "Updated" : "Created"} ${agent.name}: ${agent_id}`)
+    writeEnv(envKey, agent_id)
+    console.log(`${existing ? "Updated" : "Created"} ${body.name}: ${agent_id}`)
     await syncProcedures(apiKey, agent_id, role)
   }
   console.log(`Agent ids written to ${ENV_FILE}. Restart \`npm run dev\` to pick them up.`)

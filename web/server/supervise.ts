@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import type {
+  Language,
   ID,
   NewSupervision,
   ScreenAnswer,
@@ -24,7 +25,11 @@ import { getWorkMap, HttpError, newId, store, type SupervisionRuntime } from "./
 /** Don't stack heads-ups: at most one per this many seconds. */
 const WARNING_GAP_SEC = 15
 
-export function startSupervision(workMapId: ID, input: NewSupervision): SupervisionSession {
+export function startSupervision(
+  workMapId: ID,
+  input: NewSupervision,
+  language?: Language,
+): SupervisionSession {
   const map = getWorkMap(workMapId)
   if (map.status !== "confirmed") {
     throw new HttpError(409, "Only a confirmed Work Map can be supervised")
@@ -45,6 +50,7 @@ export function startSupervision(workMapId: ID, input: NewSupervision): Supervis
     ruledOut: new Set(),
     visionBusy: false,
     pendingErp: [],
+    language,
   })
   return session
 }
@@ -195,6 +201,7 @@ export async function processSupervisionTick(
       effort: "low",
       maxTokens: 4000,
       system: prompt("supervise-verify", { expert: map.expert.name }),
+      language: runtime.language,
       schema: Verdict,
       content: [
         text(
@@ -270,6 +277,7 @@ export async function askAboutScreen(
       expert: map.expert.name,
       learner: runtime.session.learnerName,
     }),
+    language: runtime.language,
     schema: Answer,
     content: [
       text(

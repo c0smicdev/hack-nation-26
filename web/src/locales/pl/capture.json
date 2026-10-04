@@ -1,0 +1,143 @@
+{
+  "captureState": {
+    "notCapturing": "Rejestracja wyłączona",
+    "offTheRecord": "Poza nagraniem",
+    "capturing": "Rejestracja trwa"
+  },
+  "sessionStatus": {
+    "intake": "Przygotowanie",
+    "live": "Na żywo",
+    "processing": "Tworzenie mapy",
+    "awaitingDebrief": "Czeka na omówienie",
+    "mapped": "Zmapowano"
+  },
+  "eventKind": {
+    "screen": "Ekran",
+    "speech": "Ekspert",
+    "question": "Pytanie Socratesa",
+    "offRecord": "Prywatność"
+  },
+  "capturePage": {
+    "title": "Rejestracja",
+    "description": "Wykonaj prawdziwe zadanie, a Socrates będzie obserwować Twój ekran. W naturalnych przerwach zapyta „dlaczego”, uzupełni luki w krótkim omówieniu i zamieni wszystko w proces.",
+    "howItWorks": {
+      "title": "Jak to działa",
+      "step1": "1. Otwórz testowy ERP w innej karcie, rozpocznij sesję i udostępnij tę kartę. Powiedz Socratesowi, co zamierzasz zrobić.",
+      "step2": "2. Pracuj jak zwykle i myśl na głos. Socrates zada 3–5 pytań w naturalnych przerwach.",
+      "step3": "3. Powiedz, że skończyłeś: krótkie omówienie głosowe, a potem Socrates streści Ci wszystko po swojemu.",
+      "offTheRecord": "Powiedz „poza nagraniem” albo w każdej chwili użyj przełącznika. Nic nie jest rejestrowane, dopóki nie wrócisz do nagrania."
+    },
+    "sessions": "Sesje"
+  },
+  "sessionRow": {
+    "events_one": "{{count}} zdarzenie",
+    "events_few": "{{count}} zdarzenia",
+    "events_many": "{{count}} zdarzeń",
+    "events_other": "{{count}} zdarzenia",
+    "liveQuestions_one": "{{count}} pytanie na żywo",
+    "liveQuestions_few": "{{count}} pytania na żywo",
+    "liveQuestions_many": "{{count}} pytań na żywo",
+    "liveQuestions_other": "{{count}} pytania na żywo"
+  },
+  "newSession": {
+    "title": "Nowa sesja",
+    "description": "Kto co pokazuje? Zadanie możesz doprecyzować głosowo.",
+    "expert": "Ekspert",
+    "role": "Rola",
+    "sessionTitle": "Tytuł sesji",
+    "task": "Co zamierzasz zrobić?",
+    "defaultTitle": "Faktury od dostawców na koniec miesiąca",
+    "defaultTask": "Zaksięguj w ERP tegotygodniowe faktury od dostawców przed zamknięciem miesiąca.",
+    "start": "Rozpocznij sesję"
+  },
+  "openErp": "Otwórz testowy ERP",
+  "breadcrumbWorkflows": "Procesy",
+  "yourSteps": "Twoje kroki",
+  "openWorkflow": "Otwórz proces",
+  "confirmTeachBack": "Tak, zgadza się",
+  "busy": {
+    "buildingDraft": "Tworzę wersję roboczą procesu",
+    "writingTeachBack": "Piszę streszczenie",
+    "savingToMemory": "Zapisuję w pamięci",
+    "updatingTeachBack": "Aktualizuję streszczenie"
+  },
+  "recording": {
+    "notRecording": "Nie nagrywa",
+    "paused": "Wstrzymano",
+    "recording": "Nagrywanie",
+    "shareTitle": "Udostępnij ekran, aby zacząć nagrywanie",
+    "shareHint": "Wybierz okno, w którym będziesz pracować (np. testowy ERP). Socrates obserwuje, grupuje Twoje działania w kroki i rysuje tutaj proces.",
+    "shareScreen": "Udostępnij ekran",
+    "stepsSoFar_one": "Na razie {{count}} krok",
+    "stepsSoFar_few": "Na razie {{count}} kroki",
+    "stepsSoFar_many": "Na razie {{count}} kroków",
+    "stepsSoFar_other": "Na razie {{count}} kroku",
+    "endWorkflow": "Zakończ proces"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates mówi",
+    "listening": "Socrates słucha",
+    "connecting": "Łączenie…",
+    "text": "Pytania pojawiają się na ekranie",
+    "off": "Głos wyłączony"
+  },
+  "memoryMatch": {
+    "text": "Wygląda na <strong>{{title}}</strong> – to już pokazywał(a) mi {{expert}}. Ten sam proces?",
+    "same": "Ten sam proces",
+    "new": "To coś nowego"
+  },
+  "textQuestion": {
+    "placeholder": "Twoja odpowiedź",
+    "answer": "Odpowiedz",
+    "later": "Później"
+  },
+  "leaveGuard": {
+    "title": "Porzucić to nagranie?",
+    "description": "Proces jest wciąż nagrywany. Jeśli teraz wyjdziesz, nagrywanie się zatrzyma, a zarejestrowane dotąd kroki nie zostaną zapisane jako proces.",
+    "keep": "Nagrywaj dalej",
+    "abandon": "Porzuć nagranie"
+  },
+  "offTheRecordSwitch": {
+    "label": "Poza nagraniem"
+  },
+  "liveStepList": {
+    "gettingStarted": "Pierwsze kroki",
+    "empty": "Zacznij pracę. Twoje kroki pojawią się tutaj, gdy Socrates je zrozumie.",
+    "decision": "Decyzja",
+    "differsFromMemory": "Inaczej niż w pamięci",
+    "events_one": "{{count}} zdarzenie",
+    "events_few": "{{count}} zdarzenia",
+    "events_many": "{{count}} zdarzeń",
+    "events_other": "{{count}} zdarzenia",
+    "screenshotAlt": "Ekran podczas: {{title}}"
+  },
+  "debriefView": {
+    "building": "Tworzę wersję roboczą procesu na podstawie tego, co Socrates zobaczył i usłyszał…",
+    "debrief": "Omówienie",
+    "confirmed": "Potwierdzone i zapisane w pamięci",
+    "teachBack": "Sprawdzenie zrozumienia: czy Socrates to rozumie?",
+    "questionsAnswered": "Odpowiedziano na {{answered}} z {{total}} pytań",
+    "chat": "Czat",
+    "steps": "Kroki",
+    "voiceTitle": "Socrates · Omówienie",
+    "voicePlaceholder": "Odpowiedz głosem albo wpisz tutaj…",
+    "debriefByVoice": "Omówienie głosowe"
+  },
+  "debriefPanel": {
+    "title": "Omówienie",
+    "description": "Odpowiedziano na {{answered}} z {{total}} otwartych pytań. Socrates zadaje je po kolei, a potem wyjaśnia ci cały proces.",
+    "teachBackTitle": "Sprawdzenie zrozumienia",
+    "teachBackDescription": "Gotowe, gdy każde pytanie ma odpowiedź, a {{expert}} potwierdzi wyjaśnienie.",
+    "confirmed": "Potwierdzone. Proces jest zapisany w pamięci.",
+    "explainBack": "Wyjaśnij mi to",
+    "about": "Dotyczy: {{title}}",
+    "answerPlaceholder": "Odpowiedz głosem albo wpisz tutaj",
+    "save": "Zapisz",
+    "updatedAfter_one": "Zaktualizowano po {{count}} poprawce.",
+    "updatedAfter_few": "Zaktualizowano po {{count}} poprawkach.",
+    "updatedAfter_many": "Zaktualizowano po {{count}} poprawkach.",
+    "updatedAfter_other": "Zaktualizowano po {{count}} poprawki.",
+    "correctionPlaceholder": "Coś się nie zgadza? Popraw to własnymi słowami.",
+    "correct": "Popraw"
+  }
+}

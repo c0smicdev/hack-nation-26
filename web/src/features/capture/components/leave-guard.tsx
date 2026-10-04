@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useBlocker } from "react-router"
 
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import {
 
 /** While `active`, leaving the page (in-app link or closing the tab) asks first. */
 export function LeaveGuard({ active, onLeave }: { active: boolean; onLeave: () => void }) {
+  const { t } = useTranslation("capture")
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       active && currentLocation.pathname !== nextLocation.pathname,
@@ -29,15 +31,12 @@ export function LeaveGuard({ active, onLeave }: { active: boolean; onLeave: () =
     <Dialog open={blocker.state === "blocked"} onOpenChange={(open) => !open && blocker.reset?.()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Abandon this recording?</DialogTitle>
-          <DialogDescription>
-            The workflow is still being recorded. If you leave now, recording stops and the steps
-            captured so far won't become a workflow.
-          </DialogDescription>
+          <DialogTitle>{t("leaveGuard.title")}</DialogTitle>
+          <DialogDescription>{t("leaveGuard.description")}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => blocker.reset?.()}>
-            Keep recording
+            {t("leaveGuard.keep")}
           </Button>
           <Button
             variant="destructive"
@@ -46,7 +45,7 @@ export function LeaveGuard({ active, onLeave }: { active: boolean; onLeave: () =
               blocker.proceed?.()
             }}
           >
-            Abandon recording
+            {t("leaveGuard.abandon")}
           </Button>
         </DialogFooter>
       </DialogContent>

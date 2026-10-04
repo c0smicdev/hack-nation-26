@@ -1,0 +1,23 @@
+{
+  "greeting": "Hey {{name}}, ich bin Socrates",
+  "greetingNoName": "Hey, ich bin Socrates",
+  "intro": "Ich bin dein KI-Assistent. Wenn du mir deine Arbeit zeigst, schaue ich zu, frage im richtigen Moment nach dem Warum und merke es mir – so hilft dein Know-how auch der nächsten Person. Wenn du etwas Neues lernst, bin ich direkt an deiner Seite, mit den Worten deiner Expertin oder deines Experten. Wie soll ich mit dir arbeiten?",
+  "styles": {
+    "quiet": {
+      "title": "Stiller Beobachter",
+      "description": "Ich schaue zu und halte mich im Hintergrund. Ich melde mich nur, wenn es wirklich zählt: bei einem Limit, einer Ausnahme oder einem Fehler."
+    },
+    "normal": {
+      "title": "Ausgewogen",
+      "description": "Ein paar Fragen in natürlichen Pausen und Hilfe, wann immer du fragst. Alles andere wartet, bis du fertig bist."
+    },
+    "curious": {
+      "title": "Aktiver Coach",
+      "description": "Ich frage unterwegs mehr nach und gebe dir Tipps, ohne dass du erst fragen musst."
+    }
+  },
+  "default": "Standard",
+  "start": "Los geht's",
+  "save": "Speichern",
+  "saveError": "Speichern fehlgeschlagen: {{message}}"
+}

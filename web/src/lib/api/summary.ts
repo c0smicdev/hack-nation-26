@@ -15,5 +15,6 @@ export function toSummary(map: WorkMap): WorkMapSummary {
     guardrailCount: map.steps.reduce((n, s) => n + s.guardrails.length, 0),
     openQuestionCount: map.debrief.filter((d) => !d.resolved).length,
     cover: map.steps[0]?.screen,
+    ...(map.translationPending && { translationPending: true }),
   }
 }

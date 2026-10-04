@@ -1,0 +1,133 @@
+{
+  "captureState": {
+    "notCapturing": "Kayıt alınmıyor",
+    "offTheRecord": "Kayıt dışı",
+    "capturing": "Kayıt alınıyor"
+  },
+  "sessionStatus": {
+    "intake": "Hazırlık",
+    "live": "Canlı",
+    "processing": "Harita oluşturuluyor",
+    "awaitingDebrief": "Değerlendirme bekleniyor",
+    "mapped": "Haritalandı"
+  },
+  "eventKind": {
+    "screen": "Ekran",
+    "speech": "Uzman",
+    "question": "Socrates sordu",
+    "offRecord": "Gizlilik"
+  },
+  "capturePage": {
+    "title": "Kayıt",
+    "description": "Socrates ekranınızı izlerken gerçek bir görevi yapın. Doğal duraklamalarda nedenini sorar, kısa bir değerlendirmede eksikleri tamamlar ve hepsini bir iş akışına dönüştürür.",
+    "howItWorks": {
+      "title": "Nasıl çalışır?",
+      "step1": "1. Deneme ERP'sini başka bir sekmede açın, bir oturum başlatın ve o sekmeyi paylaşın. Socrates'e ne yapacağınızı anlatın.",
+      "step2": "2. Her zamanki gibi çalışın ve düşündüklerinizi sesli söyleyin. Socrates doğal duraklamalarda 3–5 soru sorar.",
+      "step3": "3. Bitirdiğinizi söyleyin: kısa bir sözlü değerlendirmenin ardından Socrates görevi size geri anlatır.",
+      "offTheRecord": "İstediğiniz an \"kayıt dışı\" deyin ya da anahtarı çevirin. Tekrar kayda dönene kadar hiçbir şey kaydedilmez."
+    },
+    "sessions": "Oturumlar"
+  },
+  "sessionRow": {
+    "events_one": "{{count}} olay",
+    "events_other": "{{count}} olay",
+    "liveQuestions_one": "{{count}} canlı soru",
+    "liveQuestions_other": "{{count}} canlı soru"
+  },
+  "newSession": {
+    "title": "Yeni oturum",
+    "description": "Kim neyi gösteriyor? Görevi sesli olarak netleştirebilirsiniz.",
+    "expert": "Uzman",
+    "role": "Rol",
+    "sessionTitle": "Oturum başlığı",
+    "task": "Ne yapmak üzeresiniz?",
+    "defaultTitle": "Ay sonu tedarikçi faturaları",
+    "defaultTask": "Bu haftanın tedarikçi faturalarını ay sonu kapanışından önce ERP'de işleyin.",
+    "start": "Oturumu başlat"
+  },
+  "openErp": "Deneme ERP'sini aç",
+  "breadcrumbWorkflows": "İş akışları",
+  "yourSteps": "Adımlarınız",
+  "openWorkflow": "İş akışını aç",
+  "confirmTeachBack": "Evet, doğru",
+  "busy": {
+    "buildingDraft": "Taslak iş akışı oluşturuluyor",
+    "writingTeachBack": "Geri anlatım yazılıyor",
+    "savingToMemory": "Belleğe kaydediliyor",
+    "updatingTeachBack": "Geri anlatım güncelleniyor"
+  },
+  "recording": {
+    "notRecording": "Kayıt yapılmıyor",
+    "paused": "Duraklatıldı",
+    "recording": "Kaydediliyor",
+    "shareTitle": "Kayda başlamak için ekranınızı paylaşın",
+    "shareHint": "Çalışacağınız pencereyi seçin (ör. deneme ERP'si). Socrates izler, yaptıklarınızı adımlara ayırır ve iş akışını burada çizer.",
+    "shareScreen": "Ekranı paylaş",
+    "stepsSoFar_one": "Şu ana kadar {{count}} adım",
+    "stepsSoFar_other": "Şu ana kadar {{count}} adım",
+    "endWorkflow": "İş akışını bitir"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates konuşuyor",
+    "listening": "Socrates dinliyor",
+    "connecting": "Bağlanıyor…",
+    "text": "Sorular ekranda görünür",
+    "off": "Ses kapalı"
+  },
+  "memoryMatch": {
+    "text": "Bu, {{expert}} adlı kişinin bana daha önce gösterdiği <strong>{{title}}</strong> gibi görünüyor. Aynı iş akışı mı?",
+    "same": "Aynı iş akışı",
+    "new": "Yeni"
+  },
+  "textQuestion": {
+    "placeholder": "Yanıtınız",
+    "answer": "Yanıtla",
+    "later": "Sonra"
+  },
+  "leaveGuard": {
+    "title": "Bu kayıttan vazgeçilsin mi?",
+    "description": "İş akışı hâlâ kaydediliyor. Şimdi ayrılırsanız kayıt durur ve şu ana kadar kaydedilen adımlar bir iş akışına dönüşmez.",
+    "keep": "Kayda devam et",
+    "abandon": "Kaydı bırak"
+  },
+  "offTheRecordSwitch": {
+    "label": "Kayıt dışı"
+  },
+  "liveStepList": {
+    "gettingStarted": "Başlarken",
+    "empty": "Çalışmaya başlayın. Socrates adımlarınızı anladıkça burada görünürler.",
+    "decision": "Karar",
+    "differsFromMemory": "Hafızadakinden farklı",
+    "events_one": "{{count}} olay",
+    "events_other": "{{count}} olay",
+    "screenshotAlt": "Şu sırada ekran: {{title}}"
+  },
+  "debriefView": {
+    "building": "Socrates'in gördükleri ve duyduklarından taslak iş akışı oluşturuluyor…",
+    "debrief": "Değerlendirme",
+    "confirmed": "Onaylandı ve hafızaya kaydedildi",
+    "teachBack": "Geri anlatım: Socrates anladı mı?",
+    "questionsAnswered": "{{total}} sorudan {{answered}} tanesi yanıtlandı",
+    "chat": "Sohbet",
+    "steps": "Adımlar",
+    "voiceTitle": "Socrates · Değerlendirme",
+    "voicePlaceholder": "Sesli yanıtlayın veya buraya yazın…",
+    "debriefByVoice": "Sesli değerlendirme"
+  },
+  "debriefPanel": {
+    "title": "Değerlendirme",
+    "description": "{{total}} açık sorudan {{answered}} tanesi yanıtlandı. Socrates soruları tek tek sorar, ardından tüm süreci size geri anlatır.",
+    "teachBackTitle": "Geri anlatım",
+    "teachBackDescription": "Tamamlanması için tüm soruların yanıtlanması ve {{expert}} tarafından anlatımın onaylanması gerekir.",
+    "confirmed": "Onaylandı. İş akışı hafızaya kaydedildi.",
+    "explainBack": "Geri anlat",
+    "about": "Konu: {{title}}",
+    "answerPlaceholder": "Sesli yanıtlayın veya buraya yazın",
+    "save": "Kaydet",
+    "updatedAfter_one": "{{count}} düzeltmeden sonra güncellendi.",
+    "updatedAfter_other": "{{count}} düzeltmeden sonra güncellendi.",
+    "correctionPlaceholder": "Yanlış bir şey mi var? Kendi sözlerinizle düzeltin.",
+    "correct": "Düzelt"
+  }
+}

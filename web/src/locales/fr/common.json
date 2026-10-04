@@ -1,0 +1,60 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Comment Socrates travaille avec vous",
+    "askSocrates": "Demander à Socrates",
+    "logIn": "Se connecter",
+    "logOut": "Se déconnecter"
+  },
+  "profileMenu": {
+    "language": "Langue",
+    "languageHint": "La langue de l'application. Socrates vous parle et vous écrit aussi dans cette langue."
+  },
+  "askSuggestions": {
+    "capex": "Quand une facture relève-t-elle du capex plutôt que de l'opex ?",
+    "unknownSupplier": "Que faire d'un fournisseur inconnu ?",
+    "intercompany": "Qui approuve les factures intercompagnies ?"
+  },
+  "time": {
+    "justNow": "à l'instant"
+  },
+  "dialog": {
+    "close": "Fermer"
+  },
+  "mermaidDiagram": {
+    "error": "Impossible de dessiner le diagramme : {{message}}",
+    "fitToView": "Ajuster à l'écran",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière"
+  },
+  "queryState": {
+    "errorTitle": "Un problème est survenu",
+    "retry": "Réessayer"
+  },
+  "screenMoment": {
+    "redacted": "Masqué"
+  },
+  "voicePanel": {
+    "placeholder": "Écrivez au lieu de parler…",
+    "mutedPlaceholder": "Micro coupé. Écrivez à Socrates…",
+    "speaking": "Parle",
+    "muted": "Micro coupé",
+    "listening": "À l'écoute",
+    "textMode": "Mode texte",
+    "connecting": "Connexion…",
+    "voiceError": "Erreur vocale",
+    "notConnected": "Non connecté",
+    "empty": "La conversation s'affichera ici.",
+    "you": "Vous",
+    "mute": "Couper le micro",
+    "unmute": "Réactiver le micro",
+    "send": "Envoyer"
+  },
+  "errorPages": {
+    "backToLibrary": "Retour à la bibliothèque",
+    "notFoundTitle": "Page introuvable",
+    "notFoundMessage": "Socrates ne connaît pas cette page… pour l'instant.",
+    "brokeTitle": "Quelque chose s'est cassé",
+    "unknownError": "Erreur inconnue"
+  }
+}

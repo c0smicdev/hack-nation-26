@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
 import { Link, useParams } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -36,7 +37,7 @@ import {
 import { useMe } from "@/lib/auth/hooks"
 import { grabFrame, startScreenShare } from "@/lib/capture/screen"
 import { coachingStyle } from "@/lib/coaching"
-import { formatTimestamp, pluralize } from "@/lib/format"
+import { formatTimestamp } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
 import { stepNodeId, workMapToMermaid } from "@/features/work-maps/flowchart"
@@ -49,6 +50,7 @@ import { useSupervisedWorkMap } from "./hooks"
 import { useSuperviseLoop } from "./use-supervise-loop"
 
 export function SupervisePage() {
+  const { t } = useTranslation("supervise")
   const { workMapId = "" } = useParams()
   const map = useSupervisedWorkMap(workMapId)
   if (map.isError) return <ErrorState error={map.error} retry={map.refetch} />
@@ -57,12 +59,11 @@ export function SupervisePage() {
     return (
       <Card className="mx-auto max-w-xl">
         <CardHeader>
-          <CardTitle>Not ready to supervise yet</CardTitle>
+          <CardTitle>{t("notReady.title")}</CardTitle>
           <CardDescription>
-            {map.data.title} isn't confirmed by {map.data.expert.name} yet. Finish its debrief and
-            teach-back first, so Socrates only guides with knowledge the expert confirmed.{" "}
+            {t("notReady.description", { title: map.data.title, expert: map.data.expert.name })}{" "}
             <Link to={paths.workMap(map.data.id)} className="underline">
-              Back to the workflow
+              {t("notReady.back")}
             </Link>
           </CardDescription>
         </CardHeader>
@@ -93,6 +94,7 @@ type Tab = "chat" | "mentor"
  * a mistake the expert would have caught.
  */
 function SuperviseView({ map }: { map: WorkMap }) {
+  const { t } = useTranslation("supervise")
   const expertFirst = map.expert.name.split(" ")[0]
   const { data: me } = useMe()
   // The new hire is the signed-in user: their coaching style sets how much Socrates helps.
@@ -132,7 +134,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
 
   /** Answers a question looking at the learner's screen right now (and the expert's Work Map). */
   async function askScreen(question: string) {
-    if (!supervision) throw new Error("The run hasn't started yet")
+    if (!supervision) throw new Error(t("errors.notStarted"))
     const frame = video && stream ? grabFrame(video) : null
     setThinking(true)
     try {
@@ -288,7 +290,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
         kind: "agent",
         id: nextId("agent"),
         at: Date.now(),
-        text: `Sorry, I couldn't look that up (${message(e)}).`,
+        text: t("errors.lookupFailed", { message: message(e) }),
       })
     }
   }
@@ -311,15 +313,12 @@ function SuperviseView({ map }: { map: WorkMap }) {
     () => [...new Set(warnings.flatMap((w) => (w.stepId ? [w.stepId] : [])))],
     [warnings],
   )
-  const chart = useMemo(
-    () =>
-      workMapToMermaid(map, {
-        currentStepId: loop.currentStepId,
-        doneStepIds: loop.completed,
-        flaggedStepIds: flagged,
-      }),
-    [map, loop.currentStepId, loop.completed, flagged],
-  )
+  // Not memoized: the labels are translated, and the diagram only redraws when the text changes.
+  const chart = workMapToMermaid(map, {
+    currentStepId: loop.currentStepId,
+    doneStepIds: loop.completed,
+    flaggedStepIds: flagged,
+  })
   const clicks = Object.fromEntries(
     map.steps.map((step, i) => [stepNodeId(i), () => openStep(step.id)]),
   )
@@ -355,7 +354,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 md:px-6">
         <nav className="flex min-w-0 items-center gap-1.5 text-sm">
           <Link to={paths.library()} className="text-muted-foreground hover:text-foreground">
-            Workflows
+            {t("header.workflows")}
           </Link>
           <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
           <Link
@@ -365,7 +364,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
             {map.title}
           </Link>
           <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
-          <span className="shrink-0 font-semibold">Supervised run</span>
+          <span className="shrink-0 font-semibold">{t("header.supervisedRun")}</span>
         </nav>
         <span className="flex items-center gap-2 text-sm tabular-nums">
           <span
@@ -375,27 +374,27 @@ function SuperviseView({ map }: { map: WorkMap }) {
             )}
           />
           {running
-            ? `Supervising ${supervision?.learnerName}`
+            ? t("header.supervising", { name: supervision?.learnerName })
             : ended
-              ? "Run ended"
+              ? t("header.runEnded")
               : supervision
-                ? "Paused: screen not shared"
-                : "Not started"}
+                ? t("header.paused")
+                : t("header.notStarted")}
           {supervision && <> · {formatTimestamp(elapsed)}</>}
         </span>
         <SocratesStatus agent={agent} />
         <div className="ml-auto flex items-center gap-2">
           {loop.checking && (
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> Checking a save
+              <Loader2 className="size-3.5 animate-spin" /> {t("header.checkingSave")}
             </span>
           )}
           <Button variant="outline" size="sm" onClick={openErp}>
-            <ExternalLink /> Open mock ERP
+            <ExternalLink /> {t("header.openErp")}
           </Button>
           {supervision && !ended && (
             <Button variant="destructive" size="sm" onClick={end}>
-              <Square /> End run
+              <Square /> {t("header.endRun")}
             </Button>
           )}
         </div>
@@ -417,11 +416,9 @@ function SuperviseView({ map }: { map: WorkMap }) {
                 ) : !stream ? (
                   <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-background p-3 shadow-sm">
                     <MonitorUp className="size-4 shrink-0 text-muted-foreground" />
-                    <p className="min-w-0 flex-1 text-sm">
-                      Screen sharing stopped. Socrates can't see your work until you share again.
-                    </p>
+                    <p className="min-w-0 flex-1 text-sm">{t("graph.sharingStopped")}</p>
                     <Button size="sm" onClick={() => void share()} disabled={starting}>
-                      {starting && <Loader2 className="animate-spin" />} Share again
+                      {starting && <Loader2 className="animate-spin" />} {t("graph.shareAgain")}
                     </Button>
                   </div>
                 ) : (
@@ -429,8 +426,12 @@ function SuperviseView({ map }: { map: WorkMap }) {
                     <span className="size-2 shrink-0 rounded-full bg-blue-600" />
                     <span className="truncate">
                       {current
-                        ? `Step ${currentIndex + 1} of ${map.steps.length}: ${current.title}`
-                        : "Start working. Your progress shows up here."}
+                        ? t("graph.currentStep", {
+                            index: currentIndex + 1,
+                            total: map.steps.length,
+                            title: current.title,
+                          })
+                        : t("graph.startWorking")}
                     </span>
                   </span>
                 )}
@@ -477,10 +478,10 @@ function SuperviseView({ map }: { map: WorkMap }) {
             <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="min-w-0 flex-1">
               <TabsList className="w-full">
                 <TabsTrigger value="chat">
-                  <MessageCircle /> Chat
+                  <MessageCircle /> {t("tabs.chat")}
                 </TabsTrigger>
                 <TabsTrigger value="mentor">
-                  <Footprints /> What {expertFirst} did
+                  <Footprints /> {t("tabs.mentor", { expert: expertFirst })}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -493,10 +494,10 @@ function SuperviseView({ map }: { map: WorkMap }) {
               <MicOff className="size-4 shrink-0 text-amber-600" />
               <p className="min-w-0 flex-1">
                 {agent.error
-                  ? `Socrates can't hear you: ${agent.error}`
+                  ? t("voice.cantHear", { error: agent.error })
                   : agent.mode === "idle"
-                    ? "Socrates' voice disconnected. Type your questions below, or turn voice back on."
-                    : "Voice isn't set up for supervised runs (npm run setup:agents -- supervisor). Type your questions below."}
+                    ? t("voice.disconnected")
+                    : t("voice.notSetUp")}
               </p>
               <Button
                 size="sm"
@@ -506,7 +507,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
                   startVoice(supervision)
                 }}
               >
-                <Mic /> Turn on voice
+                <Mic /> {t("voice.turnOn")}
               </Button>
             </div>
           )}
@@ -528,7 +529,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
           ) : (
             <div className="min-h-0 flex-1 overflow-y-auto">
               <p className="border-b px-4 py-2 text-xs text-muted-foreground">
-                How {map.expert.name} does it, step by step, in their own words.
+                {t("mentor.intro", { expert: map.expert.name })}
               </p>
               <MentorSteps
                 map={map}
@@ -561,16 +562,20 @@ function StartPanel({
   starting: boolean
   error?: string
 }) {
+  const { t } = useTranslation("supervise")
   const expertFirst = map.expert.name.split(" ")[0]
   return (
     <div className="flex size-full flex-col items-center justify-center gap-5 p-8 text-center">
       <ShieldCheck className="size-10 text-muted-foreground" />
       <div className="max-w-md space-y-1">
-        <p className="font-medium">Run this workflow with Socrates standing by</p>
+        <p className="font-medium">{t("start.title")}</p>
         <p className="text-sm text-muted-foreground">
-          Share the window you'll work in (e.g. the mock ERP, on <strong>Training cases</strong>).
-          Socrates stays quiet: ask whenever you need help, and it steps in only if you're about to
-          make a mistake {expertFirst} would have caught.
+          <Trans
+            t={t}
+            i18nKey="start.description"
+            values={{ expert: expertFirst }}
+            components={{ strong: <strong /> }}
+          />
         </p>
       </div>
       <form
@@ -581,11 +586,11 @@ function StartPanel({
         }}
       >
         <div className="space-y-1.5 text-left">
-          <Label htmlFor="learner">Your name</Label>
+          <Label htmlFor="learner">{t("start.yourName")}</Label>
           <Input id="learner" value={learner} onChange={(e) => onLearner(e.target.value)} />
         </div>
         <Button type="submit" disabled={starting || !learner.trim()}>
-          {starting ? <Loader2 className="animate-spin" /> : <MonitorUp />} Share screen & start
+          {starting ? <Loader2 className="animate-spin" /> : <MonitorUp />} {t("start.share")}
         </Button>
       </form>
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -604,19 +609,28 @@ function WarningBanner({
   onOpen: () => void
   onClose: () => void
 }) {
+  const { t } = useTranslation("supervise")
   return (
     <div className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-background p-3 shadow-sm">
       <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
       <div className="min-w-0 flex-1 space-y-1 text-sm">
         <p className="font-medium">
-          {warning.source === "save" ? `${expert} would stop here` : "Heads-up"}
+          {warning.source === "save"
+            ? t("warningBanner.wouldStop", { expert })
+            : t("warningBanner.headsUp")}
         </p>
         <p>{warning.message}</p>
         <button type="button" onClick={onOpen} className="text-xs underline">
-          Open the chat
+          {t("warningBanner.openChat")}
         </button>
       </div>
-      <Button variant="ghost" size="icon" className="size-7" onClick={onClose} aria-label="Dismiss">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        onClick={onClose}
+        aria-label={t("warningBanner.dismiss")}
+      >
         <X />
       </Button>
     </div>
@@ -634,15 +648,18 @@ function RunSummary({
   warnings: number
   questions: number
 }) {
+  const { t } = useTranslation("supervise")
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-emerald-600/30 bg-background p-3 shadow-sm">
       <ShieldCheck className="size-4 shrink-0 text-emerald-600" />
       <p className="min-w-0 flex-1 text-sm">
-        <span className="font-medium">Run finished.</span> {done} of {map.steps.length} steps done ·{" "}
-        {pluralize(warnings, "heads-up")} · {pluralize(questions, "question")} asked
+        <span className="font-medium">{t("runSummary.finished")}</span>{" "}
+        {t("runSummary.stepsDone", { done, total: map.steps.length })} ·{" "}
+        {t("runSummary.headsUps", { count: warnings })} ·{" "}
+        {t("runSummary.questionsAsked", { count: questions })}
       </p>
       <Button size="sm" variant="outline" asChild>
-        <Link to={paths.workMap(map.id)}>Back to the workflow</Link>
+        <Link to={paths.workMap(map.id)}>{t("runSummary.back")}</Link>
       </Button>
     </div>
   )
@@ -650,6 +667,7 @@ function RunSummary({
 
 /** Compact voice status for the header: Socrates stands by, answers when asked. */
 function SocratesStatus({ agent }: { agent: VoiceAgent }) {
+  const { t } = useTranslation("supervise")
   const icon =
     agent.mode === "voice" ? (
       agent.muted ? (
@@ -667,15 +685,15 @@ function SocratesStatus({ agent }: { agent: VoiceAgent }) {
   const label =
     agent.mode === "voice"
       ? agent.agentSpeaking
-        ? "Socrates is speaking"
+        ? t("status.speaking")
         : agent.muted
-          ? "Mic muted"
-          : "Socrates is standing by"
+          ? t("status.muted")
+          : t("status.standingBy")
       : agent.mode === "connecting"
-        ? "Connecting…"
+        ? t("status.connecting")
         : agent.mode === "text"
-          ? "Ask by typing"
-          : "Voice off"
+          ? t("status.typing")
+          : t("status.voiceOff")
   return (
     <span className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
       {icon}

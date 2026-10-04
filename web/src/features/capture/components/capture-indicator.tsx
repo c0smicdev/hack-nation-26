@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -9,6 +10,8 @@ import { OffTheRecordSwitch } from "./off-the-record-switch"
 
 /** Compact capture status for the sidebar footer. */
 export function CaptureIndicator() {
+  // Re-render on language change: captureState translates at call time.
+  useTranslation("capture")
   const { data: status } = useCaptureStatus()
   const { label } = captureState(status)
 

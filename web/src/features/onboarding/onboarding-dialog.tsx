@@ -1,5 +1,6 @@
 import { Eye, Loader2, Scale, Sparkles } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { SocratesFace } from "@/components/socrates-face"
 import { Badge } from "@/components/ui/badge"
@@ -21,9 +22,10 @@ export function OnboardingDialog({ me, onClose }: { me: Profile; onClose: () => 
   const update = useUpdateMe()
   const [style, setStyle] = useState<Chattiness>(me.preferences.chattiness ?? "normal")
   const firstRun = !me.onboarded
+  const { t } = useTranslation("onboarding")
 
   // Without login everyone is "You": skip the name rather than greet "Hey You".
-  const firstName = me.displayName === "You" ? "" : ` ${me.displayName.split(" ")[0]}`
+  const firstName = me.displayName === "You" ? "" : me.displayName.split(" ")[0]
 
   return (
     <Dialog open onOpenChange={(open) => !open && !firstRun && onClose()}>
@@ -39,23 +41,20 @@ export function OnboardingDialog({ me, onClose }: { me: Profile; onClose: () => 
           </div>
           <div className="space-y-2">
             <DialogTitle className="text-2xl tracking-tight">
-              Hey{firstName}, I'm Socrates
+              {firstName ? t("greeting", { name: firstName }) : t("greetingNoName")}
             </DialogTitle>
             <DialogDescription className="mx-auto max-w-lg text-base leading-relaxed">
-              I'll be your AI assistant. When you show me your work, I watch, ask why at the right
-              moments and remember it, so your know-how can help the next person. When you're
-              learning something new, I'm right next to you, in your expert's own words. How should
-              I work with you?
+              {t("intro")}
             </DialogDescription>
           </div>
         </div>
 
         <div
           role="radiogroup"
-          aria-label="How Socrates works with you"
+          aria-label={t("common:header.socratesStyle")}
           className="grid gap-3 sm:grid-cols-3"
         >
-          {COACHING_STYLES.map(({ value, title, description }) => {
+          {COACHING_STYLES.map((value) => {
             const Icon = ICONS[value]
             const selected = style === value
             return (
@@ -74,14 +73,16 @@ export function OnboardingDialog({ me, onClose }: { me: Profile; onClose: () => 
                   <Icon
                     className={cn("size-4", selected ? "text-primary" : "text-muted-foreground")}
                   />
-                  <span className="font-medium">{title}</span>
+                  <span className="font-medium">{t(`styles.${value}.title`)}</span>
                   {value === "normal" && (
                     <Badge variant="secondary" className="ml-auto">
-                      Default
+                      {t("default")}
                     </Badge>
                   )}
                 </span>
-                <span className="text-sm text-muted-foreground">{description}</span>
+                <span className="text-sm text-muted-foreground">
+                  {t(`styles.${value}.description`)}
+                </span>
               </button>
             )
           })}
@@ -99,10 +100,12 @@ export function OnboardingDialog({ me, onClose }: { me: Profile; onClose: () => 
             }
           >
             {update.isPending && <Loader2 className="animate-spin" />}
-            {firstRun ? "Let's get started" : "Save"}
+            {firstRun ? t("start") : t("save")}
           </Button>
           {update.error && (
-            <p className="text-sm text-destructive">Couldn't save that: {update.error.message}</p>
+            <p className="text-sm text-destructive">
+              {t("saveError", { message: update.error.message })}
+            </p>
           )}
         </div>
       </DialogContent>
