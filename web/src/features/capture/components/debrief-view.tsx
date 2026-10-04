@@ -95,7 +95,7 @@ export function DebriefView({
               saw and heard…
             </div>
           ) : (
-            <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full p-8" />
+            <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full" />
           )}
         </section>
 
