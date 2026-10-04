@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router"
 
+import { LandingPage } from "@/features/landing/landing-page"
 import { AskPage } from "@/features/ask/ask-page"
 import { CapturePage } from "@/features/capture/capture-page"
 import { SessionPage } from "@/features/capture/session-page"
@@ -29,6 +30,12 @@ export const router = createBrowserRouter([
       { path: "teach/:workMapId", element: <LessonPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
+  },
+  {
+    // Landing page: standalone, no app sidebar.
+    path: "landing",
+    element: <LandingPage />,
+    errorElement: <RouteErrorPage />,
   },
   {
     // The mock ERP is a separate "company system", so it has no Socrates shell.
