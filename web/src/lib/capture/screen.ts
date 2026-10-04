@@ -1,5 +1,5 @@
-/** Width frames are downscaled to before they're sent to the vision model. */
-const FRAME_WIDTH = 1280
+/** Preserve text for OCR; the server rejects oversized captures rather than forwarding originals. */
+const FRAME_WIDTH = 2560
 const THUMB_W = 48
 const THUMB_H = 27
 /** Mean absolute grayscale difference (0–255) below which two frames count as identical. */
@@ -15,7 +15,7 @@ export async function startScreenShare(): Promise<MediaStream> {
 }
 
 export interface Frame {
-  /** JPEG, base64 without the data: prefix. */
+  /** Lossless PNG, base64 without the data: prefix. */
   base64: string
   thumb: Uint8ClampedArray
 }
@@ -45,7 +45,7 @@ export function grabFrame(video: HTMLVideoElement): Frame | null {
   tctx.drawImage(video, 0, 0, THUMB_W, THUMB_H)
   const thumb = grayscale(tctx.getImageData(0, 0, THUMB_W, THUMB_H).data)
 
-  const base64 = canvas.toDataURL("image/jpeg", 0.7).split(",")[1]
+  const base64 = canvas.toDataURL("image/png").split(",")[1]
   return { base64, thumb }
 }
 

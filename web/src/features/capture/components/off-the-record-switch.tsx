@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { usePrivacyPause } from "@/lib/privacy/lifecycle"
 
 import { useCaptureStatus, useSetOffTheRecord } from "../hooks"
 
@@ -7,9 +8,10 @@ import { useCaptureStatus, useSetOffTheRecord } from "../hooks"
 export function OffTheRecordSwitch({ id = "off-the-record" }: { id?: string }) {
   const { data: status } = useCaptureStatus()
   const setOffTheRecord = useSetOffTheRecord()
+  const locallyPaused = usePrivacyPause(status?.liveSessionId ?? "")
   const checked = setOffTheRecord.isPending
     ? (setOffTheRecord.variables ?? false)
-    : (status?.offTheRecord ?? false)
+    : locallyPaused || !!status?.offTheRecord
 
   return (
     <div className="flex items-center justify-between gap-3">
@@ -19,7 +21,7 @@ export function OffTheRecordSwitch({ id = "off-the-record" }: { id?: string }) {
       <Switch
         id={id}
         checked={checked}
-        disabled={!status?.active}
+        disabled={!status?.active || setOffTheRecord.isPending}
         onCheckedChange={(value) => setOffTheRecord.mutate(value)}
       />
     </div>

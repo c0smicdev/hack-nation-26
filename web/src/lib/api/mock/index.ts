@@ -15,6 +15,7 @@ import type {
 } from "../types"
 import { answer } from "./ask"
 import { draftWorkflow } from "./draft"
+import { protectMockText } from "./privacy"
 import {
   LIVE_SESSION_ID,
   sabine,
@@ -154,6 +155,22 @@ function verdict(map: WorkMap, action: string, record: Record<string, unknown>):
 /* API --------------------------------------------------------------- */
 
 export const mockApi: SocratesApi = {
+  async protectTexts(texts) {
+    const protectedTexts = texts.map(protectMockText)
+    return {
+      texts: protectedTexts,
+      privacy: {
+        policyVersion: "synthetic-mock",
+        redactedCount: protectedTexts.filter((t, i) => t !== texts[i]).length,
+      },
+    }
+  },
+  async getFrame(url, signal) {
+    if (!/^\/mock\/[a-zA-Z0-9-]+\.svg$/.test(url)) throw new Error("Invalid mock screenshot")
+    const response = await fetch(url, { signal })
+    if (!response.ok) throw new Error("Screenshot unavailable")
+    return response.blob()
+  },
   async getMe() {
     await delay()
     return me
@@ -240,7 +257,7 @@ export const mockApi: SocratesApi = {
   async recordEvent(sid, event) {
     await delay(50)
     if (captureStatus.offTheRecord && event.kind !== "off_record") {
-      return { id: "not-recorded", sessionId: sid, ...event }
+      return { id: "not-recorded", sessionId: sid, at: event.at, kind: event.kind, text: "" }
     }
     if (event.kind === "question") findSession(sid).questionsAsked += 1
     return push(sid, event)

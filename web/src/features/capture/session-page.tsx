@@ -36,6 +36,12 @@ import { startScreenShare } from "@/lib/capture/screen"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
+import {
+  privacyPaused,
+  setLocalPrivacy,
+  subscribePrivacy,
+  usePrivacyPause,
+} from "@/lib/privacy/lifecycle"
 import { liveStepsToMermaid, stepNodeId } from "@/features/work-maps/flowchart"
 
 import { DebriefView } from "./components/debrief-view"
@@ -90,7 +96,11 @@ function SessionView({ session }: { session: CaptureSession }) {
   const queryClient = useQueryClient()
   const { data: status } = useCaptureStatus()
   const setOffTheRecord = useSetOffTheRecord()
-  const offRecord = !!status?.offTheRecord && status.liveSessionId === session.id
+  const locallyPaused = usePrivacyPause(session.id)
+  const offRecord =
+    locallyPaused ||
+    !!session.offTheRecord ||
+    (!!status?.offTheRecord && status.liveSessionId === session.id)
   const recording = session.status === "intake" || session.status === "live"
   const steps = useLiveSteps(session.id, { live: recording })
   const events = useSessionEvents(session.id, { live: recording })
@@ -107,6 +117,21 @@ function SessionView({ session }: { session: CaptureSession }) {
   // Everything the expert said, so a debrief answer is their exact words since the last question.
   const utterances = useRef<{ text: string; at: number }[]>([])
   const marker = useRef(0)
+  useEffect(
+    () =>
+      subscribePrivacy(() => {
+        if (privacyPaused(session.id)) {
+          utterances.current = []
+          marker.current = wallClock()
+        }
+      }),
+    [session.id],
+  )
+  const serverPaused =
+    !!session.offTheRecord || (!!status?.offTheRecord && status.liveSessionId === session.id)
+  useEffect(() => {
+    if (serverPaused) setLocalPrivacy(session.id, true)
+  }, [serverPaused, session.id])
   const wordsSinceMarker = () => {
     const words = utterances.current.filter((u) => u.at >= marker.current).map((u) => u.text)
     marker.current = wallClock()
@@ -210,6 +235,7 @@ function SessionView({ session }: { session: CaptureSession }) {
 
   const agent = useVoiceAgent({
     role: "interviewer",
+    privacyScope: session.id,
     onUserText: (text) => {
       if (offRecord) return
       utterances.current.push({ text, at: wallClock() })
@@ -237,8 +263,12 @@ function SessionView({ session }: { session: CaptureSession }) {
       set_off_record: async ({ off }) => {
         const value = off === true || off === "true"
         await setOffTheRecord.mutateAsync(value)
+        if (value) {
+          utterances.current = []
+          marker.current = wallClock()
+        }
         return value
-          ? "Off the record. Nothing is captured until they say so."
+          ? "Off the record. Use the switch to resume, then reconnect voice."
           : "Back on the record."
       },
       finish_task: async () => {

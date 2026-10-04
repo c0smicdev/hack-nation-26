@@ -12,6 +12,7 @@ import type {
   NewSessionEvent,
   Profile,
   ProfilePatch,
+  ProtectedText,
   SessionEvent,
   TeachBackReply,
   Tick,
@@ -57,7 +58,9 @@ export interface SocratesApi {
   /** The steps grouped so far while recording. */
   listLiveSteps(sessionId: ID): Promise<LiveStep[]>
   recordEvent(sessionId: ID, event: NewSessionEvent): Promise<SessionEvent>
-  postTick(sessionId: ID, tick: Tick): Promise<TickResult>
+  postTick(sessionId: ID, tick: Tick, signal?: AbortSignal): Promise<TickResult>
+  protectTexts(texts: string[]): Promise<ProtectedText>
+  getFrame(url: string, signal?: AbortSignal): Promise<Blob>
   getCaptureStatus(): Promise<CaptureStatus>
   setCaptureStatus(patch: Partial<CaptureStatus>): Promise<CaptureStatus>
   setOffTheRecord(offTheRecord: boolean): Promise<CaptureStatus>

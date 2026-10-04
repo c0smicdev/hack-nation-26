@@ -12,6 +12,8 @@ import type {
 } from "../src/lib/api/types.js"
 import { memoryContext } from "./capture.js"
 import { models, prompt, structured, text } from "./llm.js"
+import { protectTexts } from "./privacy.js"
+import { readableWorkMaps } from "./access.js"
 import {
   getRuntime,
   getWorkMap,
@@ -104,6 +106,8 @@ function nearestScreen(runtime: SessionRuntime, at: number, caption: string): Sc
     at: shot?.at ?? at,
     screenshotUrl: shot?.screenshotUrl ?? "",
     caption,
+    redactions: shot?.redactions,
+    privacy: shot?.privacy,
   }
 }
 
@@ -112,6 +116,9 @@ function nearestScreen(runtime: SessionRuntime, at: number, caption: string): Sc
 export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   const runtime = getRuntime(sessionId)
   const { session } = runtime
+  if (session.offTheRecord)
+    throw new HttpError(409, "Resume recording before finishing the workflow")
+  runtime.privacyController?.abort()
   if (runtime.draftWorkMapId) return getWorkMap(runtime.draftWorkMapId)
   session.durationSec = Math.round(sessionAt(runtime))
   session.status = "processing"
@@ -133,6 +140,7 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
         source: question ? "live_question" : "narration",
         prompt: question?.question,
         at: e.at,
+        privacy: e.privacy,
       })
     })
 
@@ -195,11 +203,11 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
       stepId: q.stepIndex != null ? steps[q.stepIndex]?.id : undefined,
     })),
   }
-  saveWorkMap(map)
+  const saved = await saveWorkMap(map)
   runtime.draftWorkMapId = map.id
   session.workMapId = map.id
   session.status = "awaiting_debrief"
-  return map
+  return saved
 }
 
 /* Debrief ------------------------------------------------------------ */
@@ -227,17 +235,23 @@ function draftContext(map: WorkMap) {
     .join("\n\n")
 }
 
-export function answerDebrief(workMapId: ID, itemId: ID, answer: DebriefAnswer): WorkMap {
+export async function answerDebrief(
+  workMapId: ID,
+  itemId: ID,
+  answer: DebriefAnswer,
+): Promise<WorkMap> {
   const map = getWorkMap(workMapId)
   const item = map.debrief.find((d) => d.id === itemId)
   if (!item) throw new HttpError(404, `Debrief question ${itemId} not found`)
   if (!answer.text.trim()) throw new HttpError(400, "Answer is empty")
+  const [safe] = await protectTexts([answer.text.trim()])
   item.answer = {
-    text: answer.text.trim(),
+    text: safe.text,
     speaker: map.expert,
     source: "debrief",
     prompt: item.question,
     at: answer.at,
+    privacy: { policyVersion: safe.policyVersion, redactedCount: safe.redactedCount },
   }
   item.resolved = true
   map.updatedAt = new Date().toISOString()
@@ -269,12 +283,14 @@ export async function replyTeachBack(workMapId: ID, reply: TeachBackReply): Prom
   const map = getWorkMap(workMapId)
   if (!map.teachBack) throw new HttpError(409, "Request a teach-back first")
   if (reply.correction?.trim()) {
+    const [safe] = await protectTexts([reply.correction.trim()])
     map.teachBack.corrections.push({
-      text: reply.correction.trim(),
+      text: safe.text,
       speaker: map.expert,
       source: "debrief",
       prompt: "Did I get that right?",
       at: reply.at,
+      privacy: { policyVersion: safe.policyVersion, redactedCount: safe.redactedCount },
     })
   }
   if (!reply.confirmed) {
@@ -295,7 +311,7 @@ async function finalize(draft: WorkMap): Promise<WorkMap> {
     return draft
   }
 
-  const base = store.workMaps.find(
+  const base = readableWorkMaps().find(
     (m) =>
       m.id !== draft.id &&
       draft.sessionIds.some((sid) => store.sessions.get(sid)?.session.basedOnWorkMapId === m.id),
@@ -360,7 +376,7 @@ async function finalize(draft: WorkMap): Promise<WorkMap> {
     debrief: [...(base?.debrief ?? []), ...draft.debrief],
     teachBack: draft.teachBack,
   }
-  saveWorkMap(result)
+  const saved = await saveWorkMap(result)
   if (base) {
     // The session's draft was merged into the saved map instead of becoming a duplicate.
     store.workMaps = store.workMaps.filter((m) => m.id !== draft.id)
@@ -372,5 +388,5 @@ async function finalize(draft: WorkMap): Promise<WorkMap> {
       runtime.session.workMapId = result.id
     }
   }
-  return result
+  return saved
 }

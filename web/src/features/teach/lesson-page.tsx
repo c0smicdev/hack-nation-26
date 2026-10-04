@@ -116,12 +116,12 @@ function Lesson({ map }: { map: WorkMap }) {
         let verdict: DecisionVerdict
         try {
           verdict = await api.checkDecision(map.id, { action: m.action, record: m.record })
-        } catch (e) {
-          // Never trap the learner: if the check fails, let the save through.
-          channel.send({ type: "save_decision", requestId: m.requestId, allow: true, message: "" })
-          setChecks((c) => c.filter((x) => x.id !== m.requestId))
-          a.note(`Check failed: ${e instanceof Error ? e.message : String(e)}`)
-          return
+        } catch {
+          // An unavailable/privacy-blocked check is not permission to save.
+          verdict = {
+            allow: false,
+            message: "The check could not complete. Nothing was saved. Please retry.",
+          }
         }
         channel.send({
           type: "save_decision",

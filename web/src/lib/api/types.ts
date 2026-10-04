@@ -61,6 +61,17 @@ export interface Rect {
   height: number
 }
 
+/** Server-verified processing metadata, not a guarantee of complete PII detection. */
+export interface PrivacySummary {
+  policyVersion: string
+  redactedCount: number
+}
+
+export interface ProtectedText {
+  texts: string[]
+  privacy: PrivacySummary
+}
+
 /** A frame from the recording that a step or quote points to. */
 export interface ScreenMoment {
   sessionId: ID
@@ -76,6 +87,7 @@ export interface ScreenMoment {
   focus?: Rect
   /** Areas containing personal data that must be hidden. */
   redactions?: Rect[]
+  privacy?: PrivacySummary
 }
 
 export type QuoteSource = "narration" | "live_question" | "debrief"
@@ -89,6 +101,7 @@ export interface Quote {
   at: number
   /** The question the agent asked, if this quote is an answer. */
   prompt?: string
+  privacy?: PrivacySummary
 }
 
 export type GuardrailKind =
@@ -204,6 +217,7 @@ export interface CaptureSession {
   task?: string
   /** Saved workflow (memory) this session extends, if the expert confirmed a match. */
   basedOnWorkMapId?: ID
+  offTheRecord?: boolean
 }
 
 export interface NewSession {
@@ -239,6 +253,8 @@ export interface SessionEvent {
   deviation?: boolean
   /** For `question` / answer `speech` events: the question this belongs to. */
   questionId?: ID
+  redactions?: Rect[]
+  privacy?: PrivacySummary
 }
 
 /** What the session page posts when something happens outside the tick loop. */
@@ -269,8 +285,11 @@ export interface ErpSignal {
 /** One sample, every ~1–2 s. */
 export interface Tick {
   at: number
-  /** Downscaled JPEG, base64 without the data: prefix. Omitted if the frame didn't change. */
+  /** OCR-readable PNG, base64 without the data: prefix. Legacy JPEG is accepted. */
   image?: string
+  mime?: "image/png" | "image/jpeg"
+  /** Optional regions excluded before OCR, normalized to the submitted image. */
+  masks?: Rect[]
   typing: boolean
   speaking: boolean
   erp: ErpSignal[]
@@ -298,6 +317,7 @@ export interface TickResult {
   questions: LiveQuestion[]
   /** All steps so far, after this tick. Omitted when the tick changed nothing. */
   steps?: LiveStep[]
+  privacy?: PrivacySummary
 }
 
 /**

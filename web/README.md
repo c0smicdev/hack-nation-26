@@ -111,7 +111,24 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 
 ## Privacy
 
-Off the record (switch or "take that off the record") stops frames, speech storage and questions; only the time span is logged. Screenshots are not yet redacted server-side (Presidio is still to do); `ScreenMomentView` draws `redactions` boxes as a second line of defence only. Demo with fake data only.
+The backend requires our Presidio service before screenshots reach Claude or
+storage. No Microsoft API key is required; deploy the service using the root
+`render.yaml` and set `SOCRATES_PRIVACY_URL` / `SOCRATES_PRIVACY_TOKEN` on Vercel.
+Missing service configuration blocks forwarding; there is no weaker fallback.
+Presidio burns redactions into PNG pixels and
+protects app-controlled text, model inputs/outputs and transcript storage.
+Screenshot access requires an owner or explicit workflow-reader authorization;
+unverified legacy frames are blocked. Apply `supabase/privacy.sql` before activation.
+
+Off the record stops browser capture/voice transport, clears pending input and
+invalidates late results using session versions. Already-started provider calls
+cannot be recalled. Live microphone audio still goes directly to ElevenLabs;
+transcript protection does not undo that processing. OCR/NER is not guaranteed
+complete anonymization. Continue using synthetic data until deployment acceptance.
+
+Deployment checklist and detection limits: [Vercel quickstart](../docs/privacy-vercel-quickstart.md).
+Required Presidio service: [Privacy service](../privacy/README.md).
+Verification: `npm run test:privacy` and the service's Docker tests.
 
 ## Deploy (Vercel)
 

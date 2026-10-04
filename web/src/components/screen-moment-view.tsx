@@ -3,6 +3,7 @@ import { Lock } from "lucide-react"
 import type { Rect, ScreenMoment } from "@/lib/api"
 import { formatTimestamp } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { ProtectedImage } from "./protected-image"
 
 const toStyle = (r: Rect, pad = 0) => ({
   left: `${(r.x - pad) * 100}%`,
@@ -29,7 +30,7 @@ export function ScreenMomentView({
   return (
     <figure className={cn("overflow-hidden rounded-xl border bg-muted", className)}>
       <div className="relative overflow-hidden">
-        <img
+        <ProtectedImage
           src={moment.screenshotUrl}
           alt={moment.caption}
           className="block h-auto w-full select-none"

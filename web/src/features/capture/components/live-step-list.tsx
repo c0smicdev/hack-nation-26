@@ -2,6 +2,7 @@ import { ChevronRight } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 import { Badge } from "@/components/ui/badge"
+import { ProtectedImage } from "@/components/protected-image"
 import type { ID, LiveStep, SessionEvent } from "@/lib/api"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -90,7 +91,7 @@ export function LiveStepList({
                 )}
                 <EventFeed events={own} order="oldest" />
                 {step.screenshotUrl && (
-                  <img
+                  <ProtectedImage
                     src={step.screenshotUrl}
                     alt={`Screen during: ${step.title}`}
                     className="w-full rounded-md border"

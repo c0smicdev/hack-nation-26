@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { api, type ID } from "@/lib/api"
+import { setLocalPrivacy } from "@/lib/privacy/lifecycle"
 
 /** How often to poll live data. Swap for SSE/WebSocket later. */
 const LIVE_POLL_MS = 2000
@@ -25,9 +26,19 @@ export function useSetOffTheRecord() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: api.setOffTheRecord,
+    onMutate: (paused) => {
+      const status = queryClient.getQueryData<Awaited<ReturnType<typeof api.getCaptureStatus>>>(
+        captureKeys.status,
+      )
+      if (paused && status?.liveSessionId) {
+        setLocalPrivacy(status.liveSessionId, true)
+        queryClient.setQueryData(captureKeys.status, { ...status, offTheRecord: true })
+      }
+    },
     onSuccess: (status) => {
       queryClient.setQueryData(captureKeys.status, status)
       if (status.liveSessionId) {
+        setLocalPrivacy(status.liveSessionId, status.offTheRecord)
         queryClient.invalidateQueries({ queryKey: captureKeys.events(status.liveSessionId) })
       }
     },

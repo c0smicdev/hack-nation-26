@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto"
+import { assertProcessedImage, protectValue, type ProcessedFrame } from "./privacy.js"
+import { claimResource, requireAccess, type ResourceAccess } from "./access.js"
 
 import type {
   CaptureSession,
@@ -42,9 +44,9 @@ export interface OpenQuestion {
   answer?: Quote
 }
 
-export interface Frame {
-  data: Buffer
-  mime: string
+export interface Frame extends ProcessedFrame {
+  sessionId: ID
+  privacyVersion: number
 }
 
 export interface SessionRuntime {
@@ -60,6 +62,8 @@ export interface SessionRuntime {
   pendingErp: ErpSignal[]
   /** Focus boxes still being located for candidate step screenshots. */
   pendingFocus: Set<Promise<void>>
+  privacyVersion: number
+  privacyController?: AbortController
   /** Draft workflow built at the end of capture. */
   draftWorkMapId?: ID
 }
@@ -68,6 +72,8 @@ interface Store {
   workMaps: WorkMap[]
   sessions: Map<ID, SessionRuntime>
   frames: Map<ID, Frame>
+  frameMetadata: Map<ID, Omit<Frame, "data">>
+  access: Map<ID, ResourceAccess>
   captureStatus: CaptureStatus
 }
 
@@ -77,6 +83,8 @@ function createStore(): Store {
     workMaps: [],
     sessions: new Map(),
     frames: new Map(),
+    frameMetadata: new Map(),
+    access: new Map(),
     captureStatus: {
       active: false,
       signals: { screen: false, microphone: false, erp: false },
@@ -88,22 +96,29 @@ function createStore(): Store {
 // Survives Vite's server-module reloads in dev, so editing a prompt doesn't wipe a session.
 const globalStore = globalThis as { __socratesStore?: Store }
 export const store: Store = (globalStore.__socratesStore ??= createStore())
+store.access ??= new Map()
+store.frameMetadata ??= new Map()
 
 export const newId = (prefix: string) => `${prefix}-${randomUUID().slice(0, 8)}`
 
 export function getRuntime(sessionId: ID): SessionRuntime {
+  requireAccess(sessionId)
   const runtime = store.sessions.get(sessionId)
   if (!runtime) throw new HttpError(404, `Session ${sessionId} not found`)
   return runtime
 }
 
 export function getWorkMap(id: ID): WorkMap {
+  requireAccess(id)
   const map = store.workMaps.find((m) => m.id === id)
   if (!map) throw new HttpError(404, `Workflow ${id} not found`)
   return map
 }
 
-export function saveWorkMap(map: WorkMap) {
+export async function saveWorkMap(raw: WorkMap) {
+  const map = await protectValue(raw)
+  if (store.workMaps.some((m) => m.id === map.id)) requireAccess(map.id, true)
+  else claimResource(map.id)
   const i = store.workMaps.findIndex((m) => m.id === map.id)
   if (i === -1) store.workMaps.unshift(map)
   else store.workMaps[i] = map
@@ -122,9 +137,20 @@ export function addEvent(runtime: SessionRuntime, event: Omit<SessionEvent, "id"
   return full
 }
 
-export function saveFrame(base64: string, mime = "image/jpeg") {
-  const id = newId("fr")
-  store.frames.set(id, { data: Buffer.from(base64, "base64"), mime })
+export function saveFrame(frame: ProcessedFrame, sessionId: ID, privacyVersion: number) {
+  assertProcessedImage(frame.data)
+  const id = `fr-${randomUUID()}`
+  store.frames.set(id, { ...frame, sessionId, privacyVersion })
+  const metadata = {
+    sessionId,
+    privacyVersion,
+    mime: frame.mime,
+    width: frame.width,
+    height: frame.height,
+    redactions: frame.redactions,
+    privacy: frame.privacy,
+  }
+  store.frameMetadata.set(id, metadata)
   return id
 }
 

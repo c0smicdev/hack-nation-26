@@ -4,10 +4,12 @@ import type { SocratesApi } from "./client"
 
 export class ApiError extends Error {
   readonly status: number
+  readonly code?: string
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message)
     this.status = status
+    this.code = code
   }
 }
 
@@ -26,12 +28,15 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     if (!res.ok) {
       const text = await res.text()
       let message = text
+      let code: string | undefined
       try {
-        message = (JSON.parse(text) as { error?: string }).error ?? text
+        const body = JSON.parse(text) as { error?: string; code?: string }
+        message = body.error ?? text
+        code = body.code
       } catch {
         // not JSON
       }
-      throw new ApiError(res.status, message)
+      throw new ApiError(res.status, message, code)
     }
     return res.json() as Promise<T>
   }
@@ -53,7 +58,25 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     listSessionEvents: (sessionId) => request(`/sessions/${sessionId}/events`),
     listLiveSteps: (sessionId) => request(`/sessions/${sessionId}/steps`),
     recordEvent: (sessionId, event) => post(`/sessions/${sessionId}/events`, event),
-    postTick: (sessionId, tick) => post(`/sessions/${sessionId}/ticks`, tick),
+    postTick: (sessionId, tick, signal) =>
+      request(`/sessions/${sessionId}/ticks`, {
+        method: "POST",
+        body: JSON.stringify(tick),
+        signal,
+      }),
+    protectTexts: (texts) => post("/privacy/text", { texts }),
+    getFrame: async (url, signal) => {
+      if (!/^\/api\/frames\/[a-zA-Z0-9-]+$/.test(url))
+        throw new ApiError(400, "Invalid screenshot reference")
+      const token = await accessToken()
+      const response = await fetch(`${baseUrl}/frames/${url.split("/").at(-1)}`, {
+        signal,
+        cache: "no-store",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!response.ok) throw new ApiError(response.status, "Screenshot unavailable")
+      return response.blob()
+    },
     getCaptureStatus: () => request("/capture/status"),
     setCaptureStatus: (patch) => post("/capture/status", patch, "PATCH"),
     setOffTheRecord: (offTheRecord) => post("/capture/status", { offTheRecord }, "PATCH"),

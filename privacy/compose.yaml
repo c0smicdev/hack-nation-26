@@ -1,0 +1,17 @@
+services:
+  privacy:
+    build: .
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      SOCRATES_PRIVACY_TOKEN: ${SOCRATES_PRIVACY_TOKEN:?Set a service token in privacy/.env}
+      SOCRATES_PRIVACY_ALIAS_KEY: ${SOCRATES_PRIVACY_ALIAS_KEY:?Set an alias key in privacy/.env}
+      SOCRATES_PRIVACY_KNOWN_VALUES: ${SOCRATES_PRIVACY_KNOWN_VALUES:-[]}
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 2g
+    cpus: 2
+    restart: unless-stopped

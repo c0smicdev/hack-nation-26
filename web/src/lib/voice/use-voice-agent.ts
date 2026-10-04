@@ -2,6 +2,7 @@ import { useConversation } from "@elevenlabs/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { api, type VoiceRole } from "@/lib/api"
+import { privacyPaused, subscribePrivacy } from "@/lib/privacy/lifecycle"
 
 export interface TranscriptLine {
   id: number
@@ -20,12 +21,18 @@ export type AgentTools = Record<
 export type VoiceMode = "idle" | "connecting" | "voice" | "text" | "error"
 
 /** Messages we inject start with a tag ("[QUESTION …]"); they're not the user's words. */
-const isAppMessage = (text: string) => /^\[[A-Z]+/.test(text.trim())
+const isAppMessage = (text: string) => /^\[(?:QUESTION|SYSTEM|SCREEN)\b/.test(text.trim())
 
 /** The voice speaks tone tags ("[warmly]", "[curious]") but they shouldn't show up in the chat. */
 const stripToneTags = (text: string) =>
   text
-    .replace(/\[[^[\]\n]{1,40}\]/g, "")
+    .replace(/\[[^[\]\n]{1,40}\]/g, (tag) =>
+      /^\[(?:PERSON|EMAIL_ADDRESS|PHONE_NUMBER|IBAN_CODE|CREDIT_CARD|IP_ADDRESS|ADDRESS|BUSINESS|SECRET)(?::|\])/.test(
+        tag,
+      )
+        ? tag
+        : "",
+    )
     .replace(/\s{2,}/g, " ")
     .trim()
 
@@ -39,11 +46,13 @@ export function useVoiceAgent({
   role,
   tools,
   onUserText,
+  privacyScope,
 }: {
   role: VoiceRole
   tools: AgentTools
   /** A final user transcript (Scribe) or typed message. */
   onUserText?: (text: string) => void
+  privacyScope?: string
 }) {
   const conversation = useConversation()
   const [mode, setMode] = useState<VoiceMode>("idle")
@@ -51,6 +60,14 @@ export function useVoiceAgent({
   const [transcript, setTranscript] = useState<TranscriptLine[]>([])
   const nextId = useRef(0)
   const lastUserVoiceAt = useRef(0)
+  const generation = useRef(0)
+  const serial = useRef<Promise<void>>(Promise.resolve())
+  useEffect(
+    () => () => {
+      generation.current += 1
+    },
+    [],
+  )
 
   // Tool handlers and callbacks change every render; the agent always calls the latest.
   const toolsRef = useRef(tools)
@@ -64,80 +81,156 @@ export function useVoiceAgent({
     setTranscript((t) => [...t, { id: nextId.current++, role, text, at: Date.now() }])
   }, [])
 
+  const enqueue = useCallback(
+    (action: () => Promise<void>) => {
+      const epoch = generation.current
+      serial.current = serial.current
+        .catch(() => {})
+        .then(async () => {
+          if (epoch !== generation.current || privacyPaused(privacyScope)) return
+          await action()
+        })
+        .catch(() => setError("Privacy protection could not complete. Please retry."))
+    },
+    [privacyScope],
+  )
+
+  const protectedText = useCallback(
+    async (text: string) => (await api.protectTexts([text])).texts[0],
+    [],
+  )
+
+  const stop = useCallback(() => {
+    generation.current += 1
+    try {
+      conversation.endSession()
+    } catch {
+      /* Already disconnected. */
+    }
+    setMode("idle")
+  }, [conversation])
+
+  useEffect(
+    () =>
+      subscribePrivacy(() => {
+        if (privacyPaused(privacyScope)) stop()
+      }),
+    [privacyScope, stop],
+  )
+
   const start = useCallback(
     async (dynamicVariables: Record<string, string>) => {
+      if (privacyPaused(privacyScope)) return
+      const epoch = ++generation.current
       setMode("connecting")
       setError(undefined)
       try {
         const session = await api.getVoiceSession(role)
+        if (epoch !== generation.current || privacyPaused(privacyScope)) return
         if (!session) {
           setMode("text")
           return
         }
+        const keys = Object.keys(dynamicVariables)
+        const safeVariables = await api.protectTexts(Object.values(dynamicVariables))
+        if (epoch !== generation.current || privacyPaused(privacyScope)) return
         const clientTools = Object.fromEntries(
           Object.keys(toolsRef.current).map((name) => [
             name,
             async (params: Record<string, unknown>) => {
-              append("app", `→ ${name}(${JSON.stringify(params)})`)
+              if (privacyPaused(privacyScope)) return "Off the record. Resume in the app."
+              append("app", `Tool: ${name}`)
               try {
-                return await toolsRef.current[name](params)
-              } catch (e) {
-                return `Error: ${e instanceof Error ? e.message : String(e)}`
+                // The pause tool must stop transport immediately, without waiting for detection.
+                if (name === "set_off_record")
+                  return await toolsRef.current[name]({
+                    off: params.off === true || params.off === "true",
+                  })
+                const safe = structuredClone(params)
+                const fields = Object.entries(safe).filter(
+                  ([key, value]) => typeof value === "string" && !/(?:^id$|_id$)/.test(key),
+                )
+                const values = await api.protectTexts(fields.map(([, value]) => value as string))
+                fields.forEach(([key], index) => {
+                  safe[key] = values.texts[index]
+                })
+                if (epoch !== generation.current || privacyPaused(privacyScope))
+                  return "Off the record."
+                const result = await toolsRef.current[name](safe)
+                if (epoch !== generation.current || privacyPaused(privacyScope))
+                  return "Off the record."
+                return await protectedText(result)
+              } catch {
+                return "The action could not complete. Please retry in the app."
               }
             },
           ]),
         )
-        conversation.startSession({
+        await conversation.startSession({
           signedUrl: session.signedUrl,
-          dynamicVariables,
+          dynamicVariables: Object.fromEntries(
+            keys.map((key, index) => [key, safeVariables.texts[index]]),
+          ),
           clientTools,
           onMessage: ({ message, role }) => {
-            if (role === "user") {
-              if (isAppMessage(message)) return
-              append("user", message)
-              onUserTextRef.current?.(message)
-            } else {
-              const text = stripToneTags(message)
-              if (text) append("agent", text)
-            }
+            if (
+              epoch !== generation.current ||
+              privacyPaused(privacyScope) ||
+              (role === "user" && isAppMessage(message))
+            )
+              return
+            enqueue(async () => {
+              const text = await protectedText(role === "user" ? message : stripToneTags(message))
+              if (!text || epoch !== generation.current || privacyPaused(privacyScope)) return
+              append(role === "user" ? "user" : "agent", text)
+              if (role === "user") onUserTextRef.current?.(text)
+            })
           },
           onVadScore: ({ vadScore }) => {
             if (vadScore > 0.6) lastUserVoiceAt.current = Date.now()
           },
-          onConnect: () => setMode("voice"),
-          onError: (message) => {
-            setError(message)
+          onConnect: () => {
+            if (epoch === generation.current && !privacyPaused(privacyScope)) setMode("voice")
+          },
+          onError: () => {
+            if (epoch !== generation.current) return
+            setError("Voice connection unavailable.")
             // Couldn't connect (e.g. microphone denied): keep going in text mode.
             setMode((m) => (m === "connecting" ? "text" : m))
           },
-          onDisconnect: () => setMode((m) => (m === "voice" ? "idle" : m)),
+          onDisconnect: () => {
+            if (epoch === generation.current) setMode((m) => (m === "voice" ? "idle" : m))
+          },
         })
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e))
+      } catch {
+        if (epoch !== generation.current || privacyPaused(privacyScope)) return
+        setError("Voice or privacy protection could not connect. Please retry.")
         setMode("error")
       }
     },
-    [append, conversation, role],
+    [append, conversation, role, privacyScope, enqueue, protectedText],
   )
-
-  const stop = useCallback(() => {
-    conversation.endSession()
-    setMode("idle")
-  }, [conversation])
 
   /** Sends to the agent if a conversation is live; never throws. */
   const send = useCallback(
     (kind: "message" | "context", text: string) => {
       if (mode !== "voice" || conversation.status !== "connected") return false
-      try {
-        if (kind === "message") conversation.sendUserMessage(text)
-        else conversation.sendContextualUpdate(text)
-        return true
-      } catch {
-        return false
-      }
+      if (privacyPaused(privacyScope)) return false
+      const epoch = generation.current
+      enqueue(async () => {
+        const safe = await protectedText(text)
+        if (
+          epoch !== generation.current ||
+          privacyPaused(privacyScope) ||
+          conversation.status !== "connected"
+        )
+          return
+        if (kind === "message") conversation.sendUserMessage(safe)
+        else conversation.sendContextualUpdate(safe)
+      })
+      return true
     },
-    [conversation, mode],
+    [conversation, mode, privacyScope, enqueue, protectedText],
   )
 
   /** Make the agent respond (e.g. ask a question now). False if there's no live agent. */
@@ -172,11 +265,17 @@ export function useVoiceAgent({
   /** Typed instead of spoken: same path as a transcript. */
   const type = useCallback(
     (text: string) => {
-      append("user", text)
-      send("message", text)
-      onUserTextRef.current?.(text)
+      const epoch = generation.current
+      enqueue(async () => {
+        const safe = await protectedText(text)
+        if (epoch !== generation.current || privacyPaused(privacyScope)) return
+        append("user", safe)
+        if (mode === "voice" && conversation.status === "connected")
+          conversation.sendUserMessage(safe)
+        onUserTextRef.current?.(safe)
+      })
     },
-    [append, send],
+    [append, conversation, mode, enqueue, protectedText, privacyScope],
   )
 
   return {
@@ -195,7 +294,13 @@ export function useVoiceAgent({
     prompt,
     context,
     type,
-    note: (text: string) => append("app", text),
+    note: (text: string) => {
+      const epoch = generation.current
+      enqueue(async () => {
+        const safe = await protectedText(text)
+        if (epoch === generation.current && !privacyPaused(privacyScope)) append("app", safe)
+      })
+    },
   }
 }
 

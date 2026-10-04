@@ -30,3 +30,4 @@ dist-ssr
 
 # Eval screenshots are real screen recordings (file names, accounts): keep them local
 eval/focus/frames/
+privacy-assets/

@@ -4,6 +4,7 @@ import { api, type ErpSignal, type ID, type LiveQuestion, type LiveStep } from "
 import { changed, grabFrame } from "@/lib/capture/screen"
 import { openErpChannel } from "@/lib/erp/bridge"
 import type { VoiceAgent } from "@/lib/voice/use-voice-agent"
+import { privacyPaused, subscribePrivacy } from "@/lib/privacy/lifecycle"
 
 /* When to ask (AGENTS.md §4.7) ---------------------------------------- */
 const TICK_MS = 1500
@@ -67,6 +68,25 @@ export function useCaptureLoop({
   // Source of truth for the queue; `queue` state only mirrors it for rendering.
   const queueRef = useRef<Queued[]>([])
   const screenRef = useRef<string>(undefined)
+  const generation = useRef(0)
+  const inFlight = useRef<AbortController>(undefined)
+  useEffect(
+    () =>
+      subscribePrivacy(() => {
+        if (!privacyPaused(sessionId)) return
+        generation.current += 1
+        inFlight.current?.abort()
+        erpBuffer.current = []
+        queueRef.current = []
+        pendingAnswer.current = undefined
+        lastThumb.current = undefined
+        screenRef.current = undefined
+        setQueue([])
+        setTextQuestion(undefined)
+        setScreen(undefined)
+      }),
+    [sessionId],
+  )
 
   const at = useCallback(() => (Date.now() - Date.parse(startedAt)) / 1000, [startedAt])
 
@@ -81,6 +101,7 @@ export function useCaptureLoop({
     if (!live) return
     const channel = openErpChannel((m) => {
       const t = at()
+      if (privacyPaused(sessionId)) return
       if (m.type === "typing") {
         typing.current = m.active
         lastTypingAt.current = Date.now()
@@ -89,19 +110,18 @@ export function useCaptureLoop({
       } else if (m.type === "field_change") {
         const text = `Invoice ${m.invoiceId}: ${m.label} changed ${m.from} → ${m.to}`
         erpBuffer.current.push({ at: t, kind: "field_change", text })
-        agentRef.current.context(`Screen: ${text}`)
       } else if (m.type === "action") {
         erpBuffer.current.push({ at: t, kind: "action", text: m.summary })
-        agentRef.current.context(`Screen: ${m.summary}`)
       }
     })
     return () => channel.close()
-  }, [live, at])
+  }, [live, at, sessionId])
 
   // Tick loop: one vision call at a time; frames that arrive meanwhile are dropped, not queued.
   useEffect(() => {
     if (!live || !video) return
     const timer = setInterval(async () => {
+      if (privacyPaused(sessionId)) return
       if (busy.current) {
         setStats((s) => ({ ...s, dropped: s.dropped + 1 }))
         return
@@ -117,14 +137,23 @@ export function useCaptureLoop({
       lastThumb.current = frame.thumb
       busy.current = true
       const t0 = performance.now()
+      const epoch = generation.current
+      const controller = new AbortController()
+      inFlight.current = controller
       try {
-        const result = await api.postTick(sessionId, {
-          at: at(),
-          image: frame.base64,
-          typing: typing.current,
-          speaking: agentRef.current.msSinceUserVoice() < QUIET_MS,
-          erp,
-        })
+        const result = await api.postTick(
+          sessionId,
+          {
+            at: at(),
+            image: frame.base64,
+            mime: "image/png",
+            typing: typing.current,
+            speaking: agentRef.current.msSinceUserVoice() < QUIET_MS,
+            erp,
+          },
+          controller.signal,
+        )
+        if (epoch !== generation.current || privacyPaused(sessionId)) return
         setError(undefined)
         setStats((s) => ({
           ...s,
@@ -147,13 +176,20 @@ export function useCaptureLoop({
           setQueue(queueRef.current)
         }
       } catch (e) {
+        if (controller.signal.aborted || epoch !== generation.current || privacyPaused(sessionId))
+          return
         erpBuffer.current.unshift(...erp)
+        lastThumb.current = undefined
         setError(e instanceof Error ? e.message : String(e))
       } finally {
         busy.current = false
       }
     }, TICK_MS)
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+      generation.current += 1
+      inFlight.current?.abort()
+    }
   }, [live, video, sessionId, at])
 
   // Scheduler: ask the oldest valid question at the next natural pause.
@@ -161,6 +197,7 @@ export function useCaptureLoop({
     if (!live) return
     const timer = setInterval(() => {
       const now = Date.now()
+      if (privacyPaused(sessionId)) return
       // Expired questions aren't lost: the server keeps them for the debrief.
       const valid = queueRef.current.filter(
         (q) =>
@@ -202,6 +239,7 @@ export function useCaptureLoop({
   /** Store what the expert said: the answer to the last question, or narration. */
   const recordSpeech = useCallback(
     (text: string) => {
+      if (privacyPaused(sessionId)) return
       const pending = pendingAnswer.current
       const questionId = pending && Date.now() < pending.until ? pending.questionId : undefined
       void api.recordEvent(sessionId, { at: at(), kind: "speech", text, questionId })
@@ -211,7 +249,7 @@ export function useCaptureLoop({
 
   const answerTextQuestion = useCallback(
     (text: string) => {
-      if (!textQuestion) return
+      if (!textQuestion || privacyPaused(sessionId)) return
       void api.recordEvent(sessionId, {
         at: at(),
         kind: "speech",

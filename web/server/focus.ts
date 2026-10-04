@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import type { Rect } from "../src/lib/api/types.js"
 import { imageBlock, models, prompt, structured, text } from "./llm.js"
+import { assertProcessedImage, protectImage } from "./privacy.js"
 
 /**
  * Finds the screen area a caption is about. This is its own call (one screenshot, one caption)
@@ -18,6 +19,7 @@ const Located = z.object({
 
 /** Pixel size of a JPEG or PNG, read from its header. */
 export function imageSize(data: Buffer): { width: number; height: number } | undefined {
+  if (data.length < 24) return undefined
   if (data.readUInt32BE(0) === 0x89504e47) {
     return { width: data.readUInt32BE(16), height: data.readUInt32BE(20) }
   }
@@ -45,7 +47,15 @@ export async function locateFocus(
   image: Buffer,
   caption: string,
   mime = "image/jpeg",
+  guard?: () => Promise<void>,
 ): Promise<Rect | undefined> {
+  try {
+    assertProcessedImage(image)
+  } catch {
+    const processed = await protectImage(image.toString("base64"), mime)
+    image = processed.data
+    mime = processed.mime
+  }
   const size = imageSize(image)
   if (!size) return undefined
   const result = await structured({
@@ -54,6 +64,7 @@ export async function locateFocus(
     maxTokens: 1000,
     system: prompt("locate-focus"),
     schema: Located,
+    guard,
     content: [
       imageBlock(image, mime),
       text(`Screenshot size: ${size.width} × ${size.height} pixels.\nCaption: ${caption}`),

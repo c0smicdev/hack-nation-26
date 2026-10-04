@@ -17,6 +17,14 @@ import type {
 } from "../src/lib/api/types.js"
 import { locateFocus } from "./focus.js"
 import { imageBlock, models, prompt, structured, text } from "./llm.js"
+import { claimResource, readableWorkMaps } from "./access.js"
+import { protectImage, protectTexts, protectValue, PrivacyError } from "./privacy.js"
+import {
+  assertCaptureCurrent,
+  assertSessionVersion,
+  claimCaptureJob,
+  releaseCaptureJob,
+} from "./session-privacy.js"
 import {
   addEvent,
   type CandidateStep,
@@ -36,12 +44,14 @@ import {
 
 function personFor(name: string, role: string): Person {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-  const known = store.workMaps.find((m) => m.expert.name.toLowerCase() === name.toLowerCase())
+  const known = readableWorkMaps().find((m) => m.expert.name.toLowerCase() === name.toLowerCase())
   return known?.expert ?? { id: `p-${slug}`, name, role }
 }
 
 /** `expert` is the signed-in user; without login the expert is matched by name. */
-export function createSession(input: NewSession, expert?: Person): CaptureSession {
+export async function createSession(raw: NewSession, expert?: Person): Promise<CaptureSession> {
+  const input = await protectValue(raw)
+  const protectedExpert = expert ? await protectValue(expert) : undefined
   if (!input.task.trim() || (!expert && !input.expertName.trim())) {
     throw new HttpError(400, "task and expertName are required")
   }
@@ -49,7 +59,8 @@ export function createSession(input: NewSession, expert?: Person): CaptureSessio
     id: newId("ses"),
     title: input.title.trim() || input.task.trim().slice(0, 60),
     task: input.task.trim(),
-    expert: expert ?? personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
+    expert:
+      protectedExpert ?? personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
     startedAt: new Date().toISOString(),
     durationSec: 0,
     status: "intake",
@@ -65,7 +76,9 @@ export function createSession(input: NewSession, expert?: Person): CaptureSessio
     visionBusy: false,
     pendingErp: [],
     pendingFocus: new Set(),
+    privacyVersion: 0,
   })
+  claimResource(session.id)
   store.captureStatus = {
     ...store.captureStatus,
     active: true,
@@ -83,13 +96,13 @@ export function sessionView(runtime: SessionRuntime): CaptureSession {
   }
 }
 
-export function updateSession(
+export async function updateSession(
   sessionId: ID,
   patch: { status?: "live"; task?: string; basedOnWorkMapId?: ID | null },
-): CaptureSession {
+): Promise<CaptureSession> {
   const runtime = getRuntime(sessionId)
   const { session } = runtime
-  if (patch.task) session.task = patch.task
+  if (patch.task) session.task = (await protectTexts([patch.task]))[0].text
   if (patch.basedOnWorkMapId !== undefined) {
     if (patch.basedOnWorkMapId) getWorkMap(patch.basedOnWorkMapId)
     session.basedOnWorkMapId = patch.basedOnWorkMapId ?? undefined
@@ -133,12 +146,16 @@ const VisionResult = z.object({
 function locateInBackground(runtime: SessionRuntime, screen: ScreenMoment, frameId: ID) {
   const frame = store.frames.get(frameId)
   if (!frame) return
-  const job = locateFocus(frame.data, screen.caption, frame.mime)
-    .then((focus) => {
+  const version = runtime.privacyVersion
+  const guard = () => assertSessionVersion(runtime, version)
+  const job = guard()
+    .then(() => locateFocus(frame.data, screen.caption, frame.mime, guard))
+    .then(async (focus) => {
+      await guard()
       screen.focus = focus
     })
-    .catch((error: unknown) => {
-      console.warn(`[focus] no box for "${screen.caption}":`, error)
+    .catch(() => {
+      console.warn("[focus] lookup skipped or unavailable")
     })
     .finally(() => runtime.pendingFocus.delete(job))
   runtime.pendingFocus.add(job)
@@ -223,29 +240,31 @@ export async function processTick(sessionId: ID, tick: Tick): Promise<TickResult
   const runtime = getRuntime(sessionId)
   const status = store.captureStatus
   // Off the record: send nothing, store nothing, ask nothing.
-  if (status.offTheRecord && status.liveSessionId === sessionId) return empty(false)
+  if (runtime.session.offTheRecord || (status.offTheRecord && status.liveSessionId === sessionId))
+    return empty(false)
   if (runtime.session.status !== "live") return empty(false)
 
-  runtime.pendingErp.push(...tick.erp)
-  if (!tick.image) return empty(true, runtime.lastScreen)
-  // One vision call at a time; drop this frame rather than queue it (it would be stale).
-  if (runtime.visionBusy) return empty(false, runtime.lastScreen)
-
-  const frameId = saveFrame(tick.image)
-  const previous = runtime.lastFrameId ? store.frames.get(runtime.lastFrameId) : undefined
-  const current = store.frames.get(frameId)!
-  const erp = runtime.pendingErp.splice(0)
-  runtime.lastFrameId = frameId
-
-  runtime.visionBusy = true
-  let result: z.infer<typeof VisionResult>
+  const lease = await claimCaptureJob(runtime)
+  if (!lease) return empty(false, runtime.lastScreen)
+  const signal = AbortSignal.any([runtime.privacyController!.signal, AbortSignal.timeout(45_000)])
+  let erp: ErpSignal[] = []
   try {
-    result = await structured({
+    const safeErp = await protectValue(tick.erp, signal)
+    await assertCaptureCurrent(runtime, lease)
+    runtime.pendingErp.push(...safeErp)
+    if (!tick.image) return empty(true, runtime.lastScreen)
+    const current = await protectImage(tick.image, tick.mime, tick.masks, signal)
+    await assertCaptureCurrent(runtime, lease)
+    const previous = runtime.lastFrameId ? store.frames.get(runtime.lastFrameId) : undefined
+    erp = runtime.pendingErp.splice(0)
+    const result = await structured({
       model: models.vision,
       effort: "low",
       maxTokens: 4000,
       system: prompt("vision-events"),
       schema: VisionResult,
+      signal,
+      guard: () => assertCaptureCurrent(runtime, lease),
       content: [
         text(
           contextFor(
@@ -253,20 +272,25 @@ export async function processTick(sessionId: ID, tick: Tick): Promise<TickResult
             erp.map((s) => `  ${s.at.toFixed(0)}s ${s.kind}: ${s.text}`),
           ),
         ),
-        ...(previous ? [text("Previous screenshot:"), imageBlock(previous.data)] : []),
+        ...(previous
+          ? [text("Previous screenshot:"), imageBlock(previous.data, previous.mime)]
+          : []),
         text(previous ? "Current screenshot:" : "Current screenshot (first of the session):"),
-        imageBlock(current.data),
+        imageBlock(current.data, current.mime),
       ],
     })
+    await assertCaptureCurrent(runtime, lease)
+    const frameId = saveFrame(current, sessionId, lease.version)
+    runtime.lastFrameId = frameId
+    return { ...applyVision(runtime, tick.at, frameId, result, erp), privacy: current.privacy }
   } catch (error) {
-    // Put the signals back so the next frame still sees them.
-    runtime.pendingErp.unshift(...erp)
+    if (error instanceof PrivacyError && error.code === "privacy_paused") return empty(false)
+    if (!signal.aborted && runtime.privacyVersion === lease.version)
+      runtime.pendingErp.unshift(...erp)
     throw error
   } finally {
-    runtime.visionBusy = false
+    await releaseCaptureJob(runtime, lease)
   }
-
-  return applyVision(runtime, tick.at, frameId, result, erp)
 }
 
 function applyVision(
@@ -298,6 +322,8 @@ function applyVision(
         at,
         screenshotUrl,
         caption: e.text,
+        redactions: store.frames.get(frameId)?.redactions,
+        privacy: store.frames.get(frameId)?.privacy,
       }
       locateInBackground(runtime, screen, frameId)
       const existing = runtime.candidates.find((c) => c.id === e.candidateStepId)
@@ -329,6 +355,8 @@ function applyVision(
         text: e.text,
         important: e.important,
         screenshotUrl,
+        redactions: store.frames.get(frameId)?.redactions,
+        privacy: store.frames.get(frameId)?.privacy,
         matchedStepId,
         deviation,
       }),
@@ -382,13 +410,25 @@ function applyVision(
 
 /* Events from the session page (speech, questions asked, …) ---------- */
 
-export function recordEvent(sessionId: ID, input: NewSessionEvent): SessionEvent {
+export async function recordEvent(sessionId: ID, raw: NewSessionEvent): Promise<SessionEvent> {
   const runtime = getRuntime(sessionId)
   const status = store.captureStatus
-  const offRecord = status.offTheRecord && status.liveSessionId === sessionId
-  if (offRecord && input.kind !== "off_record") {
+  const offRecord =
+    runtime.session.offTheRecord || (status.offTheRecord && status.liveSessionId === sessionId)
+  if (offRecord) {
     // Acknowledge without storing anything.
-    return { id: "not-recorded", sessionId, ...input }
+    return { id: "not-recorded", sessionId, at: raw.at, kind: raw.kind, text: "" }
+  }
+  const version = runtime.privacyVersion
+  const [protectedText] = await protectTexts([raw.text])
+  await assertSessionVersion(runtime, version)
+  const input = {
+    ...raw,
+    text: protectedText.text,
+    privacy: {
+      policyVersion: protectedText.policyVersion,
+      redactedCount: protectedText.redactedCount,
+    },
   }
 
   const question = input.questionId
@@ -408,6 +448,7 @@ export function recordEvent(sessionId: ID, input: NewSessionEvent): SessionEvent
           source: "live_question",
           prompt: question.question,
           at: input.at,
+          privacy: input.privacy,
         }
   }
   return addEvent(runtime, input)
@@ -421,7 +462,7 @@ const MemoryMatch = z.object({
 
 /** Confirmed workflows that describe the same (or an overlapping) task. */
 export async function findRelatedWorkMaps(task: string) {
-  const confirmed = store.workMaps.filter((m) => m.status === "confirmed")
+  const confirmed = readableWorkMaps().filter((m) => m.status === "confirmed")
   if (!task.trim() || confirmed.length === 0) return []
   const catalog = confirmed
     .map(

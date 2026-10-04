@@ -6,6 +6,7 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import type { z } from "zod"
 
 import { HttpError } from "./store.js"
+import { assertProcessedImage, PrivacyError, protectTexts, protectValue } from "./privacy.js"
 
 /**
  * Vision runs on every tick, so it uses the fast model; everything that writes
@@ -39,6 +40,7 @@ export function prompt(name: string, vars: Record<string, string> = {}) {
 }
 
 export type Content = Anthropic.Beta.BetaContentBlockParam[]
+const protectedImageBlocks = new WeakSet<object>()
 
 /**
  * One structured call: Claude answers with JSON matching `schema`. The schema is
@@ -51,21 +53,42 @@ export async function structured<S extends z.ZodType>(opts: {
   schema: S
   effort?: "low" | "medium" | "high"
   maxTokens?: number
+  signal?: AbortSignal
+  guard?: () => Promise<void>
 }): Promise<z.infer<S>> {
   // Haiku 4.5 takes neither `effort` nor server-side fallbacks.
   const haiku = opts.model.startsWith("claude-haiku")
-  const response = await anthropic().beta.messages.parse({
-    model: opts.model,
-    max_tokens: opts.maxTokens ?? 16000,
-    system: opts.system,
-    messages: [{ role: "user", content: opts.content }],
-    output_config: {
-      ...(haiku ? {} : { effort: opts.effort ?? "medium" }),
-      format: betaZodOutputFormat(opts.schema),
+  for (const block of opts.content) {
+    if (block.type === "image" && !protectedImageBlocks.has(block))
+      throw new PrivacyError("privacy_unprocessed_image")
+  }
+  const protectedTexts = await protectTexts(
+    [opts.system, ...opts.content.filter((c) => c.type === "text").map((c) => c.text)],
+    opts.signal,
+  )
+  let textIndex = 1
+  const content = opts.content.map((c) =>
+    c.type === "text" ? { ...c, text: protectedTexts[textIndex++].text } : c,
+  )
+  opts.signal?.throwIfAborted()
+  await opts.guard?.()
+  const response = await anthropic().beta.messages.parse(
+    {
+      model: opts.model,
+      max_tokens: opts.maxTokens ?? 16000,
+      system: protectedTexts[0].text,
+      messages: [{ role: "user", content }],
+      output_config: {
+        ...(haiku ? {} : { effort: opts.effort ?? "medium" }),
+        format: betaZodOutputFormat(opts.schema),
+      },
+      // Re-runs a classifier-declined request on Anthropic's recommended fallback model.
+      ...(haiku
+        ? {}
+        : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
     },
-    // Re-runs a classifier-declined request on Anthropic's recommended fallback model.
-    ...(haiku ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
-  })
+    { signal: opts.signal },
+  )
   if (response.stop_reason === "refusal") {
     throw new HttpError(502, "The model declined this request")
   }
@@ -75,14 +98,21 @@ export async function structured<S extends z.ZodType>(opts: {
   if (response.parsed_output == null) {
     throw new HttpError(502, "The model's answer didn't match the expected shape")
   }
-  return response.parsed_output
+  const protectedOutput = await protectValue(response.parsed_output, opts.signal)
+  await opts.guard?.()
+  return opts.schema.parse(protectedOutput)
 }
 
 export function imageBlock(data: Buffer, mime = "image/jpeg"): Anthropic.Beta.BetaImageBlockParam {
-  return {
+  assertProcessedImage(data)
+  const block: Anthropic.Beta.BetaImageBlockParam = {
     type: "image",
     source: { type: "base64", media_type: mime as "image/jpeg", data: data.toString("base64") },
   }
+  Object.freeze(block.source)
+  Object.freeze(block)
+  protectedImageBlocks.add(block)
+  return block
 }
 
 export const text = (value: string): Anthropic.Beta.BetaTextBlockParam => ({

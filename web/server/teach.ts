@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { readableWorkMaps } from "./access.js"
 
 import type {
   AskRequest,
@@ -13,7 +14,7 @@ import type {
 } from "../src/lib/api/types.js"
 import { memoryContext } from "./capture.js"
 import { models, prompt, structured, text } from "./llm.js"
-import { getWorkMap, HttpError, store } from "./store.js"
+import { getWorkMap, HttpError } from "./store.js"
 
 /* Save gate: the mock ERP holds a save until the tutor allows it ----- */
 
@@ -76,7 +77,7 @@ export async function voiceSession(role: VoiceRole): Promise<VoiceSession | null
     `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${encodeURIComponent(agentId)}`,
     { headers: { "xi-api-key": apiKey } },
   )
-  if (!res.ok) throw new HttpError(502, `ElevenLabs: ${res.status} ${await res.text()}`)
+  if (!res.ok) throw new HttpError(502, "Voice provider could not connect")
   const { signed_url } = (await res.json()) as { signed_url: string }
   return { signedUrl: signed_url }
 }
@@ -89,7 +90,7 @@ const AskOut = z.object({
 })
 
 export async function ask({ question, workMapId }: AskRequest): Promise<AskResponse> {
-  const scope = workMapId ? [getWorkMap(workMapId)] : store.workMaps
+  const scope = workMapId ? [getWorkMap(workMapId)] : readableWorkMaps()
   const catalog = scope.map((m) => `[map ${m.id}]\n${memoryContext(m)}`).join("\n\n")
   const out = await structured({
     model: models.reasoning,

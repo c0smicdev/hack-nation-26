@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -13,6 +16,7 @@
     "preview": "vite preview",
     "setup:agents": "node scripts/setup-agents.ts",
     "eval:focus": "node scripts/eval-focus.ts",
+    "test:privacy": "node scripts/test-privacy.ts",
     "dev:mock": "vite --mode mock"
   },
   "dependencies": {

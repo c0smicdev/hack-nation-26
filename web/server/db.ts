@@ -1,7 +1,13 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 import type { CaptureStatus, WorkMap } from "../src/lib/api/types.js"
-import { type SessionRuntime, store } from "./store.js"
+import { type Frame, type SessionRuntime, store } from "./store.js"
+import {
+  assertProcessedImage,
+  PRIVACY_POLICY,
+  PrivacyError,
+  registerProcessedFrame,
+} from "./privacy.js"
 
 /**
  * Supabase persistence for the in-memory store. The route handlers keep working
@@ -62,12 +68,12 @@ const stable = (value: unknown) =>
       : v,
   )
 
-type StoredSession = Omit<SessionRuntime, "visionBusy" | "pendingFocus">
+type StoredSession = Omit<SessionRuntime, "visionBusy" | "pendingFocus" | "privacyController">
 
 /** visionBusy and pendingFocus belong to this process; persisting them could leave a session stuck. */
 function persisted(runtime: SessionRuntime): StoredSession {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { visionBusy, pendingFocus, ...rest } = runtime
+  const { visionBusy, pendingFocus, privacyController, ...rest } = runtime
   return rest
 }
 
@@ -77,6 +83,19 @@ function persisted(runtime: SessionRuntime): StoredSession {
  */
 async function pull(supabase: SupabaseClient) {
   if (state.inFlight > 1) return
+  const access = check(
+    await supabase.from("resource_access").select("resource_id, owner_id, reader_ids"),
+    "load access",
+  )
+  if (!access) throw new PrivacyError("privacy_state_unavailable")
+  store.access = new Map(
+    access.map((row) => [row.resource_id, { ownerId: row.owner_id, readerIds: row.reader_ids }]),
+  )
+  const privacyRows = check(
+    await supabase.from("session_privacy").select("session_id, paused, version"),
+    "load privacy state",
+  )
+  if (!privacyRows) throw new PrivacyError("privacy_state_unavailable")
 
   const since = state.lastSync ?? "1970-01-01T00:00:00Z"
   const [maps, sessions, ids, status] = await Promise.all([
@@ -119,6 +138,8 @@ async function pull(supabase: SupabaseClient) {
       ...row.data,
       visionBusy: local?.visionBusy ?? false,
       pendingFocus: local?.pendingFocus ?? new Set(),
+      privacyVersion: row.data.privacyVersion ?? 0,
+      privacyController: local?.privacyController,
     })
     sessionsChanged = true
   }
@@ -129,6 +150,17 @@ async function pull(supabase: SupabaseClient) {
         a.session.startedAt.localeCompare(b.session.startedAt),
       ),
     )
+  }
+  for (const row of privacyRows) {
+    const runtime = store.sessions.get(row.session_id)
+    if (!runtime) continue
+    if (row.paused || runtime.privacyVersion !== row.version) {
+      runtime.privacyController?.abort()
+      runtime.pendingErp = []
+      runtime.lastScreen = undefined
+    }
+    runtime.privacyVersion = row.version
+    runtime.session.offTheRecord = row.paused
   }
 
   const statusRow = check(status, "load capture status") as { data: CaptureStatus } | null
@@ -153,12 +185,31 @@ const max = (a: string | undefined, b: string) => (a && a > b ? a : b)
 /** Write everything that changed in memory since the last sync. */
 async function push(supabase: SupabaseClient) {
   const writes: PromiseLike<unknown>[] = []
+  if (store.access.size)
+    check(
+      await supabase.from("resource_access").upsert(
+        [...store.access].map(([resource_id, access]) => ({
+          resource_id,
+          owner_id: access.ownerId,
+          reader_ids: access.readerIds,
+        })),
+        { onConflict: "resource_id", ignoreDuplicates: true },
+      ),
+      "save access",
+    )
+  const newSessions = [...store.sessions.keys()].map((session_id) => ({ session_id }))
+  if (newSessions.length)
+    check(
+      await supabase
+        .from("session_privacy")
+        .upsert(newSessions, { onConflict: "session_id", ignoreDuplicates: true }),
+      "initialize privacy state",
+    )
 
   const changed = <T>(table: Table, items: [string, string, T][]) => {
     const rows = items
       .filter(([id, json]) => state.hashes[table].get(id) !== json)
-      .map(([id, json, data]) => {
-        state.hashes[table].set(id, json)
+      .map(([id, , data]) => {
         return { id, data }
       })
     const removed = [...state.hashes[table].keys()].filter(
@@ -170,7 +221,10 @@ async function push(supabase: SupabaseClient) {
         supabase
           .from(table)
           .upsert(rows)
-          .then((r) => check(r, table)),
+          .then((r) => {
+            check(r, table)
+            rows.forEach((row) => state.hashes[table].set(row.id, stable(row.data)))
+          }),
       )
     if (removed.length) {
       writes.push(
@@ -187,33 +241,80 @@ async function push(supabase: SupabaseClient) {
     "work_maps",
     store.workMaps.map((m) => [m.id, stable(m), m]),
   )
-  changed(
-    "capture_sessions",
-    [...store.sessions].map(([id, runtime]) => {
-      const row = persisted(runtime)
-      return [id, stable(row), row]
-    }),
-  )
+  for (const [id, runtime] of store.sessions) {
+    const row = persisted(runtime)
+    const json = stable(row)
+    if (state.hashes.capture_sessions.get(id) === json) continue
+    writes.push(
+      supabase
+        .rpc("commit_capture_runtime", {
+          p_session: id,
+          p_version: runtime.privacyVersion,
+          p_data: row,
+        })
+        .then((result) => {
+          const committed = check(result, "save protected session")
+          if (committed) state.hashes.capture_sessions.set(id, json)
+        }),
+    )
+  }
 
   const statusJson = stable(store.captureStatus)
   if (statusJson !== state.captureStatusHash) {
-    state.captureStatusHash = statusJson
     writes.push(
       supabase
         .from("app_state")
         .upsert({ key: "capture_status", data: store.captureStatus })
-        .then((r) => check(r, "capture status")),
+        .then((r) => {
+          check(r, "capture status")
+          state.captureStatusHash = statusJson
+        }),
     )
   }
 
   for (const [id, frame] of store.frames) {
     if (state.uploadedFrames.has(id)) continue
-    state.uploadedFrames.add(id)
+    assertProcessedImage(frame.data)
+    if (frame.privacy.policyVersion !== PRIVACY_POLICY)
+      throw new PrivacyError("privacy_unprocessed_image")
     writes.push(
-      supabase.storage
-        .from(FRAME_BUCKET)
-        .upload(id, frame.data, { contentType: frame.mime, upsert: true })
-        .then((r) => check(r, `upload frame ${id}`)),
+      (async () => {
+        const epoch = check(
+          await supabase
+            .from("session_privacy")
+            .select("paused, version")
+            .eq("session_id", frame.sessionId)
+            .single(),
+          "check frame privacy",
+        )
+        if (!epoch) throw new PrivacyError("privacy_state_unavailable")
+        if (epoch.paused || epoch.version !== frame.privacyVersion) {
+          store.frames.delete(id)
+          store.frameMetadata.delete(id)
+          return
+        }
+        check(
+          await supabase.storage
+            .from(FRAME_BUCKET)
+            .upload(id, frame.data, { contentType: frame.mime, upsert: true }),
+          "upload protected frame",
+        )
+        const metadata = store.frameMetadata.get(id)!
+        const committed = check(
+          await supabase.rpc("commit_redacted_frame", {
+            p_id: id,
+            p_session: frame.sessionId,
+            p_version: frame.privacyVersion,
+            p_data: metadata,
+          }),
+          "commit protected frame",
+        )
+        if (!committed) {
+          check(await supabase.storage.from(FRAME_BUCKET).remove([id]), "discard paused frame")
+          store.frames.delete(id)
+          store.frameMetadata.delete(id)
+        } else state.uploadedFrames.add(id)
+      })(),
     )
   }
 
@@ -246,10 +347,22 @@ export async function withDb<T>(mutates: boolean, run: () => Promise<T>): Promis
 /** Frame bytes from memory, or from Storage once it's been uploaded. */
 export async function loadFrame(id: string) {
   const inMemory = store.frames.get(id)
-  if (inMemory) return inMemory
+  if (inMemory) {
+    assertProcessedImage(inMemory.data)
+    return inMemory
+  }
   const supabase = db()
   if (!supabase) return undefined
+  const metadata = await supabase.from("frame_metadata").select("data").eq("id", id).maybeSingle()
+  if (
+    metadata.error ||
+    !metadata.data ||
+    metadata.data.data.privacy?.policyVersion !== PRIVACY_POLICY
+  )
+    return undefined
   const { data, error } = await supabase.storage.from(FRAME_BUCKET).download(id)
   if (error || !data) return undefined
-  return { data: Buffer.from(await data.arrayBuffer()), mime: data.type || "image/jpeg" }
+  const frame = { ...metadata.data.data, data: Buffer.from(await data.arrayBuffer()) } as Frame
+  registerProcessedFrame(frame)
+  return frame
 }
