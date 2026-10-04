@@ -81,6 +81,8 @@ const agentIdsByName = new Map<string, string>()
  */
 async function agentId(role: VoiceRole, apiKey: string): Promise<string | undefined> {
   const { env, name } = agents[role]
+  // Test copies (`npm run setup:agents -- --test`) for trying agent changes locally.
+  if (process.env.ELEVENLABS_USE_TEST_AGENTS === "1") return process.env[`${env}_TEST`]
   if (process.env[env]) return process.env[env]
   if (!agentIdsByName.has(name)) {
     const res = await fetch("https://api.elevenlabs.io/v1/convai/agents?page_size=100", {

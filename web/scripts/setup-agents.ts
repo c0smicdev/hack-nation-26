@@ -5,6 +5,10 @@
  *
  *   npm run setup:agents               # all agents
  *   npm run setup:agents -- supervisor # only the named ones
+ *   npm run setup:agents -- --test     # copies named "… (test)", ids in *_AGENT_ID_TEST
+ *
+ * Test copies let you try prompt or config changes without touching the agents everyone uses:
+ * set ELEVENLABS_USE_TEST_AGENTS=1 in .env.local and the local server connects to them.
  *
  * Reads ELEVENLABS_API_KEY from .env.local and writes the agent ids back into it.
  */
@@ -346,14 +350,17 @@ async function main() {
   if (!apiKey) throw new Error(`Set ELEVENLABS_API_KEY in ${ENV_FILE}`)
 
   // Optional role names: sync only those agents and leave the others as they are.
-  const only = process.argv.slice(2)
+  const args = process.argv.slice(2)
+  const test = args.includes("--test")
+  const only = args.filter((a) => !a.startsWith("--"))
   const unknown = only.filter((role) => !(role in agents))
   if (unknown.length) throw new Error(`Unknown agent(s): ${unknown.join(", ")}`)
   const selected = Object.entries(agents).filter(([role]) => !only.length || only.includes(role))
 
   for (const [role, agent] of selected) {
+    const envKey = test ? `${agent.envKey}_TEST` : agent.envKey
     const body = {
-      name: agent.name,
+      name: test ? `${agent.name} (test)` : agent.name,
       conversation_config: {
         agent: {
           first_message: agent.firstMessage,
@@ -389,7 +396,7 @@ async function main() {
       },
     }
 
-    const existing = env[agent.envKey]
+    const existing = env[envKey]
     const res = await fetch(existing ? `${API}/agents/${existing}` : `${API}/agents/create`, {
       method: existing ? "PATCH" : "POST",
       headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
@@ -410,8 +417,8 @@ async function main() {
       if (!patch.ok)
         throw new Error(`${agent.name} (skip_turn): ${patch.status} ${await patch.text()}`)
     }
-    writeEnv(agent.envKey, agent_id)
-    console.log(`${existing ? "Updated" : "Created"} ${agent.name}: ${agent_id}`)
+    writeEnv(envKey, agent_id)
+    console.log(`${existing ? "Updated" : "Created"} ${body.name}: ${agent_id}`)
     await syncProcedures(apiKey, agent_id, role)
   }
   console.log(`Agent ids written to ${ENV_FILE}. Restart \`npm run dev\` to pick them up.`)
