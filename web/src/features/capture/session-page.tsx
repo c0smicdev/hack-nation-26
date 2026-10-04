@@ -36,7 +36,8 @@ import { startScreenShare } from "@/lib/capture/screen"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
-import { liveStepsToMermaid, stepNodeId } from "@/features/work-maps/flowchart"
+import { liveStepsToMermaid, nodeId } from "@/features/work-maps/flowchart"
+import { liveStepsSignature, useChangedIds } from "@/lib/use-changed-ids"
 
 import { DebriefView } from "./components/debrief-view"
 import { LeaveGuard } from "./components/leave-guard"
@@ -164,13 +165,38 @@ function SessionView({ session }: { session: CaptureSession }) {
     }
   }
 
+  // Each answer edits the draft on the server (a model call), so the graph catches up a moment later.
+  const [updating, setUpdating] = useState(0)
+
   async function answer(itemId: ID, text: string) {
-    const map = await api.answerDebrief(session.workMapId!, itemId, {
-      text,
-      at: secondsSince(session.startedAt),
-    })
-    setMap(map)
-    return map
+    const at = secondsSince(session.startedAt)
+    setUpdating((n) => n + 1)
+    // Count it as answered right away, so the next question doesn't wait for the server.
+    queryClient.setQueryData<WorkMap>(
+      ["work-maps", session.workMapId],
+      (map) =>
+        map && {
+          ...map,
+          debrief: map.debrief.map((d) =>
+            d.id === itemId
+              ? {
+                  ...d,
+                  resolved: true,
+                  answer: { text, speaker: map.expert, source: "debrief", prompt: d.question, at },
+                }
+              : d,
+          ),
+        },
+    )
+    try {
+      const map = await api.answerDebrief(session.workMapId!, itemId, { text, at })
+      // Answers can land out of order; never let an older draft overwrite a newer one.
+      const cached = queryClient.getQueryData<WorkMap>(["work-maps", map.id])
+      if (!cached || cached.updatedAt <= map.updatedAt) setMap(map)
+      return map
+    } finally {
+      setUpdating((n) => n - 1)
+    }
   }
 
   async function teachBack() {
@@ -252,8 +278,11 @@ function SessionView({ session }: { session: CaptureSession }) {
       record_debrief_answer: async ({ question_id }) => {
         const words = wordsSinceMarker()
         if (!words) return "I didn't catch an answer yet. Let them answer first."
-        const map = await answer(String(question_id), words)
-        const next = map.debrief.find((d) => !d.resolved)
+        const id = String(question_id)
+        // Don't make the agent wait for the graph update: answer now, the graph follows.
+        answer(id, words).catch((error) => console.error("Debrief answer failed:", error))
+        const map = queryClient.getQueryData<WorkMap>(["work-maps", session.workMapId])
+        const next = map?.debrief.find((d) => !d.resolved)
         return next
           ? `Recorded. Next question: [${next.id}] ${next.question}`
           : "All questions answered. Call get_teach_back now."
@@ -411,6 +440,7 @@ function SessionView({ session }: { session: CaptureSession }) {
       agent={agent}
       agentStatus={<SocratesStatus agent={agent} />}
       busy={busy}
+      updating={updating > 0}
       finalMapId={finalMapId ?? (session.status === "mapped" ? session.workMapId : undefined)}
       onStartVoice={startVoiceDebrief}
       onAnswer={(itemId, text) => void answer(itemId, text)}
@@ -462,9 +492,10 @@ function RecordingView({
   onAbandon: () => void
 }) {
   const [openId, setOpenId] = useState<ID>()
-  const chart = useMemo(() => liveStepsToMermaid(steps), [steps])
+  const changed = useChangedIds(liveStepsSignature(steps))
+  const chart = useMemo(() => liveStepsToMermaid(steps, { changed }), [steps, changed])
   const clicks = Object.fromEntries(
-    steps.map((step, i) => [stepNodeId(i), () => setOpenId(step.id)]),
+    steps.map((step) => [nodeId(step.id), () => setOpenId(step.id)]),
   )
   const match = related?.[0]
 

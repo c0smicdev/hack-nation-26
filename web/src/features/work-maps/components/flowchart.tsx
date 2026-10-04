@@ -3,7 +3,7 @@ import { useMemo } from "react"
 import { MermaidDiagram } from "@/components/mermaid-diagram"
 import type { ID, WorkMap } from "@/lib/api"
 
-import { stepNodeId, workMapToMermaid } from "../flowchart"
+import { nodeId, workMapToMermaid } from "../flowchart"
 
 /** Clickable flowchart of a workflow. Clicking a step selects it in the document. */
 export function Flowchart({
@@ -15,7 +15,7 @@ export function Flowchart({
 }) {
   const chart = useMemo(() => workMapToMermaid(workMap), [workMap])
   const clicks = Object.fromEntries(
-    workMap.steps.map((step, i) => [stepNodeId(i), () => onSelectStep(step.id)]),
+    workMap.steps.map((step) => [nodeId(step.id), () => onSelectStep(step.id)]),
   )
   return (
     <MermaidDiagram

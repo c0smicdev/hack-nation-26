@@ -317,6 +317,10 @@ export interface LiveStep {
   screenshotUrl?: string
   /** Decided differently than the saved workflow. */
   deviation?: boolean
+  /** A question about this step is still unanswered (live or saved for the debrief). */
+  openQuestion?: boolean
+  /** The expert answered a guardrail question here; the debrief turns it into the rule. */
+  guardrailNoted?: boolean
 }
 
 /* ------------------------------------------------------------------ */

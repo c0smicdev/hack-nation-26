@@ -198,15 +198,21 @@ function contextFor(runtime: SessionRuntime, erpLines: string[]) {
 
 /** Candidate steps as the recording page shows them. */
 export function liveSteps(runtime: SessionRuntime): LiveStep[] {
-  return runtime.candidates.map((c) => ({
-    id: c.id,
-    at: c.at,
-    title: c.title,
-    kind: c.kind,
-    decision: c.decision,
-    screenshotUrl: c.screen.screenshotUrl,
-    deviation: c.deviation,
-  }))
+  return runtime.candidates.map((c) => {
+    // Questions about this step, so the graph shows what's understood and what isn't yet.
+    const questions = runtime.questions.filter((q) => q.stepId === c.id)
+    return {
+      id: c.id,
+      at: c.at,
+      title: c.title,
+      kind: c.kind,
+      decision: c.decision,
+      screenshotUrl: c.screen.screenshotUrl,
+      deviation: c.deviation,
+      openQuestion: questions.some((q) => !q.answer),
+      guardrailNoted: questions.some((q) => q.guardrail && q.answer),
+    }
+  })
 }
 
 const empty = (processed: boolean, screen?: string): TickResult => ({

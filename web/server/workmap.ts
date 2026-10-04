@@ -227,7 +227,102 @@ function draftContext(map: WorkMap) {
     .join("\n\n")
 }
 
-export function answerDebrief(workMapId: ID, itemId: ID, answer: DebriefAnswer): WorkMap {
+/*
+ * Each answer edits the draft right away, so the graph changes while the expert
+ * watches. Small ops instead of a whole new map: cheap, fast, and the rest of the
+ * draft (ids, screens, quotes) stays exactly as it was.
+ */
+const PatchOp = z.object({
+  op: z.enum(["set_decision", "set_kind", "add_guardrail", "add_edge_case", "add_step"]),
+  /** Step to edit; for add_step the step to insert after (null = at the start). */
+  stepId: z.string().nullable(),
+  title: z.string().nullable(),
+  kind: z.enum(["routine", "judgment"]).nullable(),
+  decision: z.string().nullable(),
+  reasonQuoteId: z.string().nullable(),
+  guardrailKind: z.enum(["limit", "stop_and_ask", "never"]).nullable(),
+  rule: z.string().nullable(),
+  escalateTo: z.string().nullable(),
+  when: z.string().nullable(),
+  then: z.string().nullable(),
+  quoteId: z.string().nullable(),
+})
+const PatchOut = z.object({ ops: z.array(PatchOp) })
+
+/** Applies ops the model returns; anything pointing at an unknown step is dropped. */
+function applyOps(map: WorkMap, ops: z.infer<typeof PatchOp>[], pool: QuotePool) {
+  const quote = (id: string | null) => (id ? pool.get(id) : undefined)
+  for (const o of ops) {
+    const index = map.steps.findIndex((s) => s.id === o.stepId)
+    const step = map.steps[index]
+    if (o.op === "add_step") {
+      if (!o.title || (o.stepId && !step)) continue
+      const near = step ?? map.steps[0]
+      if (!near) continue
+      map.steps.splice(index + 1, 0, {
+        id: newId("s"),
+        title: o.title,
+        kind: o.kind ?? "routine",
+        // Spoken in the debrief, never seen on screen: show the step it follows.
+        screen: { ...near.screen, caption: o.title },
+        decision: o.decision ?? "",
+        reason: quote(o.reasonQuoteId),
+        guardrails: [],
+        edgeCases: [],
+      })
+      continue
+    }
+    if (!step) continue
+    if (o.op === "set_decision" && o.decision) {
+      step.decision = o.decision
+      step.reason = quote(o.reasonQuoteId) ?? step.reason
+    } else if (o.op === "set_kind" && o.kind) {
+      step.kind = o.kind
+    } else if (o.op === "add_guardrail" && o.rule && o.guardrailKind) {
+      step.guardrails.push({
+        id: newId("g"),
+        kind: o.guardrailKind,
+        rule: o.rule,
+        escalateTo: o.escalateTo ?? undefined,
+        quote: quote(o.quoteId),
+      })
+    } else if (o.op === "add_edge_case" && o.when && o.then) {
+      step.edgeCases.push({ id: newId("e"), when: o.when, then: o.then, quote: quote(o.quoteId) })
+    }
+  }
+}
+
+/** Folds one answer (or correction) into the draft. A failed call keeps the answer, edits nothing. */
+async function patchDraft(map: WorkMap, question: string, answer: Quote) {
+  const pool: QuotePool = new Map([["a1", answer]])
+  try {
+    const { ops } = await structured({
+      model: models.reasoning,
+      effort: "low",
+      maxTokens: 4000,
+      system: prompt("debrief-apply"),
+      schema: PatchOut,
+      content: [
+        text(
+          [
+            draftContext(map),
+            `Question: ${question}`,
+            `The expert's answer (quote id a1): "${answer.text}"`,
+          ].join("\n\n"),
+        ),
+      ],
+    })
+    applyOps(map, ops, pool)
+  } catch (error) {
+    console.warn("Debrief patch skipped:", error)
+  }
+}
+
+export async function answerDebrief(
+  workMapId: ID,
+  itemId: ID,
+  answer: DebriefAnswer,
+): Promise<WorkMap> {
   const map = getWorkMap(workMapId)
   const item = map.debrief.find((d) => d.id === itemId)
   if (!item) throw new HttpError(404, `Debrief question ${itemId} not found`)
@@ -240,6 +335,7 @@ export function answerDebrief(workMapId: ID, itemId: ID, answer: DebriefAnswer):
     at: answer.at,
   }
   item.resolved = true
+  await patchDraft(map, item.question, item.answer)
   map.updatedAt = new Date().toISOString()
   return map
 }
@@ -269,13 +365,16 @@ export async function replyTeachBack(workMapId: ID, reply: TeachBackReply): Prom
   const map = getWorkMap(workMapId)
   if (!map.teachBack) throw new HttpError(409, "Request a teach-back first")
   if (reply.correction?.trim()) {
-    map.teachBack.corrections.push({
+    const correction: Quote = {
       text: reply.correction.trim(),
       speaker: map.expert,
       source: "debrief",
       prompt: "Did I get that right?",
       at: reply.at,
-    })
+    }
+    map.teachBack.corrections.push(correction)
+    // Fix the graph first, so the new explanation and the graph tell the same story.
+    await patchDraft(map, `Correction to your teach-back: "${map.teachBack.summary}"`, correction)
   }
   if (!reply.confirmed) {
     // Explain it back again with the correction folded in, until the expert confirms.

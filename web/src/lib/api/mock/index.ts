@@ -335,12 +335,19 @@ export const mockApi: SocratesApi = {
         guardrails: [],
         edgeCases: [],
       })),
-      debrief: [
-        "Does the €5,000 limit apply per line or to the whole invoice?",
-        "Who do you ask when you're unsure, and how fast do they usually answer?",
-        "Is there a case where you'd post an invoice without a goods receipt?",
-      ].map((question, i) => ({ id: `d${i + 1}`, question, resolved: false })),
+      debrief: [],
     }
+    // Point each question at a step, so the graph marks what isn't understood yet.
+    map.debrief = [
+      "Does the €5,000 limit apply per line or to the whole invoice?",
+      "Who do you ask when you're unsure, and how fast do they usually answer?",
+      "Is there a case where you'd post an invoice without a goods receipt?",
+    ].map((question, i) => ({
+      id: `d${i + 1}`,
+      question,
+      resolved: false,
+      stepId: map.steps[(i * 2 + 1) % map.steps.length].id,
+    }))
     workMaps.unshift(map)
     session.status = "awaiting_debrief"
     session.durationSec = elapsed(sid)
@@ -350,17 +357,36 @@ export const mockApi: SocratesApi = {
   },
 
   async answerDebrief(mapId, itemId, reply) {
-    await delay(200)
+    // The server folds each answer into the draft with a model call; take about as long.
+    await delay(1200)
     const map = findMap(mapId)
     const item = map.debrief.find((d) => d.id === itemId) ?? notFound(`Question ${itemId}`)
-    item.answer = {
+    const quote: Quote = {
       text: reply.text,
       speaker: map.expert,
       source: "debrief",
       prompt: item.question,
       at: reply.at,
     }
+    item.answer = quote
     item.resolved = true
+    // Canned edit, so the live graph changes without a model: question order picks the kind.
+    const step = map.steps.find((s) => s.id === item.stepId) ?? map.steps.at(-1)
+    const index = map.debrief.indexOf(item)
+    if (step && index % 3 === 0) {
+      step.guardrails.push({ id: id("g"), kind: "limit", rule: reply.text, quote })
+    } else if (step && index % 3 === 1) {
+      step.guardrails.push({
+        id: id("g"),
+        kind: "stop_and_ask",
+        rule: reply.text,
+        escalateTo: "Controlling",
+        quote,
+      })
+    } else if (step) {
+      step.edgeCases.push({ id: id("e"), when: item.question, then: reply.text, quote })
+    }
+    map.updatedAt = new Date().toISOString()
     return structuredClone(map)
   },
 

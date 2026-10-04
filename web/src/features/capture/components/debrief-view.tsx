@@ -10,7 +10,8 @@ import type { CaptureSession, ID, LiveStep, SessionEvent, WorkMap } from "@/lib/
 import { formatTimestamp } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { VoiceAgent } from "@/lib/voice/use-voice-agent"
-import { liveStepsToMermaid, stepNodeId } from "@/features/work-maps/flowchart"
+import { useChangedIds, workMapSignature } from "@/lib/use-changed-ids"
+import { nodeId, workMapToMermaid } from "@/features/work-maps/flowchart"
 
 import { DebriefPanel } from "./debrief-panel"
 import { LiveStepList } from "./live-step-list"
@@ -32,6 +33,7 @@ export function DebriefView({
   agent,
   agentStatus,
   busy,
+  updating,
   finalMapId,
   onStartVoice,
   onAnswer,
@@ -47,6 +49,8 @@ export function DebriefView({
   /** Compact voice status for the header. */
   agentStatus: ReactNode
   busy?: string
+  /** An answer is being folded into the draft; the graph changes when it lands. */
+  updating?: boolean
   finalMapId?: ID
   onStartVoice: () => void
   onAnswer: (itemId: ID, text: string) => void
@@ -55,12 +59,19 @@ export function DebriefView({
 }) {
   const [tab, setTab] = useState<Tab>("chat")
   const [openId, setOpenId] = useState<ID>()
-  const chart = useMemo(() => liveStepsToMermaid(steps), [steps])
+  // The draft itself, not the recorded steps: each answer edits it, and the graph shows that.
+  const changed = useChangedIds(workMapSignature(map))
+  const chart = useMemo(() => {
+    if (!map) return ""
+    const open = new Set(map.debrief.filter((d) => !d.resolved && d.stepId).map((d) => d.stepId!))
+    return workMapToMermaid(map, { changed, open })
+  }, [map, changed])
   const clicks = Object.fromEntries(
-    steps.map((step, i) => [
-      stepNodeId(i),
+    (map?.steps ?? []).map((step) => [
+      nodeId(step.id),
       () => {
-        setOpenId(step.id)
+        // Draft steps keep their recorded step's screenshot; that's how we find it.
+        setOpenId(steps.find((s) => s.screenshotUrl === step.screen.screenshotUrl)?.id)
         setTab("steps")
       },
     ]),
@@ -96,6 +107,11 @@ export function DebriefView({
             </div>
           ) : (
             <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full p-8" />
+          )}
+          {updating && (
+            <span className="absolute top-3 left-3 flex items-center gap-2 rounded-md bg-background/80 px-2 py-1 text-xs text-muted-foreground">
+              <Loader2 className="size-3 animate-spin" /> Updating the workflow…
+            </span>
           )}
         </section>
 
