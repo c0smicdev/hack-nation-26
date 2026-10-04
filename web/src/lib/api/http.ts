@@ -39,6 +39,9 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     request<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) })
 
   return {
+    getMe: () => request("/me"),
+    updateMe: (patch) => post("/me", patch, "PATCH"),
+
     listWorkMaps: () => request("/workmaps"),
     getWorkMap: (id) => request(`/workmaps/${id}`),
     findRelatedWorkMaps: (task) => post("/workmaps/related", { task }),

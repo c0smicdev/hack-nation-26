@@ -32,8 +32,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase!.auth.signInWithPassword({ email, password })
         if (error) throw error
       },
-      async signUp(email, password) {
-        const { data, error } = await supabase!.auth.signUp({ email, password })
+      async signUp(email, password, displayName) {
+        // The profiles trigger (supabase/schema.sql) copies display_name into the profile.
+        const { data, error } = await supabase!.auth.signUp({
+          email,
+          password,
+          options: { data: { display_name: displayName.trim() } },
+        })
         if (error) throw error
         if (!data.session) throw new Error("Check your inbox to confirm your email, then sign in.")
       },

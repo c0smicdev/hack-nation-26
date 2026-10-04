@@ -51,8 +51,25 @@ function check<T>(result: { data: T; error: { message: string } | null }, what: 
   return result.data
 }
 
-// visionBusy is per-request state; persisting it could leave a session stuck.
-const sessionJson = (runtime: SessionRuntime) => JSON.stringify({ ...runtime, visionBusy: false })
+/**
+ * JSON with sorted keys. jsonb doesn't keep key order, so plain JSON.stringify of a
+ * row read back never matches what we wrote, and every pull would look like a change.
+ */
+const stable = (value: unknown) =>
+  JSON.stringify(value, (_key, v: unknown) =>
+    v && typeof v === "object" && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
+      : v,
+  )
+
+type StoredSession = Omit<SessionRuntime, "visionBusy" | "pendingFocus">
+
+/** visionBusy and pendingFocus belong to this process; persisting them could leave a session stuck. */
+function persisted(runtime: SessionRuntime): StoredSession {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { visionBusy, pendingFocus, ...rest } = runtime
+  return rest
+}
 
 /**
  * Pull rows other instances changed. Only runs while no other request is in
@@ -74,7 +91,7 @@ async function pull(supabase: SupabaseClient) {
 
   for (const row of check(maps, "load work maps") as Row<WorkMap>[]) {
     latest = max(latest, row.updated_at)
-    const json = JSON.stringify(row.data)
+    const json = stable(row.data)
     if (state.hashes.work_maps.get(row.id) === json) continue
     state.hashes.work_maps.set(row.id, json)
     mapsChanged = true
@@ -91,13 +108,18 @@ async function pull(supabase: SupabaseClient) {
   }
   if (mapsChanged) store.workMaps.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 
-  for (const row of check(sessions, "load sessions") as Row<SessionRuntime>[]) {
+  for (const row of check(sessions, "load sessions") as Row<StoredSession>[]) {
     latest = max(latest, row.updated_at)
-    const runtime = { ...row.data, visionBusy: false }
-    const json = sessionJson(runtime)
+    const json = stable(row.data)
     if (state.hashes.capture_sessions.get(row.id) === json) continue
     state.hashes.capture_sessions.set(row.id, json)
-    store.sessions.set(row.id, runtime)
+    // Keep this process's in-flight work (vision call, focus lookups) if we already hold the session.
+    const local = store.sessions.get(row.id)
+    store.sessions.set(row.id, {
+      ...row.data,
+      visionBusy: local?.visionBusy ?? false,
+      pendingFocus: local?.pendingFocus ?? new Set(),
+    })
     sessionsChanged = true
   }
   if (sessionsChanged) {
@@ -111,7 +133,7 @@ async function pull(supabase: SupabaseClient) {
 
   const statusRow = check(status, "load capture status") as { data: CaptureStatus } | null
   if (statusRow) {
-    const json = JSON.stringify(statusRow.data)
+    const json = stable(statusRow.data)
     if (json !== state.captureStatusHash) {
       state.captureStatusHash = json
       store.captureStatus = statusRow.data
@@ -163,18 +185,17 @@ async function push(supabase: SupabaseClient) {
 
   changed(
     "work_maps",
-    store.workMaps.map((m) => [m.id, JSON.stringify(m), m]),
+    store.workMaps.map((m) => [m.id, stable(m), m]),
   )
   changed(
     "capture_sessions",
-    [...store.sessions].map(([id, runtime]) => [
-      id,
-      sessionJson(runtime),
-      { ...runtime, visionBusy: false },
-    ]),
+    [...store.sessions].map(([id, runtime]) => {
+      const row = persisted(runtime)
+      return [id, stable(row), row]
+    }),
   )
 
-  const statusJson = JSON.stringify(store.captureStatus)
+  const statusJson = stable(store.captureStatus)
   if (statusJson !== state.captureStatusHash) {
     state.captureStatusHash = statusJson
     writes.push(

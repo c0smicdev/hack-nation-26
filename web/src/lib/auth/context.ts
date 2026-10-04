@@ -6,7 +6,7 @@ export interface AuthState {
   ready: boolean
   session: Session | null
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, displayName: string) => Promise<void>
   signOut: () => Promise<void>
 }
 

@@ -1,11 +1,14 @@
 import { Landmark, LogIn, LogOut, MessageCircleQuestion } from "lucide-react"
 import { Link, Outlet } from "react-router"
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { AskPanel } from "@/features/ask/ask-panel"
 import { useAuth } from "@/lib/auth/context"
+import { useMe } from "@/lib/auth/hooks"
 import { authEnabled } from "@/lib/auth/supabase"
+import { initials } from "@/lib/format"
 
 import { paths } from "./paths"
 
@@ -17,6 +20,7 @@ const ASK_SUGGESTIONS = [
 
 export function AppLayout() {
   const { session, signOut } = useAuth()
+  const { data: me } = useMe()
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4 md:px-8">
@@ -26,12 +30,17 @@ export function AppLayout() {
           </div>
           <span className="font-semibold">Socrates</span>
         </Link>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
+          {me && (
+            <div className="flex items-center gap-2" title={me.email}>
+              <Avatar className="size-7">
+                <AvatarFallback className="text-xs">{initials(me.displayName)}</AvatarFallback>
+              </Avatar>
+              <span className="hidden text-sm font-medium sm:inline">{me.displayName}</span>
+            </div>
+          )}
           {session ? (
             <>
-              <span className="hidden text-sm text-muted-foreground sm:inline">
-                {session.user.email}
-              </span>
               <Button variant="outline" onClick={() => void signOut()}>
                 <LogOut />
                 Log out

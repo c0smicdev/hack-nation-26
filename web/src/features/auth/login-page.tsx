@@ -15,6 +15,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const from = (useLocation().state as { from?: string } | null)?.from ?? paths.library()
   const [mode, setMode] = useState<"signIn" | "signUp">("signIn")
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string>()
@@ -27,7 +28,8 @@ export function LoginPage() {
     setBusy(true)
     setError(undefined)
     try {
-      await (mode === "signIn" ? signIn : signUp)(email, password)
+      if (mode === "signIn") await signIn(email, password)
+      else await signUp(email, password, name)
       void navigate(from, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -48,6 +50,18 @@ export function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="flex flex-col gap-4">
+            {mode === "signUp" && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="name">Your name</Label>
+                <Input
+                  id="name"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input

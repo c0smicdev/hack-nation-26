@@ -39,15 +39,16 @@ function personFor(name: string, role: string): Person {
   return known?.expert ?? { id: `p-${slug}`, name, role }
 }
 
-export function createSession(input: NewSession): CaptureSession {
-  if (!input.task.trim() || !input.expertName.trim()) {
+/** `expert` is the signed-in user; without login the expert is matched by name. */
+export function createSession(input: NewSession, expert?: Person): CaptureSession {
+  if (!input.task.trim() || (!expert && !input.expertName.trim())) {
     throw new HttpError(400, "task and expertName are required")
   }
   const session: CaptureSession = {
     id: newId("ses"),
     title: input.title.trim() || input.task.trim().slice(0, 60),
     task: input.task.trim(),
-    expert: personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
+    expert: expert ?? personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
     startedAt: new Date().toISOString(),
     durationSec: 0,
     status: "intake",

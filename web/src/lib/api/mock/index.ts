@@ -8,6 +8,7 @@ import type {
   ID,
   LiveQuestion,
   LiveStep,
+  Profile,
   Quote,
   SessionEvent,
   WorkMap,
@@ -16,6 +17,7 @@ import { answer } from "./ask"
 import { draftWorkflow } from "./draft"
 import {
   LIVE_SESSION_ID,
+  sabine,
   sessions as fixtureSessions,
   workMaps as fixtureWorkMaps,
 } from "./fixtures"
@@ -38,6 +40,15 @@ const workMaps: WorkMap[] = structuredClone(fixtureWorkMaps)
 const sessions: CaptureSession[] = fixtureSessions.filter((s) => s.id !== LIVE_SESSION_ID)
 const events = new Map<ID, SessionEvent[]>()
 const startedAt = new Map<ID, number>()
+// Mock mode has no login: you're Sabine, so the demo reads as before.
+let me: Profile = {
+  id: sabine.id,
+  displayName: sabine.name,
+  role: sabine.role,
+  email: "sabine.keller@example.com",
+  preferences: { chattiness: "normal" },
+  onboarded: true,
+}
 const lastQuestionAt = new Map<ID, number>()
 const liveSteps = new Map<ID, LiveStep[]>()
 
@@ -143,6 +154,17 @@ function verdict(map: WorkMap, action: string, record: Record<string, unknown>):
 /* API --------------------------------------------------------------- */
 
 export const mockApi: SocratesApi = {
+  async getMe() {
+    await delay()
+    return me
+  },
+
+  async updateMe(patch) {
+    await delay()
+    me = { ...me, ...patch, preferences: { ...me.preferences, ...patch.preferences } }
+    return me
+  },
+
   async listWorkMaps() {
     await delay()
     return workMaps.map(toSummary)

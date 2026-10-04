@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
-import type { CaptureSession } from "@/lib/api"
+import type { CaptureSession, NewSession } from "@/lib/api"
+import { useMe } from "@/lib/auth/hooks"
 import { formatDuration, formatRelative } from "@/lib/format"
 
 import { SessionStatusBadge } from "./components/session-status-badge"
@@ -112,13 +113,17 @@ function SessionRow({ session }: { session: CaptureSession }) {
 function NewSessionCard() {
   const navigate = useNavigate()
   const create = useCreateSession()
-  const [form, setForm] = useState({
-    expertName: "Sabine Keller",
-    expertRole: "Head of Accounts Payable",
+  const { data: me } = useMe()
+  // Expert fields default to the signed-in user until edited (the profile loads async).
+  const [edits, setForm] = useState<Partial<NewSession>>({})
+  const form: NewSession = {
+    expertName: me?.displayName ?? "",
+    expertRole: me?.role ?? "",
     title: "Month-end supplier invoices",
     task: "Process this week's supplier invoices in the ERP before the month-end close.",
-  })
-  const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
+    ...edits,
+  }
+  const set = (key: keyof NewSession) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [key]: e.target.value }))
 
   async function submit(e: FormEvent) {

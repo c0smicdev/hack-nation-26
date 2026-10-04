@@ -1,3 +1,5 @@
+import type { User } from "@supabase/supabase-js"
+
 import { toSummary } from "../src/lib/api/summary.js"
 import type {
   AskRequest,
@@ -22,14 +24,24 @@ import {
 } from "./capture.js"
 import { requireUser } from "./auth.js"
 import { loadFrame, withDb } from "./db.js"
+import { getProfile, personForUser, updateProfile } from "./profile.js"
 import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
 import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
 import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
 
 type Params = Record<string, string>
-type Handler = (ctx: { params: Params; body: () => Promise<unknown>; url: URL }) => unknown
+type Handler = (ctx: {
+  params: Params
+  body: () => Promise<unknown>
+  url: URL
+  /** Signed-in Supabase user; undefined when login is off. */
+  user?: User
+}) => unknown
 
 const routes: [method: string, pattern: string, handler: Handler][] = [
+  ["GET", "/me", ({ user }) => getProfile(user)],
+  ["PATCH", "/me", async ({ user, body }) => updateProfile(user, await body())],
+
   ["GET", "/workmaps", () => store.workMaps.map(toSummary)],
   [
     "POST",
@@ -59,7 +71,15 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
   ],
 
   ["GET", "/sessions", () => [...store.sessions.values()].reverse().map(sessionView)],
-  ["POST", "/sessions", async ({ body }) => createSession((await body()) as NewSession)],
+  [
+    "POST",
+    "/sessions",
+    async ({ body, user }) => {
+      const input = (await body()) as NewSession
+      const expert = user && (await personForUser(user, input.expertName, input.expertRole))
+      return createSession(input, expert)
+    },
+  ],
   ["GET", "/sessions/:id", ({ params }) => sessionView(getRuntime(params.id))],
   [
     "PATCH",
@@ -166,9 +186,9 @@ export async function handle(request: Request): Promise<Response> {
     const params = match(pattern, normalized)
     if (!params) continue
     try {
-      await requireUser(request)
+      const user = await requireUser(request)
       const result = await withDb(method !== "GET", () =>
-        Promise.resolve(handler({ params, url, body: () => request.json() })),
+        Promise.resolve(handler({ params, url, user, body: () => request.json() })),
       )
       return json(result)
     } catch (error) {

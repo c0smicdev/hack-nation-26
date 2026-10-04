@@ -10,6 +10,8 @@ import type {
   LiveStep,
   NewSession,
   NewSessionEvent,
+  Profile,
+  ProfilePatch,
   SessionEvent,
   TeachBackReply,
   Tick,
@@ -36,6 +38,11 @@ export interface SessionPatch {
  * Add a method here first, then implement it in both.
  */
 export interface SocratesApi {
+  /* Account */
+  getMe(): Promise<Profile>
+  /** For the onboarding flow: name, role, preferences. */
+  updateMe(patch: ProfilePatch): Promise<Profile>
+
   /* Work Maps + memory */
   listWorkMaps(): Promise<WorkMapSummary[]>
   getWorkMap(id: ID): Promise<WorkMap>
