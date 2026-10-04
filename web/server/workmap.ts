@@ -110,6 +110,10 @@ function nearestScreen(runtime: SessionRuntime, at: number, caption: string): Sc
 
 /* End of capture → draft workflow with debrief questions ------------- */
 
+/** How many debrief questions to ask (prompt variables of workmap-draft). */
+const DEBRIEF_DEFAULT = { min_questions: "3", max_questions: "6" }
+const DEBRIEF_SILENT = { min_questions: "5", max_questions: "10" }
+
 export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   const runtime = getRuntime(sessionId)
   const { session } = runtime
@@ -150,10 +154,12 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
     .filter((q) => !q.answer)
     .map((q) => `  ${q.askedLive ? "asked live, no answer" : "not asked yet"}: ${q.question}`)
 
+  const silent = runtime.chattiness === "quiet"
   const draft = await structured({
     model: models.reasoning,
     effort: "medium",
-    system: prompt("workmap-draft"),
+    // A Silent observer held its questions back during the task, so the debrief asks more.
+    system: prompt("workmap-draft", silent ? DEBRIEF_SILENT : DEBRIEF_DEFAULT),
     language: runtime.language,
     schema: DraftOut,
     content: [
@@ -161,6 +167,7 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
         [
           `Task: ${session.task}`,
           `Expert: ${expert.name}, ${expert.role}`,
+          `Coaching style the expert chose: ${silent ? "silent (live questions were held back for this debrief)" : runtime.chattiness === "curious" ? "active" : "balanced"}`,
           memoryContext(base),
           `Candidate steps (ids usable as fromId):\n${candidates.join("\n") || "  (none)"}`,
           `Screen and question timeline:\n${timeline.join("\n") || "  (none)"}`,

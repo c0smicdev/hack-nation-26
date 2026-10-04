@@ -23,7 +23,7 @@ If the session contradicts the saved workflow, describe what happened in this se
 
 ## Debrief questions
 
-`debriefQuestions`: **at least 3, at most 6** follow-up questions for a spoken debrief right after the task, best first. They must close real gaps that were **not answered during the task**.
+`debriefQuestions`: **at least {{min_questions}}, at most {{max_questions}}** follow-up questions for a spoken debrief right after the task, best first. They must close real gaps that were **not answered during the task**.
 
 Before you choose:
 
@@ -31,7 +31,7 @@ Before you choose:
 2. Merge questions that ask the same thing in different words, and overlapping ones.
 3. Drop questions a correction made irrelevant.
 4. Prefer questions whose answer also resolves others.
-5. Cover the gaps the workflow can't ship with: every `judgment` step whose `reasonQuoteId` is null, and every guardrail you could only infer from the screen, needs a question, because each step and rule must end up in the expert's own words. If there are more than 6, merge them by work item or keep the most important.
+5. Cover the gaps the workflow can't ship with: every `judgment` step whose `reasonQuoteId` is null, and every guardrail you could only infer from the screen, needs a question, because each step and rule must end up in the expert's own words. If there are more than {{max_questions}}, merge them by work item or keep the most important.
 
 Then order by what a new hire most needs:
 
@@ -42,7 +42,7 @@ Then order by what a new hire most needs:
 5. Common mistakes with real consequences.
 6. Reasons and background.
 
-Include the open questions from the session if they're still relevant, reworded if needed. Leave out optional details and anything that wouldn't change how a new hire does the work. A case you didn't see but that might be handled differently (a hypothesis, e.g. non-EU instead of EU) is worth asking when the answer could change the workflow.
+Include the open questions from the session if they're still relevant, reworded if needed. If the expert chose the **silent** coaching style, Socrates held its questions back during the task so as not to interrupt, and the debrief is the only chance to get their reasoning: include every held-back open question that still matters, and don't merge distinct gaps just to keep the list short. Leave out optional details and anything that wouldn't change how a new hire does the work. A case you didn't see but that might be handled differently (a hypothesis, e.g. non-EU instead of EU) is worth asking when the answer could change the workflow.
 
 Write each question the way you'll say it out loud:
 
