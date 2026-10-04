@@ -50,23 +50,23 @@
 
 :root {
   /* Brand palette, see docs/brand-guidelines.md */
-  --background: #fdfaf6;
+  --background: #f6f8f7;
   --foreground: #1a2620;
-  --card: #fdfaf6;
+  --card: #f6f8f7;
   --card-foreground: #1a2620;
-  --popover: #fdfaf6;
+  --popover: #f6f8f7;
   --popover-foreground: #1a2620;
   --primary: #064420;
-  --primary-foreground: #fdfaf6;
-  --secondary: #faf1e6;
+  --primary-foreground: #f6f8f7;
+  --secondary: #edf1ef;
   --secondary-foreground: #064420;
-  --muted: #faf1e6;
-  --muted-foreground: #6e6a62;
+  --muted: #edf1ef;
+  --muted-foreground: #66706b;
   --accent: #e4efe7;
   --accent-foreground: #064420;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #eadfcf;
-  --input: #eadfcf;
+  --border: #dde4e0;
+  --input: #dde4e0;
   --ring: #064420;
   --chart-1: #b9d6c1;
   --chart-2: #7fb291;
@@ -74,13 +74,13 @@
   --chart-4: #1a6338;
   --chart-5: #064420;
   --radius: 0.625rem;
-  --sidebar: #faf1e6;
+  --sidebar: #edf1ef;
   --sidebar-foreground: #1a2620;
   --sidebar-primary: #064420;
-  --sidebar-primary-foreground: #fdfaf6;
+  --sidebar-primary-foreground: #f6f8f7;
   --sidebar-accent: #e4efe7;
   --sidebar-accent-foreground: #064420;
-  --sidebar-border: #eadfcf;
+  --sidebar-border: #dde4e0;
   --sidebar-ring: #064420;
 }
 
