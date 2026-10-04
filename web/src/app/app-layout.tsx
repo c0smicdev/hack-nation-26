@@ -1,4 +1,4 @@
-import { Landmark, LogOut, MessageCircleQuestion } from "lucide-react"
+import { Landmark, LogIn, LogOut, MessageCircleQuestion } from "lucide-react"
 import { Link, Outlet } from "react-router"
 
 import { Button } from "@/components/ui/button"
@@ -26,36 +26,48 @@ export function AppLayout() {
           </div>
           <span className="font-semibold">Socrates</span>
         </Link>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              <MessageCircleQuestion />
-              Ask Socrates
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-md">
-            <SheetHeader className="pb-0">
-              <SheetTitle>Ask Socrates</SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 px-4 pb-4">
-              <AskPanel suggestions={ASK_SUGGESTIONS} className="h-full" />
-            </div>
-          </SheetContent>
-        </Sheet>
-        {authEnabled && session && (
-          <Button
-            variant="ghost"
-            size="icon"
-            title={`Sign out ${session.user.email ?? ""}`}
-            onClick={() => void signOut()}
-          >
-            <LogOut />
-          </Button>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {session ? (
+            <>
+              <span className="hidden text-sm text-muted-foreground sm:inline">
+                {session.user.email}
+              </span>
+              <Button variant="outline" onClick={() => void signOut()}>
+                <LogOut />
+                Log out
+              </Button>
+            </>
+          ) : (
+            authEnabled && (
+              <Button asChild>
+                <Link to={paths.login()}>
+                  <LogIn />
+                  Log in
+                </Link>
+              </Button>
+            )
+          )}
+        </div>
       </header>
-      <main className="flex-1 p-4 md:p-8">
+      <main className="flex-1 p-4 pb-20 md:p-8 md:pb-20">
         <Outlet />
       </main>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button size="lg" className="fixed right-4 bottom-4 z-40 rounded-full shadow-lg">
+            <MessageCircleQuestion />
+            Ask Socrates
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          <SheetHeader className="pb-0">
+            <SheetTitle>Ask Socrates</SheetTitle>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 px-4 pb-4">
+            <AskPanel suggestions={ASK_SUGGESTIONS} className="h-full" />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
