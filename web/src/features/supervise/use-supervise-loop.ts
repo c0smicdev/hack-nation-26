@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { api, type ErpSignal, type ID, type SupervisorWarning, type WorkMap } from "@/lib/api"
+import {
+  api,
+  type Chattiness,
+  type ErpSignal,
+  type ID,
+  type SupervisorWarning,
+  type WorkMap,
+} from "@/lib/api"
 import { changed, grabFrame } from "@/lib/capture/screen"
 import { ACTION_LABEL, openErpChannel } from "@/lib/erp/bridge"
 import type { VoiceAgent } from "@/lib/voice/use-voice-agent"
@@ -31,6 +38,7 @@ export function useSuperviseLoop({
   video,
   live,
   agent,
+  chattiness = "normal",
   onWarning,
 }: {
   supervisionId?: ID
@@ -41,6 +49,11 @@ export function useSuperviseLoop({
   /** Screen shared and the run not ended. */
   live: boolean
   agent: VoiceAgent
+  /**
+   * The learner's coaching style. Silent observer: only a held save is spoken (screen
+   * heads-ups stay in the chat). Active coach: also a short tip at the start of each step.
+   */
+  chattiness?: Chattiness
   onWarning: (warning: SupervisorWarning) => void
 }) {
   const [currentStepId, setCurrentStepId] = useState<ID>()
@@ -54,6 +67,7 @@ export function useSuperviseLoop({
   const currentRef = useRef<ID>(undefined)
   const recent = useRef<{ key: string; at: number }[]>([])
   const voiceQueue = useRef<Spoken[]>([])
+  const tipped = useRef(new Set<ID>())
 
   const at = useCallback(
     () => (startedAt ? (Date.now() - Date.parse(startedAt)) / 1000 : 0),
@@ -63,9 +77,11 @@ export function useSuperviseLoop({
   // Handlers change every render; the effects below always call the latest.
   const agentRef = useRef(agent)
   const onWarningRef = useRef(onWarning)
+  const chattinessRef = useRef(chattiness)
   useEffect(() => {
     agentRef.current = agent
     onWarningRef.current = onWarning
+    chattinessRef.current = chattiness
   })
 
   const expertFirst = map.expert.name.split(" ")[0]
@@ -79,6 +95,7 @@ export function useSuperviseLoop({
       if (warning.source === "screen" && recent.current.some((r) => r.key === key)) return
       recent.current.push({ key, at: now })
       onWarningRef.current(warning)
+      if (warning.source === "screen" && chattinessRef.current === "quiet") return
       const quote = warning.quote ? ` ${expertFirst}'s own words: "${warning.quote.text}"` : ""
       const step = warning.stepId ? ` Step id: ${warning.stepId}.` : ""
       voiceQueue.current.push({ text: `${voice} ${warning.message}${quote}${step}`, queuedAt: now })
@@ -183,6 +200,14 @@ export function useSuperviseLoop({
             agentRef.current.context(
               `Progress: the learner is on step ${index + 1} [${step.id}] "${step.title}".`,
             )
+            if (chattinessRef.current === "curious" && !tipped.current.has(step.id)) {
+              tipped.current.add(step.id)
+              const why = step.reason ? ` ${expertFirst}'s own words: "${step.reason.text}"` : ""
+              voiceQueue.current.push({
+                text: `[STEP] The learner just started step ${index + 1} [${step.id}] "${step.title}": ${step.decision}.${why}`,
+                queuedAt: Date.now(),
+              })
+            }
           }
         }
         if (result.action) agentRef.current.context(`Screen: ${result.action}`)
@@ -196,7 +221,7 @@ export function useSuperviseLoop({
       }
     }, TICK_MS)
     return () => clearInterval(timer)
-  }, [live, video, supervisionId, map.steps, at, warn])
+  }, [live, video, supervisionId, map.steps, at, warn, expertFirst])
 
   // Speak a heads-up at the next quiet moment; never over the learner or over itself.
   useEffect(() => {

@@ -31,8 +31,10 @@ import {
   type WorkMap,
   type WorkMapSummary,
 } from "@/lib/api"
+import { useMe } from "@/lib/auth/hooks"
 import { claimStream } from "@/lib/capture/pending-stream"
 import { startScreenShare } from "@/lib/capture/screen"
+import { coachingStyle } from "@/lib/coaching"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
@@ -274,12 +276,17 @@ function SessionView({ session }: { session: CaptureSession }) {
     },
   })
 
+  // The expert recording is the signed-in user: their coaching style sets how often Socrates asks.
+  const { data: me } = useMe()
+  const chattiness = me?.preferences.chattiness
+
   const loop = useCaptureLoop({
     sessionId: session.id,
     startedAt: session.startedAt,
     video,
     live: session.status === "live" && !offRecord && !!stream,
     agent,
+    chattiness,
     onSteps: (next) => queryClient.setQueryData(captureKeys.steps(session.id), next),
   })
 
@@ -299,6 +306,7 @@ function SessionView({ session }: { session: CaptureSession }) {
     expert_name: session.expert.name.split(" ")[0],
     workflow: session.title,
     task: session.task ?? session.title,
+    coaching_style: coachingStyle(chattiness),
   })
 
   /** Coming back to a debrief (or voice was off): connect, then start asking. */

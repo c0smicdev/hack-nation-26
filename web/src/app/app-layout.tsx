@@ -1,10 +1,13 @@
 import { Landmark, LogIn, LogOut, MessageCircleQuestion } from "lucide-react"
+import { useState } from "react"
 import { Link, Outlet } from "react-router"
 
+import { SocratesFace } from "@/components/socrates-face"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { AskPanel } from "@/features/ask/ask-panel"
+import { OnboardingDialog } from "@/features/onboarding/onboarding-dialog"
 import { useAuth } from "@/lib/auth/context"
 import { useMe } from "@/lib/auth/hooks"
 import { authEnabled } from "@/lib/auth/supabase"
@@ -21,6 +24,8 @@ const ASK_SUGGESTIONS = [
 export function AppLayout() {
   const { session, signOut } = useAuth()
   const { data: me } = useMe()
+  // Onboarding shows on first sign-in, and again whenever Socrates' face is clicked.
+  const [reopened, setReopened] = useState(false)
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4 md:px-8">
@@ -31,6 +36,17 @@ export function AppLayout() {
           <span className="font-semibold">Socrates</span>
         </Link>
         <div className="ml-auto flex items-center gap-3">
+          {me && (
+            <button
+              type="button"
+              onClick={() => setReopened(true)}
+              aria-label="How Socrates works with you"
+              title="How Socrates works with you"
+              className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <SocratesFace className="size-8" />
+            </button>
+          )}
           {me && (
             <div className="flex items-center gap-2" title={me.email}>
               <Avatar className="size-7">
@@ -61,6 +77,9 @@ export function AppLayout() {
       <main className="flex-1 p-4 pb-20 md:p-8 md:pb-20">
         <Outlet />
       </main>
+      {me && (!me.onboarded || reopened) && (
+        <OnboardingDialog me={me} onClose={() => setReopened(false)} />
+      )}
       <Sheet>
         <SheetTrigger asChild>
           <Button size="lg" className="fixed right-4 bottom-4 z-40 rounded-full shadow-lg">

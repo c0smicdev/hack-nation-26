@@ -35,7 +35,7 @@ create trigger capture_sessions_touch before insert or update on capture_session
   for each row execute function touch_updated_at();
 
 -- One row per account (server/profile.ts). The name comes from the sign-up form;
--- onboarding (not built yet) fills role + preferences and sets onboarded_at.
+-- onboarding fills preferences (coaching style) and sets onboarded_at.
 create table if not exists profiles (
   id uuid primary key references auth.users on delete cascade,
   display_name text not null,

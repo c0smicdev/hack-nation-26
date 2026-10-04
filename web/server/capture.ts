@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import type {
   CaptureSession,
+  Chattiness,
   ID,
   LiveQuestion,
   LiveStep,
@@ -40,7 +41,11 @@ function personFor(name: string, role: string): Person {
 }
 
 /** `expert` is the signed-in user; without login the expert is matched by name. */
-export function createSession(input: NewSession, expert?: Person): CaptureSession {
+export function createSession(
+  input: NewSession,
+  expert?: Person,
+  chattiness?: Chattiness,
+): CaptureSession {
   if (!input.task.trim() || (!expert && !input.expertName.trim())) {
     throw new HttpError(400, "task and expertName are required")
   }
@@ -64,6 +69,7 @@ export function createSession(input: NewSession, expert?: Person): CaptureSessio
     visionBusy: false,
     pendingErp: [],
     pendingFocus: new Set(),
+    chattiness,
   })
   store.captureStatus = {
     ...store.captureStatus,
@@ -176,6 +182,12 @@ export function memoryContext(map: WorkMap | undefined) {
     .join("\n")
 }
 
+const COACHING: Record<Chattiness, string> = {
+  quiet: "silent (ask live only about guardrails)",
+  normal: "balanced",
+  curious: "active (ask more live questions)",
+}
+
 function contextFor(runtime: SessionRuntime, erpLines: string[]) {
   const { session } = runtime
   const base = session.basedOnWorkMapId ? getWorkMap(session.basedOnWorkMapId) : undefined
@@ -188,6 +200,7 @@ function contextFor(runtime: SessionRuntime, erpLines: string[]) {
   return [
     `Task (in the expert's words): ${session.task}`,
     `Expert: ${session.expert.name}, ${session.expert.role}`,
+    `Coaching style the expert chose: ${COACHING[runtime.chattiness ?? "normal"]}`,
     memoryContext(base),
     `Candidate steps so far:\n${candidates.join("\n") || "  (none)"}`,
     `Recent events (narration = expert speaking):\n${recent.join("\n") || "  (none)"}`,

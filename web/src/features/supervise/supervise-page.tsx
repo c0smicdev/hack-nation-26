@@ -35,6 +35,7 @@ import {
 } from "@/lib/api"
 import { useMe } from "@/lib/auth/hooks"
 import { grabFrame, startScreenShare } from "@/lib/capture/screen"
+import { coachingStyle } from "@/lib/coaching"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
@@ -94,6 +95,8 @@ type Tab = "chat" | "mentor"
 function SuperviseView({ map }: { map: WorkMap }) {
   const expertFirst = map.expert.name.split(" ")[0]
   const { data: me } = useMe()
+  // The new hire is the signed-in user: their coaching style sets how much Socrates helps.
+  const chattiness = me?.preferences.chattiness
   const [learnerEdit, setLearner] = useState<string>()
   // The signed-in user, unless they'd be running their own map (e.g. Sabine in mock mode).
   const learner =
@@ -175,6 +178,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
     video,
     live: !!stream && !!supervision && !ended,
     agent,
+    chattiness,
     onWarning: (warning) => {
       setWarnings((list) => [...list, warning])
       add({ kind: "warning", id: warning.id, at: Date.now(), warning })
@@ -198,8 +202,9 @@ function SuperviseView({ map }: { map: WorkMap }) {
         learner_name: run.learnerName,
         expert_name: expertFirst,
         work_map: supervisorBrief(map),
+        coaching_style: coachingStyle(chattiness),
       }),
-    [startAgent, expertFirst, map],
+    [startAgent, expertFirst, map, chattiness],
   )
 
   async function share() {

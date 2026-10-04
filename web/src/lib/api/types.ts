@@ -21,7 +21,10 @@ export interface Person {
 /* Account — the signed-in user                                        */
 /* ------------------------------------------------------------------ */
 
-/** How much Socrates talks while the expert works. Set during onboarding (not built yet). */
+/**
+ * How much Socrates talks: Silent observer, Balanced (default) or Active coach.
+ * Picked in onboarding; shapes live questions, heads-ups and tips.
+ */
 export type Chattiness = "quiet" | "normal" | "curious"
 
 export interface UserPreferences {
@@ -36,11 +39,14 @@ export interface Profile {
   role?: string
   email?: string
   preferences: UserPreferences
-  /** False until the (future) onboarding flow has run. */
+  /** False until the user has picked a coaching style in onboarding. */
   onboarded: boolean
 }
 
-export type ProfilePatch = Partial<Pick<Profile, "displayName" | "role" | "preferences">>
+export type ProfilePatch = Partial<Pick<Profile, "displayName" | "role" | "preferences">> & {
+  /** Onboarding is done: sets `onboarded_at`. */
+  onboarded?: true
+}
 
 /* ------------------------------------------------------------------ */
 /* Work Map — the "brief, interactive document" for one workflow       */

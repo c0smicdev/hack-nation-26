@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto"
 import type {
   CaptureSession,
   CaptureStatus,
+  Chattiness,
   ErpSignal,
   ID,
   Quote,
@@ -64,6 +65,8 @@ export interface SessionRuntime {
   pendingFocus: Set<Promise<void>>
   /** Draft Work Map built at the end of capture. */
   draftWorkMapId?: ID
+  /** The expert's coaching style (their profile), so vision asks as much as they want. */
+  chattiness?: Chattiness
 }
 
 /** A new hire running a confirmed Work Map while Socrates stands by. */

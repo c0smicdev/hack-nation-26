@@ -95,7 +95,8 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     async ({ body, user }) => {
       const input = (await body()) as NewSession
       const expert = user && (await personForUser(user, input.expertName, input.expertRole))
-      return createSession(input, expert)
+      const { preferences } = await getProfile(user)
+      return createSession(input, expert, preferences.chattiness)
     },
   ],
   ["GET", "/sessions/:id", ({ params }) => sessionView(getRuntime(params.id))],

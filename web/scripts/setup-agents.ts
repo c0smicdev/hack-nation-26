@@ -199,6 +199,7 @@ const agents = {
       expert_name: "Sabine",
       workflow: "Month-end supplier invoices",
       task: "Process this week's supplier invoices in the ERP before the month-end close.",
+      coaching_style: "balanced",
     },
     // Experts pause to think while they work: don't jump in. turn_v3 is the prosody-aware
     // turn-taking that ships with expressive mode.
@@ -273,7 +274,12 @@ const agents = {
     prompt: "supervisor",
     firstMessage:
       "Hi {{learner_name}}, I'm Socrates. Go ahead, I'll stay quiet. Just ask if you need me.",
-    placeholders: { learner_name: "Alex", expert_name: "Sabine", work_map: "(Work Map)" },
+    placeholders: {
+      learner_name: "Alex",
+      expert_name: "Sabine",
+      work_map: "(Work Map)",
+      coaching_style: "balanced",
+    },
     // The learner is waiting on the answer, so don't hold back the turn; skip_turn filters out
     // thinking out loud. A run often takes longer than the default 10-minute call limit.
     turn: { turn_eagerness: "normal", turn_timeout: 15, turn_model: "turn_v3" },
