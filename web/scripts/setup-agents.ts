@@ -191,8 +191,14 @@ const agents = {
     envKey: "ELEVENLABS_INTERVIEWER_AGENT_ID",
     name: "Socrates · Interviewer",
     prompt: "interviewer",
-    firstMessage: "Hi {{expert_name}}, I'm Socrates. What are you about to work on?",
-    placeholders: { expert_name: "Sabine", task: "Process supplier invoices" },
+    // The task was already described (new-workflow dialog or capture form): confirm it, never ask
+    // for it again. No name here, because sessions from the dialog have the expert "You".
+    firstMessage: "Hi, I'm Socrates. You're showing me {{workflow}} today, right?",
+    placeholders: {
+      expert_name: "Sabine",
+      workflow: "Month-end supplier invoices",
+      task: "Process this week's supplier invoices in the ERP before the month-end close.",
+    },
     // Experts pause to think while they work: don't jump in. turn_v3 is the prosody-aware
     // turn-taking that ships with expressive mode.
     turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
