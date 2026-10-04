@@ -22,7 +22,8 @@ export function Flowchart({
       chart={chart}
       onNodeClick={clicks}
       maxHeight="70svh"
-      className="rounded-xl border bg-background p-4"
+      scrollToZoom={false}
+      className="overflow-hidden rounded-xl border bg-muted/40"
     />
   )
 }
