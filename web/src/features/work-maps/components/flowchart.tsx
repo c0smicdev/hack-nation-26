@@ -21,6 +21,7 @@ export function Flowchart({
     <MermaidDiagram
       chart={chart}
       onNodeClick={clicks}
+      maxHeight="70svh"
       className="rounded-xl border bg-background p-4"
     />
   )
