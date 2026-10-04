@@ -81,10 +81,12 @@ async function run() {
       const page = await context.newPage()
       const errors = []
       page.on("pageerror", (error) => errors.push(error.message))
-      await page.goto(`${origin}landing`)
+      await page.goto(origin)
       await page.locator("#hero-title").waitFor()
       assert.equal(await page.locator("#hero-title").textContent(), "Socrates")
-      assert.equal(new URL(page.url()).pathname, "/landing")
+      assert.equal(new URL(page.url()).pathname, "/")
+      await page.goto(`${origin}landing`)
+      await page.locator("#hero-title").waitFor()
       if (viewport.width < 540) await page.getByRole("button", { name: "Open menu" }).click()
       await page
         .getByRole("link", { name: "Log in", exact: true })
@@ -94,6 +96,10 @@ async function run() {
       assert.equal(new URL(page.url()).pathname, "/login")
       await page.getByRole("link", { name: "Socrates", exact: true }).click()
       await page.locator("#hero-title").waitFor()
+      assert.equal(new URL(page.url()).pathname, "/")
+      await page.getByRole("link", { name: "Explore Socrates" }).first().click()
+      await page.locator("#email").waitFor()
+      assert.equal(new URL(page.url()).pathname, "/login")
       await page.goto(`${origin}capture`)
       await page.locator("#email").waitFor()
       assert.equal(new URL(page.url()).pathname, "/login")
@@ -109,7 +115,7 @@ async function run() {
         .locator("header")
         .getByText("Demo Expert", { exact: true })
         .waitFor({ state: "attached" })
-      await page.goto(origin)
+      await page.goto(`${origin}app`)
       await page
         .getByRole("heading", { name: "Workflows", exact: true })
         .waitFor({ timeout: 5000 })
@@ -117,12 +123,13 @@ async function run() {
           console.error({ url: page.url(), body: await page.locator("body").innerText(), errors })
           throw error
         })
-      assert.equal(new URL(page.url()).pathname, "/")
-      await page.goto(`${origin}landing`)
+      assert.equal(new URL(page.url()).pathname, "/app")
+      await page.goto(origin)
       await page.locator("#hero-title").waitFor()
       await page.getByRole("link", { name: "Explore Socrates" }).first().click()
       await page.getByRole("heading", { name: "Workflows", exact: true }).waitFor()
-      await page.goto(`${origin}landing`)
+      assert.equal(new URL(page.url()).pathname, "/app")
+      await page.goto(origin)
       await page.locator("#hero-title").waitFor()
       await page.reload()
       await page.locator("#hero-title").waitFor()
@@ -134,7 +141,7 @@ async function run() {
       assert.deepEqual(errors, [])
       await page.screenshot({ path: path.join(output, `login-routing-${viewport.width}.png`) })
       console.log(
-        `PASS ${viewport.width}px: public landing, login link/back link, protected deep link, rejected/successful login, return path, persisted session, CTA, reload, no overflow/errors`,
+        `PASS ${viewport.width}px: public home/legacy landing, login link/back link, protected app/deep link, rejected/successful login, return path, persisted session, CTA, reload, no overflow/errors`,
       )
       await context.close()
     }

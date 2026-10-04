@@ -18,6 +18,7 @@ import { RequireAuth } from "./require-auth"
 
 /** To add a page: create it in its feature folder, add a route here and a path in paths.ts. */
 export const router = createBrowserRouter([
+  { path: "/", element: <LandingPage />, errorElement: <RouteErrorPage /> },
   { path: "login", element: <LoginPage />, errorElement: <RouteErrorPage /> },
   {
     element: <RequireAuth />,
@@ -26,7 +27,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <LibraryPage /> },
+          { path: "app", element: <LibraryPage /> },
           { path: "work-maps/:workMapId", element: <WorkMapPage /> },
           { path: "ask", element: <AskPage /> },
           { path: "capture", element: <CapturePage /> },
@@ -38,7 +39,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    // Landing page: standalone, no app sidebar.
+    // Keep previously shared landing-page URLs working.
     path: "landing",
     element: <LandingPage />,
     errorElement: <RouteErrorPage />,
