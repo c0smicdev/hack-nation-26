@@ -60,7 +60,8 @@ server/                backend (runs in the Vite dev server, and on Vercel via a
   store.ts             in-memory storage (MVP)
 prompts/               one markdown file per prompt (vision, Work Map, tutor, agents…)
   procedures/          ElevenLabs Procedures, one file per phase: interviewer/ (Intake → Capture →
-                       Debrief → Teach-back) and tutor/ (lesson start, case, held save, saved, wrap-up)
+                       Debrief → Teach-back), tutor/ (lesson start, case, held save, saved, wrap-up)
+                       and drafter/ (describe → create workflow, hand edit)
 scripts/setup-agents.ts  ElevenAgents config as code (agents, tools, procedures)
 scripts/eval-focus.ts    focus-box eval; frames live in eval/focus/frames/ (gitignored, real recordings)
 src/
@@ -103,7 +104,7 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 
 **Tune a prompt:** edit `prompts/*.md`. Server prompts reload on the next call in dev; agent prompts need `npm run setup:agents`.
 
-**Tune an agent phase:** each phase of the voice agents is an ElevenLabs [free-form procedure](https://elevenlabs.io/docs/eleven-agents/customization/procedures/free-form-procedures) in `prompts/procedures/<agent>/`. A file is `name:` + `trigger:` frontmatter and a markdown body; reference tools as `[tool name="start_capture"]` and other procedures as `[procedure name="Capture"]` (the script resolves them to ids). The system prompt (`prompts/<agent>.md`) keeps only persona and global rules. Run `npm run setup:agents` to publish. Edit procedures here, not in the dashboard: the script overwrites procedures with the same name.
+**Tune an agent phase:** each phase of the voice agents is an ElevenLabs [free-form procedure](https://elevenlabs.io/docs/eleven-agents/customization/procedures/free-form-procedures) in `prompts/procedures/<agent>/`. A file is `name:` + `trigger:` frontmatter and a markdown body; an empty `trigger:` makes a sub-procedure that only runs when another procedure references it. Reference tools as `[tool name="start_capture"]` and other procedures as `[procedure name="Capture"]` (the script resolves them to ids). The system prompt (`prompts/<agent>.md`) keeps only persona and global rules. Run `npm run setup:agents` to publish. Edit procedures here, not in the dashboard: the script overwrites procedures with the same name.
 
 **Add a shadcn component:** `npx shadcn@latest add <component>` (run from `web/`).
 

@@ -1,5 +1,5 @@
 /**
- * Creates or updates the two ElevenAgents (interviewer + tutor) from
+ * Creates or updates the ElevenAgents (interviewer, tutor, new-workflow drafter) from
  * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
  * so agent config lives in git, not in a dashboard.
  *
@@ -81,7 +81,8 @@ interface ProcedureSource {
 /**
  * A procedure file is `name:` + `trigger:` frontmatter and a markdown body. The body references
  * tools and other procedures by name (`[tool name="start_capture"]`, `[procedure name="Capture"]`);
- * ids differ per agent, so they're resolved at sync time.
+ * ids differ per agent, so they're resolved at sync time. An empty `trigger:` makes a
+ * sub-procedure: it only runs when another procedure references it.
  */
 function readProcedures(role: string): ProcedureSource[] {
   const dir = `prompts/procedures/${role}`
@@ -101,8 +102,10 @@ function readProcedures(role: string): ProcedureSource[] {
             line.slice(line.indexOf(":") + 1).trim(),
           ]),
       )
-      if (!match || !meta.name || !meta.trigger)
-        throw new Error(`${dir}/${file}: needs name + trigger frontmatter`)
+      if (!match || !meta.name || meta.trigger === undefined)
+        throw new Error(
+          `${dir}/${file}: needs name + trigger frontmatter (empty trigger = sub-procedure)`,
+        )
       return { name: meta.name, trigger: meta.trigger, content: match[2].trim() }
     })
 }
