@@ -1,5 +1,5 @@
 /**
- * Creates or updates the two ElevenAgents (interviewer + tutor) from
+ * Creates or updates the ElevenAgents (interviewer, tutor, new-workflow drafter) from
  * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
  * so agent config lives in git, not in a dashboard.
  *
@@ -81,7 +81,8 @@ interface ProcedureSource {
 /**
  * A procedure file is `name:` + `trigger:` frontmatter and a markdown body. The body references
  * tools and other procedures by name (`[tool name="start_capture"]`, `[procedure name="Capture"]`);
- * ids differ per agent, so they're resolved at sync time.
+ * ids differ per agent, so they're resolved at sync time. An empty `trigger:` makes a
+ * sub-procedure: it only runs when another procedure references it.
  */
 function readProcedures(role: string): ProcedureSource[] {
   const dir = `prompts/procedures/${role}`
@@ -101,8 +102,10 @@ function readProcedures(role: string): ProcedureSource[] {
             line.slice(line.indexOf(":") + 1).trim(),
           ]),
       )
-      if (!match || !meta.name || !meta.trigger)
-        throw new Error(`${dir}/${file}: needs name + trigger frontmatter`)
+      if (!match || !meta.name || meta.trigger === undefined)
+        throw new Error(
+          `${dir}/${file}: needs name + trigger frontmatter (empty trigger = sub-procedure)`,
+        )
       return { name: meta.name, trigger: meta.trigger, content: match[2].trim() }
     })
 }
@@ -188,8 +191,14 @@ const agents = {
     envKey: "ELEVENLABS_INTERVIEWER_AGENT_ID",
     name: "Socrates · Interviewer",
     prompt: "interviewer",
-    firstMessage: "Hi {{expert_name}}, I'm Socrates. What are you about to work on?",
-    placeholders: { expert_name: "Sabine", task: "Process supplier invoices" },
+    // The task was already described (new-workflow dialog or capture form): confirm it, never ask
+    // for it again. No name here, because sessions from the dialog have the expert "You".
+    firstMessage: "Hi, I'm Socrates. You're showing me {{workflow}} today, right?",
+    placeholders: {
+      expert_name: "Sabine",
+      workflow: "Month-end supplier invoices",
+      task: "Process this week's supplier invoices in the ERP before the month-end close.",
+    },
     // Experts pause to think while they work: don't jump in. turn_v3 is the prosody-aware
     // turn-taking that ships with expressive mode.
     turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
