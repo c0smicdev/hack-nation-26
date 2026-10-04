@@ -1,7 +1,7 @@
 import { Landmark } from "lucide-react"
 import { type FormEvent, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Navigate, useLocation, useNavigate } from "react-router"
+import { Link, Navigate, useLocation, useNavigate } from "react-router"
 
 import { paths } from "@/app/paths"
 import { Button } from "@/components/ui/button"
@@ -102,6 +102,12 @@ export function LoginPage() {
               {mode === "signIn" ? t("switchToSignUp") : t("switchToSignIn")}
             </Button>
           </form>
+          <Link
+            to={paths.landing()}
+            className="mt-4 block text-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            Socrates
+          </Link>
         </CardContent>
       </Card>
     </div>

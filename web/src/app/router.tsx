@@ -7,6 +7,7 @@ import { SessionPage } from "@/features/capture/session-page"
 import { ErpLayout } from "@/features/erp/erp-layout"
 import { InvoiceListPage } from "@/features/erp/invoice-list-page"
 import { InvoicePage } from "@/features/erp/invoice-page"
+import { LandingPage } from "@/features/landing/landing-page"
 import { SupervisePage } from "@/features/supervise/supervise-page"
 import { LibraryPage } from "@/features/work-maps/library-page"
 import { WorkMapPage } from "@/features/work-maps/work-map-page"
@@ -35,6 +36,12 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    // Landing page: standalone, no app sidebar.
+    path: "landing",
+    element: <LandingPage />,
+    errorElement: <RouteErrorPage />,
   },
   {
     // The mock ERP is a separate "company system", so it has no Socrates shell.
