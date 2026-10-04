@@ -1,4 +1,3 @@
-import { sessions as fixtureSessions, LIVE_SESSION_ID } from "../src/lib/api/mock/fixtures.js"
 import { toSummary } from "../src/lib/api/summary.js"
 import type {
   AskRequest,
@@ -21,6 +20,8 @@ import {
   sessionView,
   updateSession,
 } from "./capture.js"
+import { requireUser } from "./auth.js"
+import { loadFrame, withDb } from "./db.js"
 import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
 import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
 import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
@@ -57,15 +58,7 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     async ({ params, body }) => checkDecision(params.id, (await body()) as DecisionCheck),
   ],
 
-  [
-    "GET",
-    "/sessions",
-    () => [
-      ...[...store.sessions.values()].reverse().map(sessionView),
-      // Older demo sessions; the scripted live one only exists in the mock.
-      ...fixtureSessions.filter((s) => s.id !== LIVE_SESSION_ID),
-    ],
-  ],
+  ["GET", "/sessions", () => [...store.sessions.values()].reverse().map(sessionView)],
   ["POST", "/sessions", async ({ body }) => createSession((await body()) as NewSession)],
   ["GET", "/sessions/:id", ({ params }) => sessionView(getRuntime(params.id))],
   [
@@ -157,9 +150,10 @@ export async function handle(request: Request): Promise<Response> {
   // Vercel rewrites /api/* to /api?route=*; in dev we see the real path.
   const path = url.searchParams.get("route") ?? url.pathname.replace(/^\/api/, "")
 
+  // Frames are loaded by <img> tags, which can't send a bearer token, so they skip auth.
   const frame = /^\/?frames\/([^/]+)$/.exec(path)
   if (request.method === "GET" && frame) {
-    const stored = store.frames.get(frame[1])
+    const stored = await loadFrame(frame[1])
     if (!stored) return json({ error: "Frame not found" }, 404)
     return new Response(new Uint8Array(stored.data), {
       headers: { "Content-Type": stored.mime, "Cache-Control": "private, max-age=86400" },
@@ -172,7 +166,10 @@ export async function handle(request: Request): Promise<Response> {
     const params = match(pattern, normalized)
     if (!params) continue
     try {
-      const result = await handler({ params, url, body: () => request.json() })
+      await requireUser(request)
+      const result = await withDb(method !== "GET", () =>
+        Promise.resolve(handler({ params, url, body: () => request.json() })),
+      )
       return json(result)
     } catch (error) {
       if (error instanceof HttpError) return json({ error: error.message }, error.status)

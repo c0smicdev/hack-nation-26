@@ -1,15 +1,11 @@
-import { Landmark, MessageCircleQuestion } from "lucide-react"
+import { Landmark, LogOut, MessageCircleQuestion } from "lucide-react"
 import { Link, Outlet } from "react-router"
 
 import { Button } from "@/components/ui/button"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { AskPanel } from "@/features/ask/ask-panel"
+import { useAuth } from "@/lib/auth/context"
+import { authEnabled } from "@/lib/auth/supabase"
 
 import { paths } from "./paths"
 
@@ -20,6 +16,7 @@ const ASK_SUGGESTIONS = [
 ]
 
 export function AppLayout() {
+  const { session, signOut } = useAuth()
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4 md:px-8">
@@ -45,6 +42,16 @@ export function AppLayout() {
             </div>
           </SheetContent>
         </Sheet>
+        {authEnabled && session && (
+          <Button
+            variant="ghost"
+            size="icon"
+            title={`Sign out ${session.user.email ?? ""}`}
+            onClick={() => void signOut()}
+          >
+            <LogOut />
+          </Button>
+        )}
       </header>
       <main className="flex-1 p-4 md:p-8">
         <Outlet />
