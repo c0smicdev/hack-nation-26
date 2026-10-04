@@ -8,4 +8,4 @@ The AI Apprentice (Hack-Nation × ElevenLabs, Challenge 01). Socrates watches ho
 | _`extension/`_ | Browser extension: screen, mic, keystrokes (to come) |       |
 | _`server/`_    | Backend: vision events, workflow generation, Q&A (to come) |       |
 
-The data contract between all three lives in [`web/src/lib/api/types.ts`](web/src/lib/api/types.ts).
+The data contract between all three lives in [`web/src/lib/api/types.ts`](web/src/lib/api/types.ts)
