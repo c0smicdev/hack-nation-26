@@ -1,0 +1,103 @@
+{
+  "notReady": {
+    "title": "暂时无法开始带练",
+    "description": "{{title}} 尚未经 {{expert}} 确认。请先完成复盘和讲解确认，确保 Socrates 只用专家确认过的知识来指导。",
+    "back": "返回工作流"
+  },
+  "errors": {
+    "notStarted": "带练尚未开始",
+    "lookupFailed": "抱歉，没能查到（{{message}}）。"
+  },
+  "header": {
+    "workflows": "工作流",
+    "supervisedRun": "带练",
+    "supervising": "正在带练 {{name}}",
+    "runEnded": "带练已结束",
+    "paused": "已暂停：未共享屏幕",
+    "notStarted": "未开始",
+    "checkingSave": "正在检查保存",
+    "openErp": "打开模拟 ERP",
+    "endRun": "结束带练"
+  },
+  "graph": {
+    "sharingStopped": "屏幕共享已停止。重新共享前，Socrates 看不到你的操作。",
+    "shareAgain": "重新共享",
+    "currentStep": "第 {{index}}/{{total}} 步：{{title}}",
+    "startWorking": "开始操作吧，进度会显示在这里。"
+  },
+  "tabs": {
+    "chat": "聊天",
+    "mentor": "{{expert}} 的做法"
+  },
+  "voice": {
+    "cantHear": "Socrates 听不到你的声音：{{error}}",
+    "disconnected": "Socrates 的语音已断开。请在下方输入问题，或重新开启语音。",
+    "notSetUp": "带练尚未配置语音（npm run setup:agents -- supervisor）。请在下方输入问题。",
+    "turnOn": "开启语音"
+  },
+  "mentor": {
+    "intro": "{{expert}} 亲口讲解的分步做法。"
+  },
+  "start": {
+    "title": "在 Socrates 陪同下完成此工作流",
+    "description": "共享你要操作的窗口（例如模拟 ERP 的<strong>培训案例</strong>）。Socrates 会保持安静：需要帮助时随时提问；只有当你即将犯 {{expert}} 会发现的错误时，它才会介入。",
+    "yourName": "你的名字",
+    "share": "共享屏幕并开始"
+  },
+  "warningBanner": {
+    "wouldStop": "{{expert}} 会在这里停下",
+    "headsUp": "提醒",
+    "openChat": "打开聊天",
+    "dismiss": "关闭"
+  },
+  "runSummary": {
+    "finished": "带练已完成。",
+    "stepsDone": "已完成 {{done}}/{{total}} 步",
+    "headsUps_other": "{{count}} 条提醒",
+    "questionsAsked_other": "提问 {{count}} 次",
+    "back": "返回工作流"
+  },
+  "status": {
+    "speaking": "Socrates 正在说话",
+    "muted": "麦克风已静音",
+    "standingBy": "Socrates 随时待命",
+    "connecting": "正在连接…",
+    "typing": "打字提问",
+    "voiceOff": "语音已关闭"
+  },
+  "leaveGuard": {
+    "title": "结束本次带练？",
+    "description": "Socrates 仍在待命。如果现在离开，屏幕共享将停止，Socrates 无法协助你完成剩下的部分。",
+    "keepGoing": "继续",
+    "endRun": "结束带练"
+  },
+  "chatPanel": {
+    "stepLink": "第 {{index}} 步：{{title}}",
+    "emptyTitle": "Socrates 随时待命",
+    "emptyBody": "照常操作即可。可以直接说出来或在下方输入任何问题，Socrates 会用 {{expert}} 的话来回答。如果你即将犯 {{expert}} 会发现的错误，它会提醒你。",
+    "saveHeld": "{{expert}} 会在这里停下 · 已暂缓保存",
+    "headsUp": "提醒",
+    "socrates": "Socrates",
+    "you": "你",
+    "thinking": "Socrates 正在查看你的屏幕…",
+    "mute": "麦克风静音",
+    "unmute": "取消麦克风静音",
+    "placeholderShare": "共享屏幕即可开始",
+    "placeholderMuted": "麦克风已静音，输入文字问 Socrates…",
+    "placeholder": "向 Socrates 提问…",
+    "send": "发送"
+  },
+  "mentorSteps": {
+    "here": "当前位置",
+    "decision": "决策点",
+    "headsUpGiven": "已提醒",
+    "whatDid": "{{expert}} 的做法：",
+    "ask": "请教：{{who}}",
+    "if": "如果",
+    "guardrail": {
+      "limit": "限制",
+      "stopAndAsk": "先停下询问",
+      "never": "禁止"
+    }
+  }
+}

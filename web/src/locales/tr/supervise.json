@@ -1,0 +1,105 @@
+{
+  "notReady": {
+    "title": "Gözetime henüz hazır değil",
+    "description": "{{title}} henüz {{expert}} tarafından onaylanmadı. Önce değerlendirmeyi ve geri anlatımı tamamlayın; böylece Socrates yalnızca uzmanın onayladığı bilgilerle yol gösterir.",
+    "back": "İş akışına dön"
+  },
+  "errors": {
+    "notStarted": "Uygulama henüz başlamadı",
+    "lookupFailed": "Üzgünüm, buna bakamadım ({{message}})."
+  },
+  "header": {
+    "workflows": "İş akışları",
+    "supervisedRun": "Gözetimli uygulama",
+    "supervising": "Gözetimdeki kişi: {{name}}",
+    "runEnded": "Uygulama bitti",
+    "paused": "Duraklatıldı: ekran paylaşılmıyor",
+    "notStarted": "Başlamadı",
+    "checkingSave": "Kayıt kontrol ediliyor",
+    "openErp": "Deneme ERP'sini aç",
+    "endRun": "Uygulamayı bitir"
+  },
+  "graph": {
+    "sharingStopped": "Ekran paylaşımı durdu. Tekrar paylaşana kadar Socrates çalışmanızı göremez.",
+    "shareAgain": "Tekrar paylaş",
+    "currentStep": "Adım {{index}}/{{total}}: {{title}}",
+    "startWorking": "Çalışmaya başlayın. İlerlemeniz burada görünür."
+  },
+  "tabs": {
+    "chat": "Sohbet",
+    "mentor": "{{expert}} nasıl yaptı"
+  },
+  "voice": {
+    "cantHear": "Socrates sizi duyamıyor: {{error}}",
+    "disconnected": "Socrates'in sesli bağlantısı kesildi. Sorularınızı aşağıya yazın ya da sesi yeniden açın.",
+    "notSetUp": "Gözetimli uygulamalar için ses ayarlanmamış (npm run setup:agents -- supervisor). Sorularınızı aşağıya yazın.",
+    "turnOn": "Sesi aç"
+  },
+  "mentor": {
+    "intro": "{{expert}} bu işi nasıl yapıyor: adım adım, kendi sözleriyle."
+  },
+  "start": {
+    "title": "Bu iş akışını Socrates yanınızdayken uygulayın",
+    "description": "Çalışacağınız pencereyi paylaşın (ör. deneme ERP'sinde <strong>Eğitim vakaları</strong>). Socrates sessiz kalır: yardıma ihtiyacınız olduğunda sorun. Yalnızca {{expert}} tarafından fark edilecek bir hatayı yapmak üzereyseniz araya girer.",
+    "yourName": "Adınız",
+    "share": "Ekranı paylaş ve başla"
+  },
+  "warningBanner": {
+    "wouldStop": "{{expert}} burada dururdu",
+    "headsUp": "Uyarı",
+    "openChat": "Sohbeti aç",
+    "dismiss": "Kapat"
+  },
+  "runSummary": {
+    "finished": "Uygulama tamamlandı.",
+    "stepsDone": "{{done}}/{{total}} adım tamamlandı",
+    "headsUps_one": "{{count}} uyarı",
+    "headsUps_other": "{{count}} uyarı",
+    "questionsAsked_one": "{{count}} soru soruldu",
+    "questionsAsked_other": "{{count}} soru soruldu",
+    "back": "İş akışına dön"
+  },
+  "status": {
+    "speaking": "Socrates konuşuyor",
+    "muted": "Mikrofon kapalı",
+    "standingBy": "Socrates hazırda bekliyor",
+    "connecting": "Bağlanıyor…",
+    "typing": "Yazarak sorun",
+    "voiceOff": "Ses kapalı"
+  },
+  "leaveGuard": {
+    "title": "Bu gözetimli uygulama bitirilsin mi?",
+    "description": "Socrates hâlâ hazırda bekliyor. Şimdi ayrılırsanız ekran paylaşımı durur ve Socrates uygulamanın geri kalanında yardımcı olamaz.",
+    "keepGoing": "Devam et",
+    "endRun": "Uygulamayı bitir"
+  },
+  "chatPanel": {
+    "stepLink": "Adım {{index}}: {{title}}",
+    "emptyTitle": "Socrates hazırda bekliyor",
+    "emptyBody": "Her zamanki gibi çalışın. Sesli ya da aşağıya yazarak istediğinizi sorun; Socrates, {{expert}} tarafından anlatılanlarla yanıt verir. {{expert}} tarafından fark edilecek bir hatayı yapmak üzereyseniz size söyler.",
+    "saveHeld": "{{expert}} burada dururdu · kayıt bekletildi",
+    "headsUp": "Uyarı",
+    "socrates": "Socrates",
+    "you": "Siz",
+    "thinking": "Socrates ekranınıza bakıyor…",
+    "mute": "Mikrofonu kapat",
+    "unmute": "Mikrofonu aç",
+    "placeholderShare": "Başlamak için ekranınızı paylaşın",
+    "placeholderMuted": "Mikrofon kapalı. Socrates'e yazın…",
+    "placeholder": "Socrates'e sorun…",
+    "send": "Gönder"
+  },
+  "mentorSteps": {
+    "here": "Buradasınız",
+    "decision": "Karar",
+    "headsUpGiven": "Ön uyarı verildi",
+    "whatDid": "{{expert}} ne yaptı: ",
+    "ask": "Sorulacak kişi: {{who}}",
+    "if": "Eğer",
+    "guardrail": {
+      "limit": "Sınır",
+      "stopAndAsk": "Dur ve sor",
+      "never": "Asla"
+    }
+  }
+}

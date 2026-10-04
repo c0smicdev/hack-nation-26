@@ -1,0 +1,128 @@
+{
+  "captureState": {
+    "notCapturing": "기록 안 함",
+    "offTheRecord": "기록 제외",
+    "capturing": "기록 중"
+  },
+  "sessionStatus": {
+    "intake": "준비",
+    "live": "진행 중",
+    "processing": "맵 생성 중",
+    "awaitingDebrief": "디브리프 대기",
+    "mapped": "맵 완료"
+  },
+  "eventKind": {
+    "screen": "화면",
+    "speech": "전문가",
+    "question": "Socrates의 질문",
+    "offRecord": "개인정보 보호"
+  },
+  "capturePage": {
+    "title": "기록",
+    "description": "Socrates가 화면을 지켜보는 동안 실제 업무를 진행하세요. 자연스럽게 멈추는 순간에 이유를 묻고, 짧은 디브리프로 빠진 부분을 채운 뒤 워크플로로 정리해요.",
+    "howItWorks": {
+      "title": "이용 방법",
+      "step1": "1. 다른 탭에서 모의 ERP를 열고 세션을 시작한 뒤 그 탭을 공유하세요. 이제 무엇을 할지 Socrates에게 말해 주세요.",
+      "step2": "2. 평소처럼 일하면서 생각을 소리 내어 말해 주세요. Socrates가 자연스럽게 멈추는 순간에 3~5개의 질문을 해요.",
+      "step3": "3. 끝났다고 말하면 짧은 음성 디브리프를 진행하고, Socrates가 내용을 다시 설명해 드려요.",
+      "offTheRecord": "언제든 \"기록 제외\"라고 말하거나 스위치를 켜세요. 다시 기록을 시작할 때까지 아무것도 기록되지 않아요."
+    },
+    "sessions": "세션"
+  },
+  "sessionRow": {
+    "events_other": "이벤트 {{count}}개",
+    "liveQuestions_other": "실시간 질문 {{count}}개"
+  },
+  "newSession": {
+    "title": "새 세션",
+    "description": "누가 어떤 업무를 보여 주나요? 업무 내용은 음성으로 다듬을 수 있어요.",
+    "expert": "전문가",
+    "role": "직무",
+    "sessionTitle": "세션 제목",
+    "task": "이제 어떤 업무를 하실 건가요?",
+    "defaultTitle": "월말 공급업체 송장 처리",
+    "defaultTask": "월말 결산 전에 이번 주 공급업체 송장을 ERP에서 처리합니다.",
+    "start": "세션 시작"
+  },
+  "openErp": "모의 ERP 열기",
+  "breadcrumbWorkflows": "워크플로",
+  "yourSteps": "내 단계",
+  "openWorkflow": "워크플로 열기",
+  "confirmTeachBack": "네, 맞아요",
+  "busy": {
+    "buildingDraft": "워크플로 초안 만드는 중",
+    "writingTeachBack": "티치백 작성 중",
+    "savingToMemory": "메모리에 저장 중",
+    "updatingTeachBack": "티치백 업데이트 중"
+  },
+  "recording": {
+    "notRecording": "녹화 안 함",
+    "paused": "일시정지됨",
+    "recording": "녹화 중",
+    "shareTitle": "녹화를 시작하려면 화면을 공유하세요",
+    "shareHint": "작업할 창(예: 모의 ERP)을 선택하세요. Socrates가 지켜보면서 작업을 단계별로 묶고 여기에 워크플로를 그려요.",
+    "shareScreen": "화면 공유",
+    "stepsSoFar_other": "지금까지 {{count}}단계",
+    "endWorkflow": "워크플로 종료"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates가 말하는 중",
+    "listening": "Socrates가 듣는 중",
+    "connecting": "연결 중…",
+    "text": "질문이 화면에 표시돼요",
+    "off": "음성 꺼짐"
+  },
+  "memoryMatch": {
+    "text": "{{expert}} 님이 이미 보여 주신 <strong>{{title}}</strong>와(과) 비슷해 보여요. 같은 워크플로인가요?",
+    "same": "같은 워크플로",
+    "new": "새 워크플로"
+  },
+  "textQuestion": {
+    "placeholder": "답변 입력",
+    "answer": "답변",
+    "later": "나중에"
+  },
+  "leaveGuard": {
+    "title": "이 녹화를 중단할까요?",
+    "description": "아직 워크플로를 기록하고 있어요. 지금 나가면 기록이 중단되고, 지금까지 기록된 단계는 워크플로로 만들어지지 않아요.",
+    "keep": "계속 기록",
+    "abandon": "기록 중단"
+  },
+  "offTheRecordSwitch": {
+    "label": "기록 제외"
+  },
+  "liveStepList": {
+    "gettingStarted": "시작하기",
+    "empty": "작업을 시작하세요. Socrates가 이해한 단계가 여기에 표시돼요.",
+    "decision": "판단",
+    "differsFromMemory": "기억과 다름",
+    "events_other": "이벤트 {{count}}개",
+    "screenshotAlt": "작업 중 화면: {{title}}"
+  },
+  "debriefView": {
+    "building": "Socrates가 보고 들은 내용으로 워크플로 초안을 만들고 있어요…",
+    "debrief": "디브리프",
+    "confirmed": "확인 완료, 메모리에 저장됨",
+    "teachBack": "티치백: Socrates가 제대로 이해했나요?",
+    "questionsAnswered": "질문 {{total}}개 중 {{answered}}개 답변 완료",
+    "chat": "채팅",
+    "steps": "단계",
+    "voiceTitle": "Socrates · 디브리프",
+    "voicePlaceholder": "음성으로 답하거나 여기에 입력하세요…",
+    "debriefByVoice": "음성으로 디브리프"
+  },
+  "debriefPanel": {
+    "title": "디브리프",
+    "description": "남은 질문 {{total}}개 중 {{answered}}개에 답했어요. Socrates가 질문을 하나씩 드린 뒤 전체 과정을 다시 설명해 드려요.",
+    "teachBackTitle": "티치백",
+    "teachBackDescription": "모든 질문에 답하고 {{expert}} 님이 설명을 확인하면 완료돼요.",
+    "confirmed": "확인했어요. 워크플로가 메모리에 저장됐어요.",
+    "explainBack": "다시 설명하기",
+    "about": "관련 단계: {{title}}",
+    "answerPlaceholder": "음성으로 답하거나 여기에 입력하세요",
+    "save": "저장",
+    "updatedAfter_other": "{{count}}번 수정을 반영해 업데이트했어요.",
+    "correctionPlaceholder": "틀린 부분이 있나요? 편하게 바로잡아 주세요.",
+    "correct": "수정하기"
+  }
+}

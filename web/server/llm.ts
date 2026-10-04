@@ -5,15 +5,21 @@ import Anthropic from "@anthropic-ai/sdk"
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod"
 import type { z } from "zod"
 
-import { HttpError } from "./store.ts"
+import type { Language } from "../src/lib/api/types.js"
+import { writeIn } from "./language.js"
+import { HttpError } from "./store.js"
 
 /**
  * Vision runs on every tick, so it uses the fast model; everything that writes
- * the Work Map or judges a learner's decision uses Opus. Override via env.
+ * the workflow or judges a learner's decision uses Opus. Focus boxes are only
+ * located for important events and need precise grounding. Override via env.
  */
 export const models = {
   vision: process.env.SOCRATES_VISION_MODEL ?? "claude-haiku-4-5",
+  focus: process.env.SOCRATES_FOCUS_MODEL ?? "claude-haiku-4-5",
   reasoning: process.env.SOCRATES_REASONING_MODEL ?? "claude-opus-5-5",
+  /** Translating whole workflows for readers in other languages. */
+  translate: process.env.SOCRATES_TRANSLATE_MODEL ?? "claude-sonnet-5-5",
 }
 
 let client: Anthropic | undefined
@@ -49,13 +55,15 @@ export async function structured<S extends z.ZodType>(opts: {
   schema: S
   effort?: "low" | "medium" | "high"
   maxTokens?: number
+  /** Language of the person the output is for; text for people is written in it. */
+  language?: Language
 }): Promise<z.infer<S>> {
   // Haiku 4.5 takes neither `effort` nor server-side fallbacks.
   const haiku = opts.model.startsWith("claude-haiku")
   const response = await anthropic().beta.messages.parse({
     model: opts.model,
     max_tokens: opts.maxTokens ?? 16000,
-    system: opts.system,
+    system: opts.system + writeIn(opts.language),
     messages: [{ role: "user", content: opts.content }],
     output_config: {
       ...(haiku ? {} : { effort: opts.effort ?? "medium" }),

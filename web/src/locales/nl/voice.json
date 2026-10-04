@@ -1,0 +1,7 @@
+{
+  "firstMessage": {
+    "interviewer": "Hoi, ik ben Socrates. Je laat me vandaag {{workflow}} zien, toch?",
+    "supervisor": "Hoi {{learner_name}}, ik ben Socrates. Ga je gang, ik blijf stil. Vraag het gewoon als je me nodig hebt.",
+    "drafter": "Hoi, ik ben Socrates. Welke workflow wil je me laten zien? Vertel me gewoon wat je doet en wanneer."
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Socrates와 함께하는 방식",
+    "askSocrates": "Socrates에게 묻기",
+    "logIn": "로그인",
+    "logOut": "로그아웃"
+  },
+  "profileMenu": {
+    "language": "언어",
+    "languageHint": "앱에 표시되는 언어예요. Socrates도 이 언어로 말하고 글을 써요."
+  },
+  "askSuggestions": {
+    "capex": "인보이스가 opex가 아니라 capex인 경우는 언제예요?",
+    "unknownSupplier": "모르는 공급업체는 어떻게 처리해요?",
+    "intercompany": "계열사 간 인보이스는 누가 승인해요?"
+  },
+  "time": {
+    "justNow": "방금"
+  },
+  "dialog": {
+    "close": "닫기"
+  },
+  "mermaidDiagram": {
+    "error": "다이어그램을 그리지 못했어요: {{message}}",
+    "fitToView": "화면에 맞추기",
+    "zoomIn": "확대",
+    "zoomOut": "축소"
+  },
+  "queryState": {
+    "errorTitle": "문제가 발생했어요",
+    "retry": "다시 시도"
+  },
+  "screenMoment": {
+    "redacted": "가려짐"
+  },
+  "voicePanel": {
+    "placeholder": "말하는 대신 입력하세요…",
+    "mutedPlaceholder": "마이크가 꺼져 있어요. Socrates에게 입력하세요…",
+    "speaking": "말하는 중",
+    "muted": "음소거됨",
+    "listening": "듣는 중",
+    "textMode": "텍스트 모드",
+    "connecting": "연결 중…",
+    "voiceError": "음성 오류",
+    "notConnected": "연결되지 않음",
+    "empty": "대화 내용이 여기에 표시돼요.",
+    "you": "나",
+    "mute": "마이크 끄기",
+    "unmute": "마이크 켜기",
+    "send": "보내기"
+  },
+  "errorPages": {
+    "backToLibrary": "라이브러리로 돌아가기",
+    "notFoundTitle": "페이지를 찾을 수 없어요",
+    "notFoundMessage": "Socrates가 아직 모르는 페이지예요.",
+    "brokeTitle": "문제가 생겼어요",
+    "unknownError": "알 수 없는 오류"
+  }
+}

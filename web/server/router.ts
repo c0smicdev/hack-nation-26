@@ -1,5 +1,6 @@
-import { sessions as fixtureSessions, LIVE_SESSION_ID } from "../src/lib/api/mock/fixtures.ts"
-import { toSummary } from "../src/lib/api/summary.ts"
+import type { User } from "@supabase/supabase-js"
+
+import { toSummary } from "../src/lib/api/summary.js"
 import type {
   AskRequest,
   CaptureStatus,
@@ -7,27 +8,67 @@ import type {
   DecisionCheck,
   NewSession,
   NewSessionEvent,
+  NewSupervision,
+  ScreenQuestion,
   TeachBackReply,
   Tick,
+  Language,
   VoiceRole,
-} from "../src/lib/api/types.ts"
+  WorkflowDraftRequest,
+} from "../src/lib/api/types.js"
 import {
   createSession,
   findRelatedWorkMaps,
+  liveSteps,
   processTick,
   recordEvent,
   sessionView,
   updateSession,
-} from "./capture.ts"
-import { ask, checkDecision, voiceSession } from "./teach.ts"
-import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.ts"
-import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.ts"
+} from "./capture.js"
+import { requireUser } from "./auth.js"
+import { loadFrame, withDb } from "./db.js"
+import { getProfile, personForUser, updateProfile } from "./profile.js"
+import { askAboutScreen, processSupervisionTick, startSupervision } from "./supervise.js"
+import { localize, prepareLanguage } from "./translate.js"
+import { LANGUAGES } from "./language.js"
+import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
+import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
+import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
+
+/** The reader's UI language (sent with every request), else the one in their profile. */
+const languageOf = async (user: User | undefined, language: Language | undefined) =>
+  language ?? (await getProfile(user)).preferences.language
 
 type Params = Record<string, string>
-type Handler = (ctx: { params: Params; body: () => Promise<unknown>; url: URL }) => unknown
+type Handler = (ctx: {
+  params: Params
+  body: () => Promise<unknown>
+  url: URL
+  /** Signed-in Supabase user; undefined when login is off. */
+  user?: User
+  /** The UI language the request came from (`X-Socrates-Language`). */
+  language?: Language
+}) => unknown
 
 const routes: [method: string, pattern: string, handler: Handler][] = [
-  ["GET", "/workmaps", () => store.workMaps.map(toSummary)],
+  ["GET", "/me", ({ user }) => getProfile(user)],
+  [
+    "PATCH",
+    "/me",
+    async ({ user, body }) => {
+      const profile = await updateProfile(user, await body())
+      // Get every workflow ready in the new language before they open it.
+      prepareLanguage(profile.preferences.language)
+      return profile
+    },
+  ],
+
+  [
+    "GET",
+    "/workmaps",
+    async ({ language }) =>
+      (await Promise.all(store.workMaps.map((m) => localize(m, language)))).map(toSummary),
+  ],
   [
     "POST",
     "/workmaps/related",
@@ -36,7 +77,7 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
       return (await findRelatedWorkMaps(task)).map(toSummary)
     },
   ],
-  ["GET", "/workmaps/:id", ({ params }) => getWorkMap(params.id)],
+  ["GET", "/workmaps/:id", ({ params, language }) => localize(getWorkMap(params.id), language)],
   [
     "POST",
     "/workmaps/:id/debrief/:itemId",
@@ -52,19 +93,41 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
   [
     "POST",
     "/workmaps/:id/check",
-    async ({ params, body }) => checkDecision(params.id, (await body()) as DecisionCheck),
+    async ({ params, body, user, language }) =>
+      checkDecision(params.id, (await body()) as DecisionCheck, await languageOf(user, language)),
+  ],
+  [
+    "POST",
+    "/workmaps/:id/supervisions",
+    async ({ params, body, user, language }) =>
+      startSupervision(
+        params.id,
+        (await body()) as NewSupervision,
+        await languageOf(user, language),
+      ),
+  ],
+  [
+    "POST",
+    "/supervisions/:id/ticks",
+    async ({ params, body }) => processSupervisionTick(params.id, (await body()) as Tick),
+  ],
+  [
+    "POST",
+    "/supervisions/:id/ask",
+    async ({ params, body }) => askAboutScreen(params.id, (await body()) as ScreenQuestion),
   ],
 
+  ["GET", "/sessions", () => [...store.sessions.values()].reverse().map(sessionView)],
   [
-    "GET",
+    "POST",
     "/sessions",
-    () => [
-      ...[...store.sessions.values()].reverse().map(sessionView),
-      // Older demo sessions; the scripted live one only exists in the mock.
-      ...fixtureSessions.filter((s) => s.id !== LIVE_SESSION_ID),
-    ],
+    async ({ body, user, language }) => {
+      const input = (await body()) as NewSession
+      const expert = user && (await personForUser(user, input.expertName, input.expertRole))
+      const { preferences } = await getProfile(user)
+      return createSession(input, expert, preferences.chattiness, language ?? preferences.language)
+    },
   ],
-  ["POST", "/sessions", async ({ body }) => createSession((await body()) as NewSession)],
   ["GET", "/sessions/:id", ({ params }) => sessionView(getRuntime(params.id))],
   [
     "PATCH",
@@ -86,6 +149,11 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     "POST",
     "/sessions/:id/ticks",
     async ({ params, body }) => processTick(params.id, (await body()) as Tick),
+  ],
+  [
+    "GET",
+    "/sessions/:id/steps",
+    ({ params }) => (store.sessions.has(params.id) ? liveSteps(getRuntime(params.id)) : []),
   ],
   ["POST", "/sessions/:id/finish", ({ params }) => finishCapture(params.id)],
 
@@ -117,7 +185,18 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
   ],
 
   ["GET", "/voice/:role", ({ params }) => voiceSession(params.role as VoiceRole)],
-  ["POST", "/ask", async ({ body }) => ask((await body()) as AskRequest)],
+  [
+    "POST",
+    "/ask",
+    async ({ body, user, language }) =>
+      ask((await body()) as AskRequest, await languageOf(user, language)),
+  ],
+  [
+    "POST",
+    "/workflows/draft",
+    async ({ body, user, language }) =>
+      draftWorkflow((await body()) as WorkflowDraftRequest, await languageOf(user, language)),
+  ],
 ]
 
 function match(pattern: string, path: string): Params | undefined {
@@ -145,9 +224,10 @@ export async function handle(request: Request): Promise<Response> {
   // Vercel rewrites /api/* to /api?route=*; in dev we see the real path.
   const path = url.searchParams.get("route") ?? url.pathname.replace(/^\/api/, "")
 
+  // Frames are loaded by <img> tags, which can't send a bearer token, so they skip auth.
   const frame = /^\/?frames\/([^/]+)$/.exec(path)
   if (request.method === "GET" && frame) {
-    const stored = store.frames.get(frame[1])
+    const stored = await loadFrame(frame[1])
     if (!stored) return json({ error: "Frame not found" }, 404)
     return new Response(new Uint8Array(stored.data), {
       headers: { "Content-Type": stored.mime, "Cache-Control": "private, max-age=86400" },
@@ -160,7 +240,12 @@ export async function handle(request: Request): Promise<Response> {
     const params = match(pattern, normalized)
     if (!params) continue
     try {
-      const result = await handler({ params, url, body: () => request.json() })
+      const user = await requireUser(request)
+      const header = request.headers.get("x-socrates-language")
+      const language = LANGUAGES.find((l) => l === header)
+      const result = await withDb(method !== "GET", () =>
+        Promise.resolve(handler({ params, url, user, language, body: () => request.json() })),
+      )
       return json(result)
     } catch (error) {
       if (error instanceof HttpError) return json({ error: error.message }, error.status)

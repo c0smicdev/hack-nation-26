@@ -2,6 +2,10 @@ import { useConversation } from "@elevenlabs/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { api, type VoiceRole } from "@/lib/api"
+import { currentLanguage, i18n } from "@/lib/i18n"
+import { languageName } from "@/lib/i18n/languages"
+
+import { VOICES } from "./voices"
 
 export interface TranscriptLine {
   id: number
@@ -30,7 +34,7 @@ const stripToneTags = (text: string) =>
     .trim()
 
 /**
- * One ElevenAgents conversation (interviewer or tutor). Must be used inside a
+ * One ElevenAgents conversation (interviewer, supervisor or drafter). Must be used inside a
  * <ConversationProvider>. The signed URL comes from our backend, so the API key
  * never reaches the browser. Without a configured agent it falls back to `text`
  * mode and the page drives the flow with buttons instead.
@@ -87,9 +91,22 @@ export function useVoiceAgent({
             },
           ]),
         )
+        // Socrates speaks the UI language: the prompt's {{language}}, plus ElevenLabs' language
+        // (speech recognition and voice), a greeting in it, since the agent's own is English, and
+        // a native speaker's voice, since the agent's own voice keeps an American accent.
+        const language = currentLanguage()
         conversation.startSession({
           signedUrl: session.signedUrl,
-          dynamicVariables,
+          dynamicVariables: { ...dynamicVariables, language: languageName(language) },
+          ...(language !== "en" && {
+            overrides: {
+              agent: {
+                language,
+                firstMessage: i18n.t(`voice:firstMessage.${role}`, dynamicVariables),
+              },
+              ...(VOICES[language] && { tts: { voiceId: VOICES[language] } }),
+            },
+          }),
           clientTools,
           onMessage: ({ message, role }) => {
             if (role === "user") {
@@ -146,6 +163,29 @@ export function useVoiceAgent({
   /** Tell the agent what's on screen without making it talk. */
   const context = useCallback((text: string) => void send("context", text), [send])
 
+  /** Mic off (e.g. to type instead): Socrates keeps talking but stops listening. */
+  const setMuted = useCallback(
+    (muted: boolean) => {
+      if (conversation.status !== "connected") return
+      try {
+        conversation.setMuted(muted)
+      } catch {
+        // The session just ended; the SDK unmutes on disconnect anyway.
+      }
+    },
+    [conversation],
+  )
+
+  /** The user is typing: keeps the agent from talking over them. */
+  const activity = useCallback(() => {
+    if (conversation.status !== "connected") return
+    try {
+      conversation.sendUserActivity()
+    } catch {
+      // Best effort only.
+    }
+  }, [conversation])
+
   /** Typed instead of spoken: same path as a transcript. */
   const type = useCallback(
     (text: string) => {
@@ -162,6 +202,9 @@ export function useVoiceAgent({
     transcript,
     connected: conversation.status === "connected",
     agentSpeaking: conversation.isSpeaking,
+    muted: conversation.isMuted,
+    setMuted,
+    activity,
     /** ms since the user's voice was last detected (Scribe VAD). */
     msSinceUserVoice: () => Date.now() - lastUserVoiceAt.current,
     start,

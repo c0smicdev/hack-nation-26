@@ -1,0 +1,103 @@
+{
+  "notReady": {
+    "title": "まだ見守り実行の準備ができていません",
+    "description": "{{title}} はまだ {{expert}} さんに確認されていません。先にデブリーフとティーチバックを完了してください。Socrates はエキスパートが確認した知識だけを使ってガイドします。",
+    "back": "ワークフローに戻る"
+  },
+  "errors": {
+    "notStarted": "実行はまだ開始されていません",
+    "lookupFailed": "申し訳ありません、確認できませんでした（{{message}}）。"
+  },
+  "header": {
+    "workflows": "ワークフロー",
+    "supervisedRun": "見守り実行",
+    "supervising": "{{name}} さんを見守り中",
+    "runEnded": "実行終了",
+    "paused": "一時停止中：画面が共有されていません",
+    "notStarted": "未開始",
+    "checkingSave": "保存内容を確認中",
+    "openErp": "模擬 ERP を開く",
+    "endRun": "実行を終了"
+  },
+  "graph": {
+    "sharingStopped": "画面共有が停止しました。再度共有するまで、Socrates はあなたの作業を見ることができません。",
+    "shareAgain": "再度共有",
+    "currentStep": "ステップ {{index}}/{{total}}：{{title}}",
+    "startWorking": "作業を始めてください。進捗はここに表示されます。"
+  },
+  "tabs": {
+    "chat": "チャット",
+    "mentor": "{{expert}} さんのやり方"
+  },
+  "voice": {
+    "cantHear": "Socrates にあなたの声が届いていません：{{error}}",
+    "disconnected": "Socrates の音声が切断されました。下に質問を入力するか、音声をもう一度オンにしてください。",
+    "notSetUp": "見守り実行用の音声が設定されていません（npm run setup:agents -- supervisor）。下に質問を入力してください。",
+    "turnOn": "音声をオンにする"
+  },
+  "mentor": {
+    "intro": "{{expert}} さんのやり方を、本人の言葉でステップごとに紹介します。"
+  },
+  "start": {
+    "title": "Socrates の見守りのもとでこのワークフローを実行",
+    "description": "作業するウィンドウを共有してください（例：模擬 ERP の<strong>トレーニングケース</strong>）。Socrates は基本的に黙って見守ります。困ったときはいつでも質問してください。{{expert}} さんなら気づくようなミスをしそうなときだけ声をかけます。",
+    "yourName": "お名前",
+    "share": "画面を共有して開始"
+  },
+  "warningBanner": {
+    "wouldStop": "{{expert}} さんならここで手を止めます",
+    "headsUp": "注意",
+    "openChat": "チャットを開く",
+    "dismiss": "閉じる"
+  },
+  "runSummary": {
+    "finished": "実行が完了しました。",
+    "stepsDone": "{{total}} ステップ中 {{done}} 完了",
+    "headsUps_other": "注意 {{count}} 件",
+    "questionsAsked_other": "質問 {{count}} 件",
+    "back": "ワークフローに戻る"
+  },
+  "status": {
+    "speaking": "Socrates が話しています",
+    "muted": "マイクミュート中",
+    "standingBy": "Socrates が待機中です",
+    "connecting": "接続中…",
+    "typing": "入力して質問",
+    "voiceOff": "音声オフ"
+  },
+  "leaveGuard": {
+    "title": "この見守り実行を終了しますか？",
+    "description": "Socrates はまだ待機中です。今離れると画面共有が停止し、この実行の残りで Socrates がサポートできなくなります。",
+    "keepGoing": "続ける",
+    "endRun": "実行を終了"
+  },
+  "chatPanel": {
+    "stepLink": "ステップ {{index}}：{{title}}",
+    "emptyTitle": "Socrates が待機中です",
+    "emptyBody": "いつもどおりに作業してください。声でも下の入力欄でも何でも質問できます。Socrates が {{expert}} さんの言葉で答えます。{{expert}} さんなら気づくようなミスをしそうなときは、お知らせします。",
+    "saveHeld": "{{expert}} さんならここで手を止めます · 保存を保留中",
+    "headsUp": "注意",
+    "socrates": "Socrates",
+    "you": "あなた",
+    "thinking": "Socrates が画面を確認しています…",
+    "mute": "マイクをミュート",
+    "unmute": "マイクのミュートを解除",
+    "placeholderShare": "画面を共有して開始してください",
+    "placeholderMuted": "マイクはミュート中です。Socrates へのメッセージを入力…",
+    "placeholder": "Socratesに質問…",
+    "send": "送信"
+  },
+  "mentorSteps": {
+    "here": "現在地",
+    "decision": "判断ポイント",
+    "headsUpGiven": "事前に注意済み",
+    "whatDid": "{{expert}}さんの対応：",
+    "ask": "確認先：{{who}}",
+    "if": "条件",
+    "guardrail": {
+      "limit": "上限",
+      "stopAndAsk": "止めて確認",
+      "never": "禁止"
+    }
+  }
+}

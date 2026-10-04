@@ -1,5 +1,6 @@
 import { ArrowUp, Landmark, Loader2 } from "lucide-react"
 import { useEffect, useRef, useState, type FormEvent } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -13,7 +14,7 @@ import { useAsk } from "./hooks"
 type Turn = { id: number; question: string; response?: AskResponse; error?: string }
 
 /**
- * Text Q&A over the Work Maps. The ElevenLabs voice agent can reuse the same
+ * Text Q&A over the workflows. The ElevenLabs voice agent can reuse the same
  * `api.ask` endpoint (or replace this panel) without touching the pages.
  */
 export function AskPanel({
@@ -26,6 +27,7 @@ export function AskPanel({
   suggestions?: string[]
   className?: string
 }) {
+  const { t } = useTranslation("ask")
   const [turns, setTurns] = useState<Turn[]>([])
   const [draft, setDraft] = useState("")
   const ask = useAsk()
@@ -40,15 +42,15 @@ export function AskPanel({
     question = question.trim()
     if (!question || ask.isPending) return
     const id = nextId.current++
-    setTurns((t) => [...t, { id, question }])
+    setTurns((prev) => [...prev, { id, question }])
     setDraft("")
     ask.mutate(
       { question, workMapId },
       {
         onSuccess: (response) =>
-          setTurns((t) => t.map((x) => (x.id === id ? { ...x, response } : x))),
+          setTurns((prev) => prev.map((x) => (x.id === id ? { ...x, response } : x))),
         onError: (e) =>
-          setTurns((t) => t.map((x) => (x.id === id ? { ...x, error: e.message } : x))),
+          setTurns((prev) => prev.map((x) => (x.id === id ? { ...x, error: e.message } : x))),
       },
     )
   }
@@ -63,7 +65,7 @@ export function AskPanel({
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto">
         {turns.length === 0 && suggestions.length > 0 && (
           <div className="space-y-2 pt-2">
-            <p className="text-sm text-muted-foreground">Try asking</p>
+            <p className="text-sm text-muted-foreground">{t("askPanel.tryAsking")}</p>
             <div className="flex flex-col items-start gap-2">
               {suggestions.map((s) => (
                 <button
@@ -129,7 +131,7 @@ export function AskPanel({
               submit(draft)
             }
           }}
-          placeholder="Ask how something is done, or why…"
+          placeholder={t("askPanel.placeholder")}
           rows={2}
           className="resize-none pr-12"
         />
@@ -138,7 +140,7 @@ export function AskPanel({
           size="icon-sm"
           disabled={!draft.trim() || ask.isPending}
           className="absolute right-2 bottom-2"
-          aria-label="Send"
+          aria-label={t("askPanel.send")}
         >
           <ArrowUp />
         </Button>

@@ -1,7 +1,7 @@
 /**
  * Shared data contract between the frontend, the backend (server/) and the
  * mock ERP. If you change a shape here, tell the others — the backend's
- * Work Map JSON (LLM output) must match these types.
+ * workflow JSON (LLM output) must match these types.
  *
  * Conventions:
  * - Timestamps inside a session (`at`) are seconds since the session started.
@@ -18,7 +18,43 @@ export interface Person {
 }
 
 /* ------------------------------------------------------------------ */
-/* Work Map — the "brief, interactive document" for one workflow       */
+/* Account — the signed-in user                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How much Socrates talks: Silent observer, Balanced (default) or Active coach.
+ * Picked in onboarding; shapes live questions, heads-ups and tips.
+ */
+export type Chattiness = "quiet" | "normal" | "curious"
+
+/** UI language, and the language Socrates speaks and writes in. Picked in the profile menu. */
+export type Language =
+  "en" | "de" | "fr" | "es" | "it" | "pt" | "nl" | "pl" | "tr" | "hi" | "zh" | "ja" | "ko"
+
+export interface UserPreferences {
+  chattiness?: Chattiness
+  language?: Language
+}
+
+/** The signed-in user. `id` is also their `Person.id` on sessions they record. */
+export interface Profile {
+  id: ID
+  displayName: string
+  /** Job title, e.g. "Head of Accounts Payable". Filled in during onboarding. */
+  role?: string
+  email?: string
+  preferences: UserPreferences
+  /** False until the user has picked a coaching style in onboarding. */
+  onboarded: boolean
+}
+
+export type ProfilePatch = Partial<Pick<Profile, "displayName" | "role" | "preferences">> & {
+  /** Onboarding is done: sets `onboarded_at`. */
+  onboarded?: true
+}
+
+/* ------------------------------------------------------------------ */
+/* workflow — the "brief, interactive document" for one workflow       */
 /* ------------------------------------------------------------------ */
 
 export type WorkMapStatus =
@@ -64,6 +100,8 @@ export interface Quote {
   at: number
   /** The question the agent asked, if this quote is an answer. */
   prompt?: string
+  /** The expert's exact words, when `text` is a translation for the reader. */
+  original?: string
 }
 
 export type GuardrailKind =
@@ -138,6 +176,12 @@ export interface WorkMap {
   steps: WorkMapStep[]
   debrief: DebriefItem[]
   teachBack?: TeachBack
+  /** Language the content is written in (the expert's when recorded; default English). */
+  language?: Language
+  /** Set when the server translated this copy for the reader: the original's language. */
+  translatedFrom?: Language
+  /** The reader's language is being prepared in the background: ask again shortly. */
+  translationPending?: boolean
 }
 
 /** Lightweight version used in lists. */
@@ -155,6 +199,8 @@ export interface WorkMapSummary {
   openQuestionCount: number
   /** Thumbnail for cards; carries redactions like any screen moment. */
   cover?: ScreenMoment
+  /** See `WorkMap.translationPending`. */
+  translationPending?: boolean
 }
 
 /* ------------------------------------------------------------------ */
@@ -177,7 +223,7 @@ export interface CaptureSession {
   workMapId?: ID
   /** What the expert said they're about to do. */
   task?: string
-  /** Saved Work Map (memory) this session extends, if the expert confirmed a match. */
+  /** Saved workflow (memory) this session extends, if the expert confirmed a match. */
   basedOnWorkMapId?: ID
 }
 
@@ -208,7 +254,7 @@ export interface SessionEvent {
   important?: boolean
   /** Screenshot of the tick that produced this event. */
   screenshotUrl?: string
-  /** Step in the matched (memory) Work Map this event corresponds to. */
+  /** Step in the matched (memory) workflow this event corresponds to. */
   matchedStepId?: ID
   /** Expert decided differently than the matched step. */
   deviation?: boolean
@@ -271,6 +317,27 @@ export interface TickResult {
   screen?: string
   events: SessionEvent[]
   questions: LiveQuestion[]
+  /** All steps so far, after this tick. Omitted when the tick changed nothing. */
+  steps?: LiveStep[]
+}
+
+/**
+ * A step as it forms during capture (a candidate step on the server). The
+ * session events from `at` until the next step's `at` belong to it.
+ * Becomes a WorkMapStep after the debrief.
+ */
+export interface LiveStep {
+  id: ID
+  /** Seconds since session start when the step first appeared. */
+  at: number
+  title: string
+  kind: StepKind
+  /** What the expert decided / did, as understood so far. */
+  decision: string
+  /** Latest screenshot of this step. */
+  screenshotUrl?: string
+  /** Decided differently than the saved workflow. */
+  deviation?: boolean
 }
 
 /* ------------------------------------------------------------------ */
@@ -290,10 +357,10 @@ export interface TeachBackReply {
 }
 
 /* ------------------------------------------------------------------ */
-/* Teach — guiding a new hire through a Work Map                       */
+/* Teach — guiding a new hire through a workflow                       */
 /* ------------------------------------------------------------------ */
 
-/** A save the mock ERP is holding until the tutor allows it. */
+/** A save the mock ERP is holding until Socrates allows it. */
 export interface DecisionCheck {
   /** "post" | "hold" | "request_approval" */
   action: string
@@ -313,10 +380,77 @@ export interface DecisionVerdict {
 }
 
 /* ------------------------------------------------------------------ */
+/* Supervise — a new hire runs the workflow, Socrates stands by        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One run of a confirmed Work Map by a new hire. Socrates watches the shared
+ * screen but stays quiet: it only speaks when asked, or when the learner is
+ * about to make a mistake the expert would have caught.
+ */
+export interface SupervisionSession {
+  id: ID
+  workMapId: ID
+  learnerName: string
+  startedAt: string
+}
+
+export interface NewSupervision {
+  learnerName: string
+}
+
+/** A heads-up before (or right after) a decision the expert would not have made. */
+export interface SupervisorWarning {
+  id: ID
+  /** Seconds since the supervision started. */
+  at: number
+  /** `screen`: spotted on the shared screen. `save`: the ERP held a save. */
+  source: "screen" | "save"
+  /** One or two sentences for the learner, in the expert's reasoning. */
+  message: string
+  stepId?: ID
+  guardrailId?: ID
+  /** The expert's own words backing the warning. */
+  quote?: Quote
+  /** The expert's screen moment for that step. */
+  screen?: ScreenMoment
+}
+
+/** A question about what's on the learner's screen right now. */
+export interface ScreenQuestion {
+  question: string
+  /** Current frame: downscaled JPEG, base64 without the data: prefix. */
+  image: string
+  /** Seconds since the supervision started. */
+  at: number
+}
+
+export interface ScreenAnswer {
+  /** What Socrates says back, grounded in the screen and the expert's Work Map. */
+  answer: string
+  /** The Work Map step the answer is about. */
+  stepId?: ID
+}
+
+export interface SupervisionTickResult {
+  /** False if the tick was dropped because a vision call was still running. */
+  processed: boolean
+  /** Short label of what's on screen now. */
+  screen?: string
+  /** The Work Map step the learner is working on. */
+  currentStepId?: ID
+  /** Steps the learner has done so far (cumulative). */
+  completedStepIds: ID[]
+  /** What the learner just did, as a log line. */
+  action?: string
+  warning?: SupervisorWarning
+}
+
+/* ------------------------------------------------------------------ */
 /* Voice — ElevenAgents                                                */
 /* ------------------------------------------------------------------ */
 
-export type VoiceRole = "interviewer" | "tutor"
+export type VoiceRole = "interviewer" | "drafter" | "supervisor"
 
 export interface VoiceSession {
   /** Signed WebSocket URL; the API key never reaches the browser. */
@@ -343,4 +477,31 @@ export interface Citation {
 export interface AskResponse {
   answer: string
   citations: Citation[]
+}
+
+/* ------------------------------------------------------------------ */
+/* New workflow — AI drafts title + description from a chat            */
+/* ------------------------------------------------------------------ */
+
+export interface WorkflowDraftMessage {
+  role: "user" | "assistant"
+  content: string
+}
+
+export interface WorkflowDraftRequest {
+  /** The conversation so far; last entry is the newest user message. */
+  messages: WorkflowDraftMessage[]
+  /** Current field values, so the model can refine instead of overwrite. */
+  title: string
+  description: string
+}
+
+export interface WorkflowDraft {
+  /** What the assistant says back in the chat. */
+  reply: string
+  /** Proposed title + description for the new workflow. */
+  title: string
+  description: string
+  /** Enough is known to start: the app creates the workflow right away. */
+  ready: boolean
 }

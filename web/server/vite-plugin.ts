@@ -40,6 +40,8 @@ export function socratesApi(): Plugin {
           response.headers.forEach((value, key) => res.setHeader(key, value))
           res.end(Buffer.from(await response.arrayBuffer()))
         } catch (error) {
+          // The browser dropped the request (reload, navigation, HMR): nobody is left to answer.
+          if (req.socket.destroyed) return
           next(error)
         }
       })

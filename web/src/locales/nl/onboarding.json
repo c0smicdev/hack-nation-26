@@ -1,0 +1,23 @@
+{
+  "greeting": "Hoi {{name}}, ik ben Socrates",
+  "greetingNoName": "Hoi, ik ben Socrates",
+  "intro": "Ik word je AI-assistent. Als je me je werk laat zien, kijk ik mee, vraag ik op de juiste momenten waarom en onthoud ik het, zodat jouw kennis de volgende persoon verder helpt. Als je iets nieuws leert, sta ik naast je, in de woorden van je eigen expert. Hoe wil je dat ik met je samenwerk?",
+  "styles": {
+    "quiet": {
+      "title": "Stille observator",
+      "description": "Ik kijk mee en zit je niet in de weg. Ik meld me alleen bij wat echt belangrijk is: een limiet, een uitzondering of een fout."
+    },
+    "normal": {
+      "title": "Gebalanceerd",
+      "description": "Een paar vragen op natuurlijke pauzes, en hulp wanneer je erom vraagt. De rest wacht tot je klaar bent."
+    },
+    "curious": {
+      "title": "Actieve coach",
+      "description": "Ik vraag onderweg meer door en geef tussendoor tips, zonder dat je er eerst om hoeft te vragen."
+    }
+  },
+  "default": "Standaard",
+  "start": "Aan de slag",
+  "save": "Opslaan",
+  "saveError": "Opslaan is niet gelukt: {{message}}"
+}

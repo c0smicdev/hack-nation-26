@@ -2,17 +2,23 @@ import { z } from "zod"
 
 import type {
   CaptureSession,
+  Chattiness,
+  Language,
+  ErpSignal,
   ID,
   LiveQuestion,
+  LiveStep,
   NewSession,
   NewSessionEvent,
   Person,
+  ScreenMoment,
   SessionEvent,
   Tick,
   TickResult,
   WorkMap,
-} from "../src/lib/api/types.ts"
-import { imageBlock, models, prompt, structured, text } from "./llm.ts"
+} from "../src/lib/api/types.js"
+import { locateFocus } from "./focus.js"
+import { imageBlock, models, prompt, structured, text } from "./llm.js"
 import {
   addEvent,
   type CandidateStep,
@@ -26,7 +32,7 @@ import {
   type SessionRuntime,
   sessionAt,
   store,
-} from "./store.ts"
+} from "./store.js"
 
 /* Sessions ---------------------------------------------------------- */
 
@@ -36,15 +42,21 @@ function personFor(name: string, role: string): Person {
   return known?.expert ?? { id: `p-${slug}`, name, role }
 }
 
-export function createSession(input: NewSession): CaptureSession {
-  if (!input.task.trim() || !input.expertName.trim()) {
+/** `expert` is the signed-in user; without login the expert is matched by name. */
+export function createSession(
+  input: NewSession,
+  expert?: Person,
+  chattiness?: Chattiness,
+  language?: Language,
+): CaptureSession {
+  if (!input.task.trim() || (!expert && !input.expertName.trim())) {
     throw new HttpError(400, "task and expertName are required")
   }
   const session: CaptureSession = {
     id: newId("ses"),
     title: input.title.trim() || input.task.trim().slice(0, 60),
     task: input.task.trim(),
-    expert: personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
+    expert: expert ?? personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
     startedAt: new Date().toISOString(),
     durationSec: 0,
     status: "intake",
@@ -59,6 +71,9 @@ export function createSession(input: NewSession): CaptureSession {
     questions: [],
     visionBusy: false,
     pendingErp: [],
+    pendingFocus: new Set(),
+    chattiness,
+    language,
   })
   store.captureStatus = {
     ...store.captureStatus,
@@ -94,8 +109,6 @@ export function updateSession(
 
 /* Ticks ------------------------------------------------------------- */
 
-const Rect = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() })
-
 const VisionResult = z.object({
   screen: z.string(),
   events: z.array(
@@ -108,7 +121,6 @@ const VisionResult = z.object({
       decision: z.string().nullable(),
       matchedStepId: z.string().nullable(),
       sameDecision: z.boolean().nullable(),
-      focus: Rect.nullable(),
     }),
   ),
   question: z
@@ -123,16 +135,33 @@ const VisionResult = z.object({
   debriefQuestions: z.array(z.string()),
 })
 
-const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
+/**
+ * Boxes the step's element on its screenshot without holding up the tick (one more model call);
+ * finishCapture waits for these before the workflow is written. A failed lookup leaves no box.
+ */
+function locateInBackground(runtime: SessionRuntime, screen: ScreenMoment, frameId: ID) {
+  const frame = store.frames.get(frameId)
+  if (!frame) return
+  const job = locateFocus(frame.data, screen.caption, frame.mime)
+    .then((focus) => {
+      screen.focus = focus
+    })
+    .catch((error: unknown) => {
+      console.warn(`[focus] no box for "${screen.caption}":`, error)
+    })
+    .finally(() => runtime.pendingFocus.delete(job))
+  runtime.pendingFocus.add(job)
+}
+
 const normalize = (q: string) =>
   q
     .toLowerCase()
     .replace(/[^a-z0-9€]+/g, " ")
     .trim()
 
-/** What the saved Work Map (memory) already knows, so vision doesn't ask it again. */
+/** What the saved workflow (memory) already knows, so vision doesn't ask it again. */
 export function memoryContext(map: WorkMap | undefined) {
-  if (!map) return "No saved Work Map matches this task. Everything is new."
+  if (!map) return "No saved workflow matches this task. Everything is new."
   const steps = map.steps.map((s) => {
     const rules = s.guardrails.map((g) => `      guardrail (${g.kind}): ${g.rule}`)
     const cases = s.edgeCases.map((e) => `      edge case: if ${e.when} → ${e.then}`)
@@ -149,7 +178,7 @@ export function memoryContext(map: WorkMap | undefined) {
     .filter((d) => d.answer)
     .map((d) => `  Q: ${d.question}\n  A: "${d.answer!.text}"`)
   return [
-    `Saved Work Map "${map.title}" by ${map.expert.name}:`,
+    `Saved workflow "${map.title}" by ${map.expert.name}:`,
     ...steps,
     answered.length ? `Answered in an earlier debrief:\n${answered.join("\n")}` : "",
   ]
@@ -157,24 +186,46 @@ export function memoryContext(map: WorkMap | undefined) {
     .join("\n")
 }
 
+const COACHING: Record<Chattiness, string> = {
+  quiet: "silent (ask live only about guardrails)",
+  normal: "balanced",
+  curious: "active (ask more live questions)",
+}
+
 function contextFor(runtime: SessionRuntime, erpLines: string[]) {
   const { session } = runtime
   const base = session.basedOnWorkMapId ? getWorkMap(session.basedOnWorkMapId) : undefined
   const recent = runtime.events.slice(-15).map((e) => `  ${e.at.toFixed(0)}s ${e.kind}: ${e.text}`)
   const candidates = runtime.candidates.map((c) => `  [${c.id}] ${c.title} — ${c.decision}`)
-  const asked = runtime.questions.map(
-    (q) =>
-      `  ${q.askedLive ? "asked" : "queued"}: ${q.question}${q.answer ? ` → "${q.answer.text}"` : ""}`,
-  )
+  // Live vs. debrief and guardrail flags let vision keep the 3–5 live questions (≥1 guardrail) budget.
+  const asked = runtime.questions.map((q) => {
+    const state = q.askedLive ? "asked live" : q.screen ? "waiting to ask live" : "for the debrief"
+    const answer = q.answer ? ` → "${q.answer.text}"` : ""
+    return `  ${state}${q.guardrail ? " (guardrail)" : ""}: ${q.question}${answer}`
+  })
   return [
     `Task (in the expert's words): ${session.task}`,
     `Expert: ${session.expert.name}, ${session.expert.role}`,
+    `Coaching style the expert chose: ${COACHING[runtime.chattiness ?? "normal"]}`,
     memoryContext(base),
     `Candidate steps so far:\n${candidates.join("\n") || "  (none)"}`,
     `Recent events (narration = expert speaking):\n${recent.join("\n") || "  (none)"}`,
     `Questions already asked or queued:\n${asked.join("\n") || "  (none)"}`,
     `Application signals since the previous screenshot:\n${erpLines.join("\n") || "  (none)"}`,
   ].join("\n\n")
+}
+
+/** Candidate steps as the recording page shows them. */
+export function liveSteps(runtime: SessionRuntime): LiveStep[] {
+  return runtime.candidates.map((c) => ({
+    id: c.id,
+    at: c.at,
+    title: c.title,
+    kind: c.kind,
+    decision: c.decision,
+    screenshotUrl: c.screen.screenshotUrl,
+    deviation: c.deviation,
+  }))
 }
 
 const empty = (processed: boolean, screen?: string): TickResult => ({
@@ -210,6 +261,7 @@ export async function processTick(sessionId: ID, tick: Tick): Promise<TickResult
       effort: "low",
       maxTokens: 4000,
       system: prompt("vision-events"),
+      language: runtime.language,
       schema: VisionResult,
       content: [
         text(
@@ -231,7 +283,7 @@ export async function processTick(sessionId: ID, tick: Tick): Promise<TickResult
     runtime.visionBusy = false
   }
 
-  return applyVision(runtime, tick.at, frameId, result)
+  return applyVision(runtime, tick.at, frameId, result, erp)
 }
 
 function applyVision(
@@ -239,6 +291,7 @@ function applyVision(
   at: number,
   frameId: ID,
   result: z.infer<typeof VisionResult>,
+  erp: ErpSignal[],
 ): TickResult {
   const { session } = runtime
   const screenshotUrl = frameUrl(frameId)
@@ -257,20 +310,13 @@ function applyVision(
     // Known step with the same decision: link it, don't create a step and don't ask.
     const known = matchedStepId && !deviation
     if (e.important && !known) {
-      const screen = {
+      const screen: ScreenMoment = {
         sessionId: session.id,
         at,
         screenshotUrl,
         caption: e.text,
-        focus: e.focus
-          ? {
-              x: clamp01(e.focus.x),
-              y: clamp01(e.focus.y),
-              width: clamp01(e.focus.width),
-              height: clamp01(e.focus.height),
-            }
-          : undefined,
       }
+      locateInBackground(runtime, screen, frameId)
       const existing = runtime.candidates.find((c) => c.id === e.candidateStepId)
       if (existing) {
         existing.decision = e.decision ?? existing.decision
@@ -313,18 +359,25 @@ function applyVision(
     const stepId =
       (q.aboutEventIndex != null ? stepForEvent[q.aboutEventIndex] : undefined) ??
       runtime.candidates.find((c) => c.id === q.aboutCandidateStepId)?.id
+    // Hard rule: never ask live before the expert has decided something, or the question leads them
+    // ("should this go to another account?") and spoils the decision we want to learn. ERP signals
+    // are exact; without any, trust vision's judgment events. A blocked question waits for the debrief.
+    const decided = erp.length
+      ? erp.some((s) => s.kind !== "navigate")
+      : result.events.some((e) => e.important && e.stepKind === "judgment")
+    const live = q.timeSensitive && decided
     const open: OpenQuestion = {
       id: newId("q"),
       at,
       question: q.text,
       stepId,
       guardrail: q.guardrail,
-      screen: q.timeSensitive ? result.screen : undefined,
+      screen: live ? result.screen : undefined,
       askedLive: false,
     }
     runtime.questions.push(open)
     seen.add(normalize(q.text))
-    if (q.timeSensitive) {
+    if (live) {
       questions.push({
         id: open.id,
         question: open.question,
@@ -341,7 +394,7 @@ function applyVision(
     runtime.questions.push({ id: newId("q"), at, question, guardrail: false, askedLive: false })
   }
 
-  return { processed: true, screen: result.screen, events, questions }
+  return { processed: true, screen: result.screen, events, questions, steps: liveSteps(runtime) }
 }
 
 /* Events from the session page (speech, questions asked, …) ---------- */
@@ -383,7 +436,7 @@ const MemoryMatch = z.object({
   matches: z.array(z.object({ workMapId: z.string(), why: z.string() })),
 })
 
-/** Confirmed Work Maps that describe the same (or an overlapping) task. */
+/** Confirmed workflows that describe the same (or an overlapping) task. */
 export async function findRelatedWorkMaps(task: string) {
   const confirmed = store.workMaps.filter((m) => m.status === "confirmed")
   if (!task.trim() || confirmed.length === 0) return []
@@ -399,7 +452,7 @@ export async function findRelatedWorkMaps(task: string) {
     maxTokens: 2000,
     system: prompt("memory-match"),
     schema: MemoryMatch,
-    content: [text(`Task the expert is about to do:\n${task}\n\nSaved Work Maps:\n${catalog}`)],
+    content: [text(`Task the expert is about to do:\n${task}\n\nSaved workflows:\n${catalog}`)],
   })
   return matches
     .map((match) => confirmed.find((m) => m.id === match.workMapId))

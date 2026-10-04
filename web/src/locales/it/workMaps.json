@@ -1,0 +1,133 @@
+{
+  "status": {
+    "confirmed": "Confermato dall'esperto",
+    "in_debrief": "In debriefing",
+    "draft": "Bozza"
+  },
+  "guardrail": {
+    "limit": "Limite",
+    "stop_and_ask": "Fermati e chiedi",
+    "never": "Mai"
+  },
+  "quoteSource": {
+    "narration": "mentre lavorava",
+    "live_question": "rispondendo a una domanda in diretta",
+    "debrief": "nel debriefing"
+  },
+  "counts": {
+    "steps_one": "{{count}} passaggio",
+    "steps_many": "{{count}} passaggi",
+    "steps_other": "{{count}} passaggi",
+    "judgmentCalls_one": "{{count}} valutazione",
+    "judgmentCalls_many": "{{count}} valutazioni",
+    "judgmentCalls_other": "{{count}} valutazioni",
+    "guardrails_one": "{{count}} regola di sicurezza",
+    "guardrails_many": "{{count}} regole di sicurezza",
+    "guardrails_other": "{{count}} regole di sicurezza",
+    "openQuestions_one": "{{count}} domanda aperta",
+    "openQuestions_many": "{{count}} domande aperte",
+    "openQuestions_other": "{{count}} domande aperte"
+  },
+  "judgmentCall": "Valutazione",
+  "quoted": "“{{text}}”",
+  "flowchart": {
+    "when": "Quando: {{trigger}}",
+    "start": "Inizio",
+    "done": "Fine",
+    "edgeCase": "Se {{when}} → {{then}}",
+    "guardrail": {
+      "limit": "Limite",
+      "stop_and_ask": "Fermati e chiedi",
+      "never": "Mai"
+    }
+  },
+  "libraryPage": {
+    "title": "Workflow",
+    "description": "Guide brevi e interattive raccolte dai tuoi esperti: ogni passaggio, valutazione e regola di sicurezza, con le loro parole.",
+    "searchPlaceholder": "Cerca workflow, esperti…",
+    "filters": {
+      "all": "Tutti",
+      "confirmed": "Confermati"
+    },
+    "newWorkflow": "Nuovo workflow",
+    "empty": {
+      "title": "Nessun workflow trovato",
+      "noWorkflows": "Qui le sessioni registrate diventano workflow.",
+      "noMatches": "Prova con un'altra ricerca o un altro filtro."
+    }
+  },
+  "workMapPage": {
+    "back": "Workflow",
+    "updated": "aggiornato {{when}}",
+    "supervise": "Supervisiona un'esecuzione",
+    "when": "Quando:",
+    "flowchart": "Diagramma di flusso"
+  },
+  "askSheet": {
+    "trigger": "Chiedi su questo",
+    "title": "Chiedi a Socrates",
+    "description": "Le risposte si basano sulle parole di {{expert}} in questo workflow.",
+    "stopAndAsk": "Quando devo fermarmi e chiedere a qualcuno?",
+    "howDoI": "Come faccio a {{task}}?"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates:",
+    "caption": "{{speaker}}, {{source}} alle {{time}}",
+    "original": "Originale: “{{text}}”"
+  },
+  "stepDetail": {
+    "position": "Passaggio {{index}} di {{total}}",
+    "decision": "Decisione",
+    "why": "Perché",
+    "guardrails": "Regole di sicurezza",
+    "edgeCases": "Casi particolari",
+    "escalateTo": " · Chiedi a: {{who}}",
+    "if": "Se",
+    "previous": "Indietro",
+    "next": "Avanti"
+  },
+  "debrief": {
+    "title": "Debriefing",
+    "description": "Domande che Socrates ha fatto dopo l'attività per colmare le lacune.",
+    "notStarted": "Il debriefing non è ancora iniziato.",
+    "stillOpen": "Ancora aperta: Socrates la chiederà nel prossimo debriefing.",
+    "goToStep": "Vai al passaggio {{number}}",
+    "teachBack": "Spiegazione di verifica",
+    "confirmed": "Confermato",
+    "teachBackDescription": "Socrates rispiega il processo finché l'esperto non dice: sì, funziona proprio così.",
+    "correction": "Correzione",
+    "teachBackPending": "Avviene quando hai risposto a tutte le domande del debriefing."
+  },
+  "newWorkflow": {
+    "greeting": "Quale workflow vuoi mostrarmi? Dimmi cosa fai, per chi e quando. Al titolo e alla descrizione penso io.",
+    "draftError": "Scusa, non sono riuscito a creare la bozza: {{message}}",
+    "title": "Nuovo workflow",
+    "titlePlaceholder": "Workflow senza titolo",
+    "titleLabel": "Titolo",
+    "descriptionPlaceholderText": "Socrates la compila mentre descrivi il workflow…",
+    "descriptionPlaceholderVoice": "Socrates la compila mentre parli…",
+    "descriptionLabel": "Descrizione",
+    "voiceUnavailable": "Qui la voce non è disponibile, quindi scriviamo.",
+    "talkInstead": "Parla",
+    "typeInstead": "Scrivi",
+    "cancel": "Annulla",
+    "create": "Crea workflow",
+    "status": {
+      "connecting": "Connessione…",
+      "speaking": "Socrates sta parlando",
+      "muted": "Microfono disattivato: scrivi a Socrates qui sotto",
+      "listening": "In ascolto: parla pure"
+    },
+    "unmute": "Riattiva microfono",
+    "mute": "Disattiva microfono",
+    "writePlaceholderMuted": "Scrivi a Socrates…",
+    "writePlaceholder": "Oppure scrivi a Socrates…",
+    "messageLabel": "Messaggio per Socrates",
+    "send": "Invia",
+    "textPlaceholder": "es. Controllo le fatture dei fornitori prima della chiusura di fine mese…"
+  },
+  "translation": {
+    "pending": "Traduzione di questo workflow nella tua lingua…",
+    "translatedFrom": "Tradotto automaticamente · lingua originale: {{language}}. Le citazioni riportano anche le parole originali dell'esperto."
+  }
+}

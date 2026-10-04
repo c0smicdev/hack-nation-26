@@ -4,15 +4,21 @@ import type {
   CaptureSession,
   CaptureStatus,
   DecisionVerdict,
+  ErpSignal,
   ID,
   LiveQuestion,
+  LiveStep,
+  Profile,
   Quote,
   SessionEvent,
+  SupervisionSession,
   WorkMap,
 } from "../types"
 import { answer } from "./ask"
+import { draftWorkflow } from "./draft"
 import {
   LIVE_SESSION_ID,
+  sabine,
   sessions as fixtureSessions,
   workMaps as fixtureWorkMaps,
 } from "./fixtures"
@@ -35,7 +41,32 @@ const workMaps: WorkMap[] = structuredClone(fixtureWorkMaps)
 const sessions: CaptureSession[] = fixtureSessions.filter((s) => s.id !== LIVE_SESSION_ID)
 const events = new Map<ID, SessionEvent[]>()
 const startedAt = new Map<ID, number>()
+// Mock mode has no login: you're Sabine, so the demo reads as before.
+let me: Profile = {
+  id: sabine.id,
+  displayName: sabine.name,
+  role: sabine.role,
+  email: "sabine.keller@example.com",
+  preferences: { chattiness: "normal" },
+  onboarded: true,
+}
 const lastQuestionAt = new Map<ID, number>()
+const liveSteps = new Map<ID, LiveStep[]>()
+
+/** Like the vision model: every decision in the ERP becomes a step. */
+function addToSteps(sid: ID, signal: ErpSignal) {
+  if (signal.kind === "navigate") return
+  const steps = liveSteps.get(sid) ?? []
+  liveSteps.set(sid, steps)
+  steps.push({
+    id: id("st"),
+    at: signal.at,
+    title: signal.text,
+    kind: signal.kind === "action" ? "judgment" : "routine",
+    decision: signal.text,
+    screenshotUrl: "/mock/erp-invoice-4471.svg",
+  })
+}
 
 let captureStatus: CaptureStatus = {
   active: false,
@@ -43,7 +74,7 @@ let captureStatus: CaptureStatus = {
   offTheRecord: false,
 }
 
-const findMap = (mapId: ID) => workMaps.find((m) => m.id === mapId) ?? notFound(`Work map ${mapId}`)
+const findMap = (mapId: ID) => workMaps.find((m) => m.id === mapId) ?? notFound(`Workflow ${mapId}`)
 const findSession = (sid: ID) => sessions.find((s) => s.id === sid) ?? notFound(`Session ${sid}`)
 const elapsed = (sid: ID) => Math.round((Date.now() - (startedAt.get(sid) ?? Date.now())) / 1000)
 
@@ -121,9 +152,52 @@ function verdict(map: WorkMap, action: string, record: Record<string, unknown>):
   return { allow: true, message: "That's how it's done. Go ahead." }
 }
 
+/* Supervise: ERP signals stand in for vision -------------------------- */
+
+interface Supervision extends SupervisionSession {
+  currentStepId?: ID
+  completed: Set<ID>
+}
+
+const supervisions = new Map<ID, Supervision>()
+
+const words = (text: string) => new Set(text.toLowerCase().match(/[a-z0-9€]{4,}/g) ?? [])
+
+/** Which step an ERP signal belongs to: fixed rules for the seeded AP map, word overlap otherwise. */
+function stepForSignal(map: WorkMap, signal: ErpSignal): ID | undefined {
+  const text = signal.text.toLowerCase()
+  if (map.id === "wm-ap-month-end") {
+    if (/invoice list/.test(text)) return "s1"
+    if (/opened invoice \d+/.test(text)) return "s2"
+    if (/account|cost center|asset/.test(text)) return "s4"
+    if (/approver|approval/.test(text)) return "s5"
+    if (/hold/.test(text)) return "s6"
+    if (/posted/.test(text)) return "s7"
+    return undefined
+  }
+  const said = words(signal.text)
+  let best: { id: ID; score: number } | undefined
+  for (const step of map.steps) {
+    const score = [...words(`${step.title} ${step.decision}`)].filter((w) => said.has(w)).length
+    if (score >= 2 && score > (best?.score ?? 0)) best = { id: step.id, score }
+  }
+  return best?.id
+}
+
 /* API --------------------------------------------------------------- */
 
 export const mockApi: SocratesApi = {
+  async getMe() {
+    await delay()
+    return me
+  },
+
+  async updateMe(patch) {
+    await delay()
+    me = { ...me, ...patch, preferences: { ...me.preferences, ...patch.preferences } }
+    return me
+  },
+
   async listWorkMaps() {
     await delay()
     return workMaps.map(toSummary)
@@ -191,6 +265,11 @@ export const mockApi: SocratesApi = {
     return [...(events.get(sid) ?? [])]
   },
 
+  async listLiveSteps(sid) {
+    await delay(100)
+    return structuredClone(liveSteps.get(sid) ?? [])
+  },
+
   async recordEvent(sid, event) {
     await delay(50)
     if (captureStatus.offTheRecord && event.kind !== "off_record") {
@@ -203,6 +282,7 @@ export const mockApi: SocratesApi = {
   async postTick(sid, tick) {
     await delay(300)
     if (captureStatus.offTheRecord) return { processed: false, events: [], questions: [] }
+    tick.erp.forEach((signal) => addToSteps(sid, signal))
     const created = tick.erp.map((signal) =>
       push(sid, {
         at: signal.at,
@@ -223,7 +303,8 @@ export const mockApi: SocratesApi = {
         screen: "current",
       })
     }
-    return { processed: true, screen: "current", events: created, questions }
+    const steps = tick.erp.length ? structuredClone(liveSteps.get(sid) ?? []) : undefined
+    return { processed: true, screen: "current", events: created, questions, steps }
   },
 
   async getCaptureStatus() {
@@ -358,6 +439,55 @@ export const mockApi: SocratesApi = {
     return verdict(findMap(mapId), check.action, check.record)
   },
 
+  async startSupervision(mapId, { learnerName }) {
+    await delay()
+    findMap(mapId)
+    const supervision: Supervision = {
+      id: id("sup"),
+      workMapId: mapId,
+      learnerName: learnerName.trim() || "New hire",
+      startedAt: new Date().toISOString(),
+      completed: new Set(),
+    }
+    supervisions.set(supervision.id, supervision)
+    const { workMapId, learnerName: name, startedAt: started } = supervision
+    return { id: supervision.id, workMapId, learnerName: name, startedAt: started }
+  },
+
+  async postSupervisionTick(supervisionId, tick) {
+    await delay(300)
+    const supervision = supervisions.get(supervisionId) ?? notFound(`Supervision ${supervisionId}`)
+    const map = findMap(supervision.workMapId)
+    let action: string | undefined
+    for (const signal of tick.erp) {
+      if (signal.kind !== "navigate") action = signal.text
+      const stepId = stepForSignal(map, signal)
+      if (!stepId) continue
+      // Moving on means the steps before this one are done.
+      const index = map.steps.findIndex((s) => s.id === stepId)
+      map.steps.slice(0, index).forEach((s) => supervision.completed.add(s.id))
+      if (signal.kind === "action") supervision.completed.add(stepId)
+      supervision.currentStepId = stepId
+    }
+    return {
+      processed: true,
+      screen: "current",
+      currentStepId: supervision.currentStepId,
+      completedStepIds: [...supervision.completed],
+      action,
+    }
+  },
+
+  async askAboutScreen(supervisionId, { question }) {
+    // No vision in the mock: answer from the Work Map, anchored to where the ERP says they are.
+    const supervision = supervisions.get(supervisionId) ?? notFound(`Supervision ${supervisionId}`)
+    await delay(600)
+    const map = findMap(supervision.workMapId)
+    const { answer: text, citations } = answer(question, [map])
+    const stepId = citations[0]?.stepId ?? supervision.currentStepId
+    return { answer: text, stepId }
+  },
+
   async getVoiceSession() {
     return null
   },
@@ -366,5 +496,10 @@ export const mockApi: SocratesApi = {
     await delay(600)
     const scope = workMapId ? workMaps.filter((m) => m.id === workMapId) : workMaps
     return answer(question, scope)
+  },
+
+  async draftWorkflow({ messages, title, description }) {
+    await delay(600)
+    return draftWorkflow(messages, title, description)
   },
 }

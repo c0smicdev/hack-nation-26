@@ -1,17 +1,48 @@
 /**
- * Creates or updates the two ElevenAgents (interviewer + tutor) from
- * prompts/*.md, so agent config lives in git, not in a dashboard.
+ * Creates or updates the ElevenAgents (interviewer, supervisor, new-workflow drafter) from
+ * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
+ * so agent config lives in git, not in a dashboard.
  *
- *   npm run setup:agents
+ *   npm run setup:agents               # all agents
+ *   npm run setup:agents -- supervisor # only the named ones
+ *   npm run setup:agents -- --test     # copies named "… (test)", ids in *_AGENT_ID_TEST
+ *
+ * Test copies let you try prompt or config changes without touching the agents everyone uses:
+ * set ELEVENLABS_USE_TEST_AGENTS=1 in .env.local and the local server connects to them.
  *
  * Reads ELEVENLABS_API_KEY from .env.local and writes the agent ids back into it.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 
 const ENV_FILE = ".env.local"
 const API = "https://api.elevenlabs.io/v1/convai"
 /** Claude via ElevenAgents' built-in LLM catalog (see GET /v1/convai/llm/list). */
 const LLM = process.env.ELEVENLABS_LLM ?? "claude-sonnet-5-5"
+/**
+ * Expressive mode: Eleven v3 Conversational adapts tone to the conversation and speaks audio tags
+ * ("[curious]", "[warm]") the LLM writes. Only v3 models support it; the API silently turns
+ * `expressive_mode` off for any other TTS model.
+ */
+const TTS_MODEL = "eleven_v3_conversational"
+
+type AudioTag = { tag: string; description: string }
+
+/** The app's languages (src/lib/i18n/languages.ts). */
+const SPOKEN_LANGUAGES = [
+  "en",
+  "de",
+  "fr",
+  "es",
+  "it",
+  "pt",
+  "nl",
+  "pl",
+  "tr",
+  "hi",
+  "zh",
+  "ja",
+  "ko",
+]
 
 function readEnv(): Record<string, string> {
   if (!existsSync(ENV_FILE)) return {}
@@ -61,27 +92,158 @@ const skipTurn = {
   },
 }
 
+/* Procedures: one free-form procedure per file ----------------------- */
+
+interface ProcedureSource {
+  name: string
+  trigger: string
+  content: string
+}
+
+/**
+ * A procedure file is `name:` + `trigger:` frontmatter and a markdown body. The body references
+ * tools and other procedures by name (`[tool name="start_capture"]`, `[procedure name="Capture"]`);
+ * ids differ per agent, so they're resolved at sync time. An empty `trigger:` makes a
+ * sub-procedure: it only runs when another procedure references it.
+ */
+function readProcedures(role: string): ProcedureSource[] {
+  const dir = `prompts/procedures/${role}`
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((file) => file.endsWith(".md"))
+    .sort()
+    .map((file) => {
+      const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(
+        readFileSync(`${dir}/${file}`, "utf8"),
+      )
+      const meta = Object.fromEntries(
+        (match?.[1] ?? "")
+          .split(/\r?\n/)
+          .map((line) => [
+            line.slice(0, line.indexOf(":")).trim(),
+            line.slice(line.indexOf(":") + 1).trim(),
+          ]),
+      )
+      if (!match || !meta.name || meta.trigger === undefined)
+        throw new Error(
+          `${dir}/${file}: needs name + trigger frontmatter (empty trigger = sub-procedure)`,
+        )
+      return { name: meta.name, trigger: meta.trigger, content: match[2].trim() }
+    })
+}
+
+async function call<T>(apiKey: string, path: string, method = "GET", body?: unknown): Promise<T> {
+  const res = await fetch(`${API}${path}`, {
+    method,
+    headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`${method} ${path}: ${res.status} ${await res.text()}`)
+  return (await res.json()) as T
+}
+
+/** Creates/updates the procedure drafts on the agent's main branch, then publishes them. */
+async function syncProcedures(apiKey: string, agentId: string, role: string) {
+  const sources = readProcedures(role)
+  if (!sources.length) return
+
+  const agent = await call<{
+    main_branch_id: string
+    conversation_config: { agent: { prompt: { tool_ids?: string[] } } }
+  }>(apiKey, `/agents/${agentId}`)
+  const branch = `/agents/${agentId}/branches/${agent.main_branch_id}/procedures`
+
+  const toolIds = new Map<string, string>()
+  for (const id of agent.conversation_config.agent.prompt.tool_ids ?? []) {
+    const tool = await call<{ tool_config: { name: string } }>(apiKey, `/tools/${id}`)
+    toolIds.set(tool.tool_config.name, id)
+  }
+
+  // Create missing procedures first, so procedures can reference each other by id.
+  const { procedures } = await call<{ procedures: { procedure_id: string; name: string }[] }>(
+    apiKey,
+    branch,
+  )
+  const procedureIds = new Map(procedures.map((p) => [p.name, p.procedure_id]))
+  for (const source of sources) {
+    if (procedureIds.has(source.name)) continue
+    const created = await call<{ procedure_id: string }>(apiKey, branch, "POST", {
+      name: source.name,
+      type: "free_form",
+      trigger: source.trigger,
+      content: "(syncing)",
+    })
+    procedureIds.set(source.name, created.procedure_id)
+  }
+  for (const p of procedures) {
+    if (!sources.some((s) => s.name === p.name))
+      console.warn(
+        `  ${p.name} (${p.procedure_id}) is not in prompts/procedures/${role}; left as is`,
+      )
+  }
+
+  const resolve = (kind: string, name: string, ids: Map<string, string>) => {
+    const id = ids.get(name)
+    if (!id) throw new Error(`prompts/procedures/${role}: unknown ${kind} "${name}"`)
+    return `[${kind} id="${id}"]`
+  }
+  for (const source of sources) {
+    const content = source.content
+      .replace(/\[tool name="([^"]+)"\]/g, (_, name: string) => resolve("tool", name, toolIds))
+      .replace(/\[procedure name="([^"]+)"\]/g, (_, name: string) =>
+        resolve("procedure", name, procedureIds),
+      )
+    await call(apiKey, `${branch}/${procedureIds.get(source.name)}/draft`, "PATCH", {
+      name: source.name,
+      type: "free_form",
+      trigger: source.trigger,
+      content,
+    })
+  }
+
+  // Publishing = a new agent version on the branch, carrying every changed draft.
+  await call(apiKey, `/agents/${agentId}?branch_id=${agent.main_branch_id}`, "PATCH", {
+    version_description: "Sync procedures from prompts/procedures",
+  })
+  console.log(`  ${sources.length} procedures: ${sources.map((s) => s.name).join(" → ")}`)
+}
+
 const agents = {
   interviewer: {
     envKey: "ELEVENLABS_INTERVIEWER_AGENT_ID",
     name: "Socrates · Interviewer",
     prompt: "interviewer",
-    firstMessage: "Hi {{expert_name}}, I'm Socrates. What are you about to work on?",
-    placeholders: { expert_name: "Sabine", task: "Process supplier invoices" },
-    // Experts pause to think while they work: don't jump in.
-    turn: { turn_eagerness: "patient", turn_timeout: 15 },
+    // The task was already described (new-workflow dialog or capture form): confirm it, never ask
+    // for it again. No name here, because sessions from the dialog have the expert "You".
+    firstMessage: "Hi, I'm Socrates. You're showing me {{workflow}} today, right?",
+    placeholders: {
+      expert_name: "Sabine",
+      workflow: "Month-end supplier invoices",
+      task: "Process this week's supplier invoices in the ERP before the month-end close.",
+      coaching_style: "balanced",
+    },
+    // Experts pause to think while they work: don't jump in. turn_v3 is the prosody-aware
+    // turn-taking that ships with expressive mode.
+    turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
+    skipTurn: true,
+    audioTags: [
+      { tag: "curious", description: "Asking why the expert did something" },
+      { tag: "thoughtful", description: "Playing back what you understood, or the teach-back" },
+      { tag: "warm", description: "Thanking the expert or acknowledging a good explanation" },
+      { tag: "apologetic", description: "You got something wrong and they corrected you" },
+    ] satisfies AudioTag[],
     tools: [
       clientTool(
         "lookup_memory",
-        "Find saved Work Maps for this task, so you don't document a workflow twice.",
+        "Find saved workflows for this task, so you don't document a workflow twice.",
         {
           task: { type: "string", description: "One-line description of the task" },
         },
       ),
-      clientTool("set_base_work_map", "Record whether this session extends a saved Work Map.", {
+      clientTool("set_base_work_map", "Record whether this session extends a saved workflow.", {
         work_map_id: {
           type: "string",
-          description: "Id of the saved Work Map, or 'none' if the task is new",
+          description: "Id of the saved workflow, or 'none' if the task is new",
         },
       }),
       clientTool("start_capture", "Start watching the screen once you understand the task.", {
@@ -127,28 +289,73 @@ const agents = {
       ),
     ],
   },
-  tutor: {
-    envKey: "ELEVENLABS_TUTOR_AGENT_ID",
-    name: "Socrates · Tutor",
-    prompt: "tutor",
+  supervisor: {
+    envKey: "ELEVENLABS_SUPERVISOR_AGENT_ID",
+    name: "Socrates · Supervisor",
+    prompt: "supervisor",
     firstMessage:
-      "Hi {{learner_name}}, I'm Socrates. Today we'll work through how {{expert_name}} does this.",
-    placeholders: { learner_name: "Alex", expert_name: "Sabine", work_map: "(Work Map)" },
+      "Hi {{learner_name}}, I'm Socrates. Go ahead, I'll stay quiet. Just ask if you need me.",
+    placeholders: {
+      learner_name: "Alex",
+      expert_name: "Sabine",
+      work_map: "(Work Map)",
+      coaching_style: "balanced",
+    },
+    // The learner is waiting on the answer, so don't hold back the turn; skip_turn filters out
+    // thinking out loud. A run often takes longer than the default 10-minute call limit.
+    turn: { turn_eagerness: "normal", turn_timeout: 15, turn_model: "turn_v3" },
+    maxDurationSecs: 3600,
+    skipTurn: true,
+    audioTags: [
+      { tag: "calm", description: "A heads-up before a mistake, or a held save" },
+      { tag: "slow", description: "Stating a limit, an amount, or a rule word for word" },
+      { tag: "friendly", description: "Answering a question the learner asked" },
+      { tag: "reassuring", description: "The learner sounds unsure or stressed" },
+    ] satisfies AudioTag[],
+    tools: [
+      clientTool(
+        "look_at_screen",
+        "Look at the learner's screen right now and get an answer to their question, grounded in what's on screen and the expert's Work Map. Use it for every question about their work.",
+        {
+          question: {
+            type: "string",
+            description:
+              "The learner's question, in their words, with what 'this' or 'here' refers to if you know",
+          },
+        },
+        45,
+      ),
+      clientTool(
+        "show_step",
+        "Show the learner the Work Map step your answer or heads-up is about: what the expert did on screen and why.",
+        { step_id: { type: "string", description: "Id of the Work Map step, e.g. s4" } },
+      ),
+    ],
+  },
+  drafter: {
+    envKey: "ELEVENLABS_DRAFTER_AGENT_ID",
+    name: "Socrates · New workflow",
+    prompt: "drafter",
+    firstMessage:
+      "Hi, I'm Socrates. Which workflow do you want to show me? Just tell me what you do and when.",
+    placeholders: {},
     turn: { turn_eagerness: "normal", turn_timeout: 10 },
     tools: [
       clientTool(
-        "finish_lesson",
-        "The lesson is over. Show what the learner mastered and what to practice.",
+        "update_workflow",
+        "Update the new workflow's title and description on the expert's screen.",
         {
-          mastered: {
+          title: { type: "string", description: "3–7 words, the task as the expert names it" },
+          description: {
             type: "string",
-            description: "What they got right, short phrases separated by semicolons",
-          },
-          practice: {
-            type: "string",
-            description: "What to practice, short phrases separated by semicolons",
+            description: "1–3 sentences: what the task is, for whom, and when it comes up",
           },
         },
+      ),
+      clientTool(
+        "create_workflow",
+        "The expert agreed: create the workflow and start capture.",
+        {},
       ),
     ],
   },
@@ -159,14 +366,27 @@ async function main() {
   const apiKey = env.ELEVENLABS_API_KEY
   if (!apiKey) throw new Error(`Set ELEVENLABS_API_KEY in ${ENV_FILE}`)
 
-  for (const [role, agent] of Object.entries(agents)) {
+  // Optional role names: sync only those agents and leave the others as they are.
+  const args = process.argv.slice(2)
+  const test = args.includes("--test")
+  const only = args.filter((a) => !a.startsWith("--"))
+  const unknown = only.filter((role) => !(role in agents))
+  if (unknown.length) throw new Error(`Unknown agent(s): ${unknown.join(", ")}`)
+  const selected = Object.entries(agents).filter(([role]) => !only.length || only.includes(role))
+
+  for (const [role, agent] of selected) {
+    const envKey = test ? `${agent.envKey}_TEST` : agent.envKey
     const body = {
-      name: agent.name,
+      name: test ? `${agent.name} (test)` : agent.name,
       conversation_config: {
         agent: {
           first_message: agent.firstMessage,
+          // The greeting is short; a cough or "mhm" shouldn't cut it off.
+          disable_first_message_interruptions: true,
           language: "en",
-          dynamic_variables: { dynamic_variable_placeholders: agent.placeholders },
+          dynamic_variables: {
+            dynamic_variable_placeholders: { ...agent.placeholders, language: "English" },
+          },
           prompt: {
             prompt: readFileSync(`prompts/${agent.prompt}.md`, "utf8"),
             llm: LLM,
@@ -175,11 +395,38 @@ async function main() {
         },
         // Scribe v2 Realtime: listening + pause detection.
         asr: { provider: "scribe_realtime", quality: "high" },
-        turn: agent.turn,
+        // Backchannels ("mhm", "ja", "d'accord") never interrupt Socrates, in every language the
+        // app speaks; by default ElevenLabs only knows the English ones, so German or French
+        // fillers cut the voice off after a second or two.
+        turn: {
+          ...agent.turn,
+          interruption_ignore_term_languages: SPOKEN_LANGUAGES,
+          merge_with_default_ignore_terms: true,
+        },
+        // Someone talking in the background (a colleague, a call) isn't the user.
+        vad: { background_voice_detection: true },
+        tts: {
+          model_id: TTS_MODEL,
+          expressive_mode: true,
+          suggested_audio_tags: "audioTags" in agent ? agent.audioTags : undefined,
+        },
+        conversation:
+          "maxDurationSecs" in agent ? { max_duration_seconds: agent.maxDurationSecs } : undefined,
+      },
+      // The app sets the language per conversation (the user's pick), a greeting and a voice for it.
+      platform_settings: {
+        overrides: {
+          conversation_config_override: {
+            agent: { language: true, first_message: true },
+            // A native speaker's voice per language (src/lib/voice/voices.ts).
+            tts: { voice_id: true },
+            conversation: { text_only: true },
+          },
+        },
       },
     }
 
-    const existing = env[agent.envKey]
+    const existing = env[envKey]
     const res = await fetch(existing ? `${API}/agents/${existing}` : `${API}/agents/create`, {
       method: existing ? "PATCH" : "POST",
       headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
@@ -189,7 +436,7 @@ async function main() {
     const { agent_id } = (await res.json()) as { agent_id: string }
 
     // The API ignores built_in_tools when inline `tools` are in the same request, so set them separately.
-    if (role === "interviewer") {
+    if ("skipTurn" in agent && agent.skipTurn) {
       const patch = await fetch(`${API}/agents/${agent_id}`, {
         method: "PATCH",
         headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
@@ -200,8 +447,9 @@ async function main() {
       if (!patch.ok)
         throw new Error(`${agent.name} (skip_turn): ${patch.status} ${await patch.text()}`)
     }
-    writeEnv(agent.envKey, agent_id)
-    console.log(`${existing ? "Updated" : "Created"} ${agent.name}: ${agent_id}`)
+    writeEnv(envKey, agent_id)
+    console.log(`${existing ? "Updated" : "Created"} ${body.name}: ${agent_id}`)
+    await syncProcedures(apiKey, agent_id, role)
   }
   console.log(`Agent ids written to ${ENV_FILE}. Restart \`npm run dev\` to pick them up.`)
 }

@@ -1,0 +1,60 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Como o Socrates trabalha com você",
+    "askSocrates": "Pergunte ao Socrates",
+    "logIn": "Entrar",
+    "logOut": "Sair"
+  },
+  "profileMenu": {
+    "language": "Idioma",
+    "languageHint": "O idioma do app. O Socrates também fala e escreve com você nele."
+  },
+  "askSuggestions": {
+    "capex": "Quando uma nota fiscal é capex e não opex?",
+    "unknownSupplier": "O que faço com um fornecedor desconhecido?",
+    "intercompany": "Quem aprova notas fiscais intercompany?"
+  },
+  "time": {
+    "justNow": "agora mesmo"
+  },
+  "dialog": {
+    "close": "Fechar"
+  },
+  "mermaidDiagram": {
+    "error": "Não foi possível desenhar o diagrama: {{message}}",
+    "fitToView": "Ajustar à tela",
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reduzir"
+  },
+  "queryState": {
+    "errorTitle": "Algo deu errado",
+    "retry": "Tentar de novo"
+  },
+  "screenMoment": {
+    "redacted": "Ocultado"
+  },
+  "voicePanel": {
+    "placeholder": "Digite em vez de falar…",
+    "mutedPlaceholder": "Microfone desativado. Escreva para o Socrates…",
+    "speaking": "Falando",
+    "muted": "Sem áudio",
+    "listening": "Ouvindo",
+    "textMode": "Modo texto",
+    "connecting": "Conectando…",
+    "voiceError": "Erro de voz",
+    "notConnected": "Não conectado",
+    "empty": "A conversa aparecerá aqui.",
+    "you": "Você",
+    "mute": "Desativar microfone",
+    "unmute": "Ativar microfone",
+    "send": "Enviar"
+  },
+  "errorPages": {
+    "backToLibrary": "Voltar à biblioteca",
+    "notFoundTitle": "Página não encontrada",
+    "notFoundMessage": "O Socrates ainda não conhece esta página.",
+    "brokeTitle": "Algo quebrou",
+    "unknownError": "Erro desconhecido"
+  }
+}

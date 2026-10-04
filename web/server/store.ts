@@ -1,22 +1,24 @@
 import { randomUUID } from "node:crypto"
 
-import { workMaps as fixtureWorkMaps } from "../src/lib/api/mock/fixtures.ts"
 import type {
   CaptureSession,
   CaptureStatus,
+  Chattiness,
+  Language,
   ErpSignal,
   ID,
   Quote,
   ScreenMoment,
   SessionEvent,
   StepKind,
+  SupervisionSession,
+  SupervisorWarning,
   WorkMap,
-} from "../src/lib/api/types.ts"
+} from "../src/lib/api/types.js"
 
 /**
- * In-memory storage (MVP). Everything is lost on restart. On Vercel each warm
- * function instance has its own copy, so run the demo locally (`npm run dev`)
- * until we move this to Postgres + Blob.
+ * In-memory storage. With SUPABASE_URL / SUPABASE_SECRET_KEY set, server/db.ts
+ * syncs it with Supabase around every request; otherwise everything is lost on restart.
  */
 
 /** A step candidate collected while the expert works; becomes a WorkMapStep after the debrief. */
@@ -60,22 +62,53 @@ export interface SessionRuntime {
   visionBusy: boolean
   /** ERP signals from ticks that were dropped while vision was busy. */
   pendingErp: ErpSignal[]
-  /** Draft Work Map built at the end of capture. */
+  /** Focus boxes still being located for candidate step screenshots. */
+  pendingFocus: Set<Promise<void>>
+  /** Draft workflow built at the end of capture. */
   draftWorkMapId?: ID
+  /** The expert's coaching style (their profile), so vision asks as much as they want. */
+  chattiness?: Chattiness
+  /** The expert's language: questions, debrief and the drafted workflow are written in it. */
+  language?: Language
+}
+
+/** A new hire running a confirmed Work Map while Socrates stands by. */
+export interface SupervisionRuntime {
+  session: SupervisionSession
+  startedAtMs: number
+  /** Kept only to compare with the next frame; the learner's screen is never stored. */
+  lastFrame?: Buffer
+  lastScreen?: string
+  currentStepId?: ID
+  completed: Set<ID>
+  /** What the learner did, as log lines (vision + ERP signals). */
+  actions: { at: number; text: string }[]
+  warnings: SupervisorWarning[]
+  /** Steps the learner was warned about since they moved to their current step. */
+  warned: Set<string>
+  /** Concerns already verified as fine, so the same one isn't re-checked on every tick. */
+  ruledOut: Set<string>
+  visionBusy: boolean
+  /** ERP signals from ticks that were dropped while vision was busy. */
+  pendingErp: ErpSignal[]
+  /** The learner's language, for answers and heads-ups. */
+  language?: Language
 }
 
 interface Store {
   workMaps: WorkMap[]
   sessions: Map<ID, SessionRuntime>
+  supervisions: Map<ID, SupervisionRuntime>
   frames: Map<ID, Frame>
   captureStatus: CaptureStatus
 }
 
 function createStore(): Store {
   return {
-    // Fixtures are confirmed Work Maps, i.e. the agent's starting memory.
-    workMaps: structuredClone(fixtureWorkMaps),
+    // Starts empty: the team's own confirmed workflows become the agent's memory.
+    workMaps: [],
     sessions: new Map(),
+    supervisions: new Map(),
     frames: new Map(),
     captureStatus: {
       active: false,
@@ -88,6 +121,8 @@ function createStore(): Store {
 // Survives Vite's server-module reloads in dev, so editing a prompt doesn't wipe a session.
 const globalStore = globalThis as { __socratesStore?: Store }
 export const store: Store = (globalStore.__socratesStore ??= createStore())
+// A store kept across dev reloads may predate this field.
+store.supervisions ??= new Map()
 
 export const newId = (prefix: string) => `${prefix}-${randomUUID().slice(0, 8)}`
 
@@ -99,7 +134,7 @@ export function getRuntime(sessionId: ID): SessionRuntime {
 
 export function getWorkMap(id: ID): WorkMap {
   const map = store.workMaps.find((m) => m.id === id)
-  if (!map) throw new HttpError(404, `Work map ${id} not found`)
+  if (!map) throw new HttpError(404, `Workflow ${id} not found`)
   return map
 }
 

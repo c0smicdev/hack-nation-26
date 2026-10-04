@@ -1,0 +1,11 @@
+{
+  "askPage": {
+    "title": "Pergunte ao Socrates",
+    "description": "Tire dúvidas sobre qualquer workflow registrado, com respostas nas palavras dos próprios especialistas e um link para a etapa exata."
+  },
+  "askPanel": {
+    "tryAsking": "Experimente perguntar",
+    "placeholder": "Pergunte como algo é feito, ou por quê…",
+    "send": "Enviar"
+  }
+}

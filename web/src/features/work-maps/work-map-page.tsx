@@ -1,5 +1,6 @@
-import { ChevronLeft, GraduationCap, MessageCircleQuestion } from "lucide-react"
+import { ChevronLeft, Languages, Loader2, MessageCircleQuestion, ShieldCheck } from "lucide-react"
 import { useCallback, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Link, useParams, useSearchParams } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -16,7 +17,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { AskPanel } from "@/features/ask/ask-panel"
 import type { ID, WorkMap } from "@/lib/api"
-import { formatRelative, pluralize } from "@/lib/format"
+import { formatRelative } from "@/lib/format"
+import { LANGUAGES } from "@/lib/i18n/languages"
 
 import { DebriefSection } from "./components/debrief-section"
 import { Expert } from "./components/expert"
@@ -43,6 +45,7 @@ export function WorkMapPage() {
 }
 
 function WorkMapView({ workMap }: { workMap: WorkMap }) {
+  const { t } = useTranslation("workMaps")
   const { steps } = workMap
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -88,7 +91,7 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
           to={paths.library()}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ChevronLeft className="size-4" /> Work Maps
+          <ChevronLeft className="size-4" /> {t("workMapPage.back")}
         </Link>
 
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -96,17 +99,32 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={workMap.status} />
               <span className="text-sm text-muted-foreground">
-                {workMap.domain} · updated {formatRelative(workMap.updatedAt)}
+                {workMap.domain} ·{" "}
+                {t("workMapPage.updated", { when: formatRelative(workMap.updatedAt) })}
               </span>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{workMap.title}</h1>
             <p className="text-muted-foreground">{workMap.summary}</p>
+            {workMap.translationPending ? (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="size-3 animate-spin" /> {t("translation.pending")}
+              </p>
+            ) : (
+              workMap.translatedFrom && (
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Languages className="size-3" />
+                  {t("translation.translatedFrom", {
+                    language: LANGUAGES.find((l) => l.code === workMap.translatedFrom)?.native,
+                  })}
+                </p>
+              )
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             {workMap.status === "confirmed" && (
-              <Button variant="outline" asChild>
-                <Link to={paths.teach(workMap.id)}>
-                  <GraduationCap /> Teach a new hire
+              <Button asChild>
+                <Link to={paths.supervise(workMap.id)}>
+                  <ShieldCheck /> {t("workMapPage.supervise")}
                 </Link>
               </Button>
             )}
@@ -117,11 +135,12 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border bg-muted/30 px-4 py-3 text-sm">
           <Expert person={workMap.expert} showRole />
           <span>
-            <span className="text-muted-foreground">When:</span> {workMap.trigger}
+            <span className="text-muted-foreground">{t("workMapPage.when")}</span> {workMap.trigger}
           </span>
           <span className="text-muted-foreground">
-            {pluralize(steps.length, "step")} · {pluralize(judgmentCount, "judgment call")} ·{" "}
-            {pluralize(guardrailCount, "guardrail")}
+            {t("counts.steps", { count: steps.length })} ·{" "}
+            {t("counts.judgmentCalls", { count: judgmentCount })} ·{" "}
+            {t("counts.guardrails", { count: guardrailCount })}
           </span>
         </div>
       </div>
@@ -143,7 +162,7 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
 
       {steps.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Flowchart</h2>
+          <h2 className="text-lg font-semibold">{t("workMapPage.flowchart")}</h2>
           <Flowchart workMap={workMap} onSelectStep={selectFromChart} />
         </section>
       )}
@@ -154,28 +173,33 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
 }
 
 function AskSheet({ workMap }: { workMap: WorkMap }) {
+  const { t } = useTranslation("workMaps")
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button>
-          <MessageCircleQuestion /> Ask about this
+          <MessageCircleQuestion /> {t("askSheet.trigger")}
         </Button>
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Ask Socrates</SheetTitle>
+          <SheetTitle>{t("askSheet.title")}</SheetTitle>
           <SheetDescription>
-            Answers come from {workMap.expert.name}'s own words in this workflow.
+            {t("askSheet.description", { expert: workMap.expert.name })}
           </SheetDescription>
         </SheetHeader>
         <AskPanel
           workMapId={workMap.id}
           suggestions={[
-            "When should I stop and ask someone?",
+            t("askSheet.stopAndAsk"),
             ...workMap.steps
               .filter((s) => s.kind === "judgment")
               .slice(0, 2)
-              .map((s) => `How do I ${s.title.charAt(0).toLowerCase()}${s.title.slice(1)}?`),
+              .map((s) =>
+                t("askSheet.howDoI", {
+                  task: `${s.title.charAt(0).toLowerCase()}${s.title.slice(1)}`,
+                }),
+              ),
           ]}
           className="min-h-0 flex-1 px-4 pb-4"
         />

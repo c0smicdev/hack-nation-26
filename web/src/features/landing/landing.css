@@ -103,6 +103,13 @@
   gap: 12px;
   align-items: center;
 }
+.landing-login {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.landing-login:hover {
+  color: #007d72;
+}
 .landing-button {
   display: inline-flex;
   align-items: center;
@@ -1582,6 +1589,9 @@
   }
   .nav-actions {
     gap: 9px;
+  }
+  .landing-login {
+    display: none;
   }
   .button-small {
     font-size: 10px;

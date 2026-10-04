@@ -1,0 +1,510 @@
+{
+  "_doc": "Ground truth for scripts/eval-focus.ts. Rects are normalized 0..1. kind 'element': the predicted focus centre must lie in one of the boxes. kind 'screen': the caption is about the whole screen, so no focus or a centre inside one of the boxes both pass.",
+  "cases": [
+    {
+      "frame": "frames/fr-e09c5868.jpg",
+      "caption": "Recording started — 00:04 elapsed",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.207,
+          "y": 0.1778,
+          "width": 0.0938,
+          "height": 0.0306
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-e377b367.jpg",
+      "caption": "Word document opened — Q1 Performance Report for Consolidated Messenger",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.0,
+          "y": 0.2083,
+          "width": 0.9922,
+          "height": 0.7111
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-c51693ee.jpg",
+      "caption": "Expert is narrating the task: drafting quarterly earnings in Word using a template",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.3008,
+          "y": 0.1778,
+          "width": 0.4062,
+          "height": 0.0306
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-31e47080.jpg",
+      "caption": "Blank document created — Document1",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1.0,
+          "height": 0.9444
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-9eb8e6bd.jpg",
+      "caption": "Word home screen opened — showing recent documents and templates",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.1055,
+          "y": 0.0556,
+          "width": 0.8945,
+          "height": 0.8889
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-6235eebd.jpg",
+      "caption": "Document switched from Document1 to Document2 — Q1 Performance Report template loaded",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.0,
+          "y": 0.2083,
+          "width": 0.9922,
+          "height": 0.7111
+        },
+        {
+          "x": 0.1797,
+          "y": 0.0111,
+          "width": 0.0859,
+          "height": 0.0333
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-86f90ccd.jpg",
+      "caption": "Document scrolled up to show title page",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.0312,
+          "y": 0.2083,
+          "width": 0.4609,
+          "height": 0.7111
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-138edbee.jpg",
+      "caption": "Document scrolled down to reveal Executive Summary section",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.2969,
+          "y": 0.8389,
+          "width": 0.4375,
+          "height": 0.0806
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-1471c71b.jpg",
+      "caption": "Document scrolled to reveal template structure including title page, Executive Summary, Financial Overview, Operational Performance, Market Analysis, and Challenges and Risks sections",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5469,
+          "y": 0.2944,
+          "width": 0.3789,
+          "height": 0.625
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-0c8813d2.jpg",
+      "caption": "Executive Summary section edited — changed full paragraph to \"Revenue grow 10%|\"",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5508,
+          "y": 0.2972,
+          "width": 0.1016,
+          "height": 0.0583
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-fe0eae90.jpg",
+      "caption": "Executive Summary expanded — Revenue grow 10% YoY. Operational efficiency increased with the influence of McKinsey, up 5% this Quart",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5508,
+          "y": 0.2972,
+          "width": 0.3633,
+          "height": 0.075
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-25906f49.jpg",
+      "caption": "Save dialog opened for Q1 Performance Report",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.3555,
+          "y": 0.2889,
+          "width": 0.2898,
+          "height": 0.3597
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-b4e0da97.jpg",
+      "caption": "Document saved as 'Prepared by Noa VidalApril 4' to OneDrive",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.0,
+          "y": 0.0069,
+          "width": 0.5,
+          "height": 0.0417
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-1dfaee25.jpg",
+      "caption": "Financial Overview section edited — template text replaced with 'TODO'",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5508,
+          "y": 0.4028,
+          "width": 0.0977,
+          "height": 0.0583
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-1dfaee25.jpg",
+      "caption": "Document continues to show completed sections: Executive Summary (revenue growth 10% YoY, McKinsey efficiency 5%), Operational Performance, Market Analysis, Challenges and Risks, and new section Strategic Initiatives and Progress visible",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.5,
+          "y": 0.2083,
+          "width": 0.4766,
+          "height": 0.7111
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-c906fd47.jpg",
+      "caption": "Operational Performance section edited — placeholder text replaced with 'MC'",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5508,
+          "y": 0.4694,
+          "width": 0.125,
+          "height": 0.0611
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-bd2592aa.jpg",
+      "caption": "Operational Performance section cleared — 'MC' placeholder removed",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5508,
+          "y": 0.4667,
+          "width": 0.1289,
+          "height": 0.0389
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-dabb751c.jpg",
+      "caption": "Application switched from Word document to Socrates browser interface",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1.0,
+          "height": 0.9444
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-80c9235e.jpg",
+      "caption": "Workflow view updated — next step 'Fill in Operational Performance section' now visible in workflow diagram",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.2828,
+          "y": 0.7444,
+          "width": 0.1844,
+          "height": 0.0583
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-61e5b7a6.jpg",
+      "caption": "Application switched back to Word document from Socrates interface",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1.0,
+          "height": 0.9444
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-61e5b7a6.jpg",
+      "caption": "Document shows completed sections: Executive Summary (Revenue grow 10% YoY, McKinsey efficiency 5%), Financial Overview (TODO placeholder), Operational Performance (empty), Market Analysis, Challenges and Risks, and Strategic Initiatives and Progress visible on screen",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.5,
+          "y": 0.2083,
+          "width": 0.4766,
+          "height": 0.7111
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-85130a6e.jpg",
+      "caption": "Operational Performance section — cursor positioned, ready for input",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5508,
+          "y": 0.3806,
+          "width": 0.1289,
+          "height": 0.0611
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-ac141216.jpg",
+      "caption": "Font dropdown opened — Aptos font family expanded",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.0664,
+          "y": 0.1028,
+          "width": 0.1977,
+          "height": 0.7306
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-78c64464.jpg",
+      "caption": "Font changed to Aptos (Body)",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.0664,
+          "y": 0.1042,
+          "width": 0.082,
+          "height": 0.0278
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-78c64464.jpg",
+      "caption": "Title page visible — 'Q1 Bain & Company Performance Report' with 'PREPARED BY NOA VIDAL' and 'APRIL 4, 20XX'",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.0312,
+          "y": 0.2083,
+          "width": 0.4609,
+          "height": 0.7111
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-6854d843.jpg",
+      "caption": "Operational Performance section filled in — Added text about revenue growth and McKinsey influence",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5469,
+          "y": 0.4694,
+          "width": 0.3672,
+          "height": 0.0806
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-f109311e.jpg",
+      "caption": "Paste Options menu appeared during text editing in Operational Performance section",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.8344,
+          "y": 0.575,
+          "width": 0.1047,
+          "height": 0.1111
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-36e8011c.jpg",
+      "caption": "Operational Performance section text simplified — removed detailed metrics, kept core message about revenue growth and McKinsey influence",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5469,
+          "y": 0.4694,
+          "width": 0.3672,
+          "height": 0.0889
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-a55371f2.jpg",
+      "caption": "Operational Performance section text changed to uppercase — 'REVENUE GREW 10% YOY. OPERATIONAL EFFICIENCY INCREASED WITH THE INFLUENCE OF MCKINSEY, UP 5% THIS QUARTER. WE EXPECT AN INTEREST RATE HIKE.'",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5469,
+          "y": 0.4694,
+          "width": 0.3672,
+          "height": 0.0806
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-f2c2d1e3.jpg",
+      "caption": "Paste Options menu dismissed — cursor still in Operational Performance section",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5469,
+          "y": 0.4694,
+          "width": 0.3672,
+          "height": 0.0806
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-54d0efe9.jpg",
+      "caption": "Operational Performance section text modified — added 'ASDAA' at the end",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5469,
+          "y": 0.4694,
+          "width": 0.3672,
+          "height": 0.0806
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-2dca9886.jpg",
+      "caption": "Financial Overview section selected — cursor positioned in TODO field",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.5508,
+          "y": 0.4028,
+          "width": 0.0977,
+          "height": 0.0583
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-328e8931.jpg",
+      "caption": "Styles menu opened — showing formatting options (Bottom Row Text, Top Row Text, Heading 1, Title, Subtitle, Create a Style, Clear Formatting, Apply Styles)",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.7219,
+          "y": 0.5,
+          "width": 0.2141,
+          "height": 0.3125
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-19147499.jpg",
+      "caption": "Styles menu closed — focus returned to document",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.5,
+          "y": 0.2083,
+          "width": 0.4766,
+          "height": 0.7111
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-5aa701b9.jpg",
+      "caption": "Firefox window opened in taskbar — Socrates chat interface visible",
+      "kind": "element",
+      "boxes": [
+        {
+          "x": 0.2875,
+          "y": 0.75,
+          "width": 0.2828,
+          "height": 0.1778
+        },
+        {
+          "x": 0.4141,
+          "y": 0.9472,
+          "width": 0.0312,
+          "height": 0.05
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-43789516.jpg",
+      "caption": "Switched to Firefox — Socrates interface now visible showing workflow diagram",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.2656,
+          "y": 0.2083,
+          "width": 0.2188,
+          "height": 0.7361
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1.0,
+          "height": 0.9444
+        }
+      ]
+    },
+    {
+      "frame": "frames/fr-36ddfe1f.jpg",
+      "caption": "Switched to Firefox — Socrates interface now visible showing workflow diagram",
+      "kind": "screen",
+      "boxes": [
+        {
+          "x": 0.2656,
+          "y": 0.2083,
+          "width": 0.2188,
+          "height": 0.7361
+        },
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1.0,
+          "height": 0.9444
+        }
+      ]
+    }
+  ]
+}

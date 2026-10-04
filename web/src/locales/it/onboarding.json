@@ -1,0 +1,23 @@
+{
+  "greeting": "Ciao {{name}}, sono Socrates",
+  "greetingNoName": "Ciao, sono Socrates",
+  "intro": "Sarò il tuo assistente AI. Quando mi mostri il tuo lavoro, osservo, ti chiedo il perché al momento giusto e me lo ricordo, così la tua esperienza potrà aiutare chi viene dopo. Quando impari qualcosa di nuovo, sono proprio accanto a te, con le parole stesse del tuo esperto. Come preferisci che lavori con te?",
+  "styles": {
+    "quiet": {
+      "title": "Osservatore silenzioso",
+      "description": "Osservo senza disturbarti. Intervengo solo per ciò che conta davvero: un limite, un'eccezione o un errore."
+    },
+    "normal": {
+      "title": "Equilibrato",
+      "description": "Qualche domanda nelle pause naturali e aiuto ogni volta che lo chiedi. Tutto il resto aspetta che tu abbia finito."
+    },
+    "curious": {
+      "title": "Coach attivo",
+      "description": "Ti faccio più domande mentre procedi e ti do consigli strada facendo, senza che tu debba chiederli."
+    }
+  },
+  "default": "Predefinito",
+  "start": "Iniziamo",
+  "save": "Salva",
+  "saveError": "Impossibile salvare: {{message}}"
+}

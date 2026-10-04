@@ -1,4 +1,5 @@
 import { ShieldAlert } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import type { ID, WorkMapStep } from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -15,6 +16,7 @@ export function StepTimeline({
   activeId: ID
   onSelect: (id: ID) => void
 }) {
+  const { t } = useTranslation("workMaps")
   return (
     <ol className="relative space-y-1">
       <div className="absolute top-4 bottom-4 left-[1.1rem] w-px bg-border" aria-hidden />
@@ -49,7 +51,7 @@ export function StepTimeline({
                 </span>
                 {(step.kind === "judgment" || step.guardrails.length > 0) && (
                   <span className="mt-1 flex gap-2 text-xs text-muted-foreground">
-                    {step.kind === "judgment" && <span>Judgment call</span>}
+                    {step.kind === "judgment" && <span>{t("judgmentCall")}</span>}
                     {step.guardrails.length > 0 && (
                       <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
                         <ShieldAlert className="size-3" />

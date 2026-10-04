@@ -7,14 +7,24 @@ import type {
   DecisionCheck,
   DecisionVerdict,
   ID,
+  LiveStep,
   NewSession,
   NewSessionEvent,
+  NewSupervision,
+  Profile,
+  ProfilePatch,
+  ScreenAnswer,
+  ScreenQuestion,
   SessionEvent,
+  SupervisionSession,
+  SupervisionTickResult,
   TeachBackReply,
   Tick,
   TickResult,
   VoiceRole,
   VoiceSession,
+  WorkflowDraft,
+  WorkflowDraftRequest,
   WorkMap,
   WorkMapSummary,
 } from "./types"
@@ -33,7 +43,12 @@ export interface SessionPatch {
  * Add a method here first, then implement it in both.
  */
 export interface SocratesApi {
-  /* Work Maps + memory */
+  /* Account */
+  getMe(): Promise<Profile>
+  /** For the onboarding flow: name, role, preferences. */
+  updateMe(patch: ProfilePatch): Promise<Profile>
+
+  /* workflows + memory */
   listWorkMaps(): Promise<WorkMapSummary[]>
   getWorkMap(id: ID): Promise<WorkMap>
   findRelatedWorkMaps(task: string): Promise<WorkMapSummary[]>
@@ -44,14 +59,16 @@ export interface SocratesApi {
   createSession(input: NewSession): Promise<CaptureSession>
   updateSession(id: ID, patch: SessionPatch): Promise<CaptureSession>
   listSessionEvents(sessionId: ID): Promise<SessionEvent[]>
+  /** The steps grouped so far while recording. */
+  listLiveSteps(sessionId: ID): Promise<LiveStep[]>
   recordEvent(sessionId: ID, event: NewSessionEvent): Promise<SessionEvent>
   postTick(sessionId: ID, tick: Tick): Promise<TickResult>
   getCaptureStatus(): Promise<CaptureStatus>
   setCaptureStatus(patch: Partial<CaptureStatus>): Promise<CaptureStatus>
   setOffTheRecord(offTheRecord: boolean): Promise<CaptureStatus>
 
-  /* Debrief → Work Map */
-  /** Ends capture; returns the draft Work Map with its debrief questions. */
+  /* Debrief → workflow */
+  /** Ends capture; returns the draft workflow with its debrief questions. */
   finishCapture(sessionId: ID): Promise<WorkMap>
   answerDebrief(workMapId: ID, itemId: ID, answer: DebriefAnswer): Promise<WorkMap>
   /** Generates the explanation the agent reads back to the expert. */
@@ -59,11 +76,21 @@ export interface SocratesApi {
   /** Confirmed → the map is finalized (possibly merged into an existing map: mind the returned id). */
   replyTeachBack(workMapId: ID, reply: TeachBackReply): Promise<WorkMap>
 
-  /* Teach */
+  /* Save gate: may the ERP save this? */
   checkDecision(workMapId: ID, check: DecisionCheck): Promise<DecisionVerdict>
+
+  /* Supervise: a new hire runs a confirmed Work Map, Socrates stands by */
+  startSupervision(workMapId: ID, input: NewSupervision): Promise<SupervisionSession>
+  /** Where the learner is in the Work Map, and a warning if they're about to go wrong. */
+  postSupervisionTick(supervisionId: ID, tick: Tick): Promise<SupervisionTickResult>
+  /** Answers the learner's question looking at their screen right now. */
+  askAboutScreen(supervisionId: ID, question: ScreenQuestion): Promise<ScreenAnswer>
 
   /* Voice: `null` when no ElevenLabs agent is configured (the UI falls back to text). */
   getVoiceSession(role: VoiceRole): Promise<VoiceSession | null>
 
   ask(request: AskRequest): Promise<AskResponse>
+
+  /* New workflow: turn a free-text chat into a title + description. */
+  draftWorkflow(request: WorkflowDraftRequest): Promise<WorkflowDraft>
 }

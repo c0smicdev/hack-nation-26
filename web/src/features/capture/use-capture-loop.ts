@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { api, type ErpSignal, type ID, type LiveQuestion } from "@/lib/api"
+import {
+  api,
+  type Chattiness,
+  type ErpSignal,
+  type ID,
+  type LiveQuestion,
+  type LiveStep,
+} from "@/lib/api"
 import { changed, grabFrame } from "@/lib/capture/screen"
 import { openErpChannel } from "@/lib/erp/bridge"
 import type { VoiceAgent } from "@/lib/voice/use-voice-agent"
@@ -9,9 +16,18 @@ import type { VoiceAgent } from "@/lib/voice/use-voice-agent"
 const TICK_MS = 1500
 /** Don't ask while the expert types or speaks, or within this long after. */
 const QUIET_MS = 2000
-/** Ask little: 3–5 live questions per 10 minutes. */
-const MAX_PER_10_MIN = 5
-const MIN_GAP_MS = 40_000
+/**
+ * Ask little: 3–5 live questions per 10 minutes (Balanced). A Silent observer asks only about
+ * guardrails and rarely; an Active coach asks more often. The rest waits for the debrief.
+ */
+const PACING: Record<
+  Chattiness,
+  { maxPer10Min: number; minGapMs: number; guardrailsOnly: boolean }
+> = {
+  quiet: { maxPer10Min: 2, minGapMs: 120_000, guardrailsOnly: true },
+  normal: { maxPer10Min: 5, minGapMs: 40_000, guardrailsOnly: false },
+  curious: { maxPer10Min: 8, minGapMs: 20_000, guardrailsOnly: false },
+}
 /** A queued question expires after this long, or as soon as the screen moves on. */
 const QUESTION_TTL_MS = 30_000
 /** Expert speech within this long after a question counts as the answer. */
@@ -38,6 +54,8 @@ export function useCaptureLoop({
   video,
   live,
   agent,
+  chattiness = "normal",
+  onSteps,
 }: {
   sessionId: ID
   /** ISO start time; `at` is seconds since then. */
@@ -46,6 +64,10 @@ export function useCaptureLoop({
   /** Capturing and on the record. */
   live: boolean
   agent: VoiceAgent
+  /** The expert's coaching style: how often Socrates may interrupt. */
+  chattiness?: Chattiness
+  /** Fresh step list after a tick that changed it. */
+  onSteps?: (steps: LiveStep[]) => void
 }) {
   const [queue, setQueue] = useState<Queued[]>([])
   const [screen, setScreen] = useState<string>()
@@ -69,8 +91,12 @@ export function useCaptureLoop({
 
   // Exact signals from the mock ERP: typing (never interrupt) and field changes (precise events).
   const agentRef = useRef(agent)
+  const onStepsRef = useRef(onSteps)
+  const chattinessRef = useRef(chattiness)
   useEffect(() => {
     agentRef.current = agent
+    onStepsRef.current = onSteps
+    chattinessRef.current = chattiness
   })
   useEffect(() => {
     if (!live) return
@@ -126,6 +152,7 @@ export function useCaptureLoop({
           sent: s.sent + 1,
           visionMs: result.processed ? Math.round(performance.now() - t0) : s.visionMs,
         }))
+        if (result.steps) onStepsRef.current?.(result.steps)
         if (result.screen) {
           screenRef.current = result.screen
           setScreen(result.screen)
@@ -172,11 +199,14 @@ export function useCaptureLoop({
         now - lastTypingAt.current > QUIET_MS &&
         a.msSinceUserVoice() > QUIET_MS &&
         !a.agentSpeaking
+      const pacing = PACING[chattinessRef.current]
       const allowed =
-        recent.length < MAX_PER_10_MIN && now - (recent.at(-1) ?? 0) > MIN_GAP_MS && quiet
-      if (!valid.length || !allowed) return
+        recent.length < pacing.maxPer10Min && now - (recent.at(-1) ?? 0) > pacing.minGapMs && quiet
+      // Other questions stay queued until they expire; the server keeps them for the debrief.
+      const next = valid.find((q) => !pacing.guardrailsOnly || q.guardrail)
+      if (!next || !allowed) return
 
-      const [next, ...rest] = valid
+      const rest = valid.filter((q) => q !== next)
       queueRef.current = rest
       setQueue(rest)
       askedAt.current = [...recent, now]

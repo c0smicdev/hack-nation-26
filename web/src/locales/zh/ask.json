@@ -1,0 +1,11 @@
+{
+  "askPage": {
+    "title": "问问 Socrates",
+    "description": "关于任何已记录工作流程的问题，都会用专家自己的话来回答，并附上对应步骤的链接。"
+  },
+  "askPanel": {
+    "tryAsking": "试着问问",
+    "placeholder": "问问某件事怎么做，或为什么这样做…",
+    "send": "发送"
+  }
+}

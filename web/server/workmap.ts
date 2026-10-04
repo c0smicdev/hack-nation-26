@@ -9,9 +9,9 @@ import type {
   TeachBackReply,
   WorkMap,
   WorkMapStep,
-} from "../src/lib/api/types.ts"
-import { memoryContext } from "./capture.ts"
-import { models, prompt, structured, text } from "./llm.ts"
+} from "../src/lib/api/types.js"
+import { memoryContext } from "./capture.js"
+import { models, prompt, structured, text } from "./llm.js"
 import {
   getRuntime,
   getWorkMap,
@@ -21,7 +21,8 @@ import {
   saveWorkMap,
   sessionAt,
   store,
-} from "./store.ts"
+} from "./store.js"
+import { prepareWorkMap } from "./translate.js"
 
 /**
  * The LLM never writes quotes itself: it points at utterances by id, and we copy
@@ -107,7 +108,11 @@ function nearestScreen(runtime: SessionRuntime, at: number, caption: string): Sc
   }
 }
 
-/* End of capture → draft Work Map with debrief questions ------------- */
+/* End of capture → draft workflow with debrief questions ------------- */
+
+/** How many debrief questions to ask (prompt variables of workmap-draft). */
+const DEBRIEF_DEFAULT = { min_questions: "3", max_questions: "6" }
+const DEBRIEF_SILENT = { min_questions: "5", max_questions: "10" }
 
 export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   const runtime = getRuntime(sessionId)
@@ -118,6 +123,8 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   if (store.captureStatus.liveSessionId === sessionId) {
     store.captureStatus = { ...store.captureStatus, active: false, offTheRecord: false }
   }
+  // Steps keep their candidate's screen moment, so wait until its focus box is in.
+  await Promise.all(runtime.pendingFocus)
 
   const expert = session.expert
   const pool: QuotePool = new Map()
@@ -141,22 +148,26 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   const candidates = runtime.candidates.map(
     (c) =>
       `  [${c.id}] ${c.at.toFixed(0)}s ${c.kind}: ${c.title} — ${c.decision}` +
-      (c.deviation ? " (DEVIATES from the saved Work Map)" : ""),
+      (c.deviation ? " (DEVIATES from the saved workflow)" : ""),
   )
   const open = runtime.questions
     .filter((q) => !q.answer)
     .map((q) => `  ${q.askedLive ? "asked live, no answer" : "not asked yet"}: ${q.question}`)
 
+  const silent = runtime.chattiness === "quiet"
   const draft = await structured({
     model: models.reasoning,
     effort: "medium",
-    system: prompt("workmap-draft"),
+    // A Silent observer held its questions back during the task, so the debrief asks more.
+    system: prompt("workmap-draft", silent ? DEBRIEF_SILENT : DEBRIEF_DEFAULT),
+    language: runtime.language,
     schema: DraftOut,
     content: [
       text(
         [
           `Task: ${session.task}`,
           `Expert: ${expert.name}, ${expert.role}`,
+          `Coaching style the expert chose: ${silent ? "silent (live questions were held back for this debrief)" : runtime.chattiness === "curious" ? "active" : "balanced"}`,
           memoryContext(base),
           `Candidate steps (ids usable as fromId):\n${candidates.join("\n") || "  (none)"}`,
           `Screen and question timeline:\n${timeline.join("\n") || "  (none)"}`,
@@ -185,6 +196,7 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
     status: "in_debrief",
     updatedAt: new Date().toISOString(),
     sessionIds: [session.id],
+    language: runtime.language ?? "en",
     steps,
     debrief: draft.debriefQuestions.map((q) => ({
       id: newId("d"),
@@ -215,7 +227,7 @@ function draftContext(map: WorkMap) {
   )
   const corrections = map.teachBack?.corrections.map((c) => `  "${c.text}"`) ?? []
   return [
-    `Work Map "${map.title}" — ${map.summary}`,
+    `Workflow "${map.title}" — ${map.summary}`,
     `When: ${map.trigger}`,
     `Steps:\n${steps.join("\n")}`,
     `Debrief:\n${debrief.join("\n") || "  (none)"}`,
@@ -244,6 +256,10 @@ export function answerDebrief(workMapId: ID, itemId: ID, answer: DebriefAnswer):
 
 const TeachBackOut = z.object({ summary: z.string() })
 
+/** The language the expert recorded this workflow in (their profile at the time). */
+const sessionLanguage = (map: WorkMap) =>
+  map.sessionIds.map((id) => store.sessions.get(id)?.language).find(Boolean)
+
 export async function requestTeachBack(workMapId: ID): Promise<WorkMap> {
   const map = getWorkMap(workMapId)
   const { summary } = await structured({
@@ -251,6 +267,7 @@ export async function requestTeachBack(workMapId: ID): Promise<WorkMap> {
     effort: "low",
     maxTokens: 4000,
     system: prompt("teach-back", { expert: map.expert.name }),
+    language: sessionLanguage(map),
     schema: TeachBackOut,
     content: [text(draftContext(map))],
   })
@@ -322,13 +339,14 @@ async function finalize(draft: WorkMap): Promise<WorkMap> {
     model: models.reasoning,
     effort: "medium",
     system: prompt("workmap-finalize"),
+    language: sessionLanguage(draft),
     schema: MapOut,
     content: [
       text(
         [
           base
-            ? `SAVED Work Map (update this one):\n${draftContext(base)}`
-            : "No saved Work Map; this is a new one.",
+            ? `SAVED workflow (update this one):\n${draftContext(base)}`
+            : "No saved workflow; this is a new one.",
           `NEW session (draft, debrief and corrections):\n${draftContext(draft)}`,
           `Quotes (ids usable as reasonQuoteId / quoteId):\n${poolText(pool)}`,
         ].join("\n\n"),
@@ -357,8 +375,12 @@ async function finalize(draft: WorkMap): Promise<WorkMap> {
     steps,
     debrief: [...(base?.debrief ?? []), ...draft.debrief],
     teachBack: draft.teachBack,
+    // finalize writes in the recording expert's language.
+    language: sessionLanguage(draft) ?? target.language,
   }
   saveWorkMap(result)
+  // Ready in every language someone reads before anyone opens it.
+  void prepareWorkMap(result)
   if (base) {
     // The session's draft was merged into the saved map instead of becoming a duplicate.
     store.workMaps = store.workMaps.filter((m) => m.id !== draft.id)

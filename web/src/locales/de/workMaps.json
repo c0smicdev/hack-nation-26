@@ -1,0 +1,129 @@
+{
+  "status": {
+    "confirmed": "Vom Experten bestätigt",
+    "in_debrief": "In der Nachbesprechung",
+    "draft": "Entwurf"
+  },
+  "guardrail": {
+    "limit": "Grenze",
+    "stop_and_ask": "Stopp & fragen",
+    "never": "Niemals"
+  },
+  "quoteSource": {
+    "narration": "bei der Arbeit",
+    "live_question": "bei einer Live-Frage",
+    "debrief": "in der Nachbesprechung"
+  },
+  "counts": {
+    "steps_one": "{{count}} Schritt",
+    "steps_other": "{{count}} Schritte",
+    "judgmentCalls_one": "{{count}} Ermessensentscheidung",
+    "judgmentCalls_other": "{{count}} Ermessensentscheidungen",
+    "guardrails_one": "{{count}} Leitplanke",
+    "guardrails_other": "{{count}} Leitplanken",
+    "openQuestions_one": "{{count}} offene Frage",
+    "openQuestions_other": "{{count}} offene Fragen"
+  },
+  "judgmentCall": "Ermessensentscheidung",
+  "quoted": "„{{text}}“",
+  "flowchart": {
+    "when": "Wann: {{trigger}}",
+    "start": "Start",
+    "done": "Fertig",
+    "edgeCase": "Wenn {{when}} → {{then}}",
+    "guardrail": {
+      "limit": "Grenze",
+      "stop_and_ask": "Stoppen und fragen",
+      "never": "Niemals"
+    }
+  },
+  "libraryPage": {
+    "title": "Workflows",
+    "description": "Kurze, interaktive Anleitungen von deinen Experten – jeder Schritt, jede Ermessensentscheidung und jede Leitplanke, in ihren eigenen Worten.",
+    "searchPlaceholder": "Workflows, Experten suchen…",
+    "filters": {
+      "all": "Alle",
+      "confirmed": "Bestätigt"
+    },
+    "newWorkflow": "Neuer Workflow",
+    "empty": {
+      "title": "Keine Workflows gefunden",
+      "noWorkflows": "Aufgezeichnete Sessions werden hier zu Workflows.",
+      "noMatches": "Probier eine andere Suche oder einen anderen Filter."
+    }
+  },
+  "workMapPage": {
+    "back": "Workflows",
+    "updated": "aktualisiert {{when}}",
+    "supervise": "Durchlauf begleiten",
+    "when": "Wann:",
+    "flowchart": "Flussdiagramm"
+  },
+  "askSheet": {
+    "trigger": "Dazu fragen",
+    "title": "Socrates fragen",
+    "description": "Die Antworten basieren auf dem, was {{expert}} in diesem Workflow selbst gesagt hat.",
+    "stopAndAsk": "Wann sollte ich anhalten und jemanden fragen?",
+    "howDoI": "Wie gehe ich vor bei: {{task}}?"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates:",
+    "caption": "{{speaker}}, {{source}} um {{time}}",
+    "original": "Original: „{{text}}“"
+  },
+  "stepDetail": {
+    "position": "Schritt {{index}} von {{total}}",
+    "decision": "Entscheidung",
+    "why": "Warum",
+    "guardrails": "Leitplanken",
+    "edgeCases": "Sonderfälle",
+    "escalateTo": " · Frag: {{who}}",
+    "if": "Wenn",
+    "previous": "Zurück",
+    "next": "Weiter"
+  },
+  "debrief": {
+    "title": "Nachbesprechung",
+    "description": "Fragen, die Socrates nach der Aufgabe gestellt hat, um Lücken zu schließen.",
+    "notStarted": "Die Nachbesprechung hat noch nicht begonnen.",
+    "stillOpen": "Noch offen – Socrates fragt in der nächsten Nachbesprechung nach.",
+    "goToStep": "Zu Schritt {{number}}",
+    "teachBack": "Teach-back",
+    "confirmed": "Bestätigt",
+    "teachBackDescription": "Socrates erklärt den Ablauf so lange zurück, bis der Experte sagt: Ja, genau so läuft das.",
+    "correction": "Korrektur",
+    "teachBackPending": "Startet, sobald alle Debrief-Fragen beantwortet sind."
+  },
+  "newWorkflow": {
+    "greeting": "Welchen Workflow möchtest du mir zeigen? Erzähl mir, was du machst, für wen und wann. Titel und Beschreibung fülle ich aus.",
+    "draftError": "Entschuldige, das konnte ich nicht entwerfen: {{message}}",
+    "title": "Neuer Workflow",
+    "titlePlaceholder": "Unbenannter Workflow",
+    "titleLabel": "Titel",
+    "descriptionPlaceholderText": "Socrates füllt das aus, während du den Workflow beschreibst …",
+    "descriptionPlaceholderVoice": "Socrates füllt das aus, während du sprichst …",
+    "descriptionLabel": "Beschreibung",
+    "voiceUnavailable": "Sprache ist hier nicht verfügbar, also lass uns schreiben.",
+    "talkInstead": "Lieber sprechen",
+    "typeInstead": "Lieber tippen",
+    "cancel": "Abbrechen",
+    "create": "Workflow erstellen",
+    "status": {
+      "connecting": "Verbinde …",
+      "speaking": "Socrates spricht",
+      "muted": "Mikro stumm – schreib Socrates unten",
+      "listening": "Ich höre zu – sprich einfach"
+    },
+    "unmute": "Mikrofon einschalten",
+    "mute": "Mikrofon stummschalten",
+    "writePlaceholderMuted": "Schreib Socrates …",
+    "writePlaceholder": "Oder schreib Socrates …",
+    "messageLabel": "Nachricht an Socrates",
+    "send": "Senden",
+    "textPlaceholder": "z. B. Ich prüfe Lieferantenrechnungen vor dem Monatsabschluss …"
+  },
+  "translation": {
+    "pending": "Dieser Workflow wird in deine Sprache übersetzt …",
+    "translatedFrom": "Automatisch übersetzt · Originalsprache: {{language}}. Bei Zitaten siehst du auch den Originalwortlaut der Expertin oder des Experten."
+  }
+}

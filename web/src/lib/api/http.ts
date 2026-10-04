@@ -1,3 +1,6 @@
+import { accessToken } from "@/lib/auth/supabase"
+import { currentLanguage } from "@/lib/i18n"
+
 import type { SocratesApi } from "./client"
 
 export class ApiError extends Error {
@@ -12,9 +15,16 @@ export class ApiError extends Error {
 /** REST client for the backend in server/router.ts. */
 export function createHttpApi(baseUrl: string): SocratesApi {
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    const token = await accessToken()
     const res = await fetch(`${baseUrl}${path}`, {
       ...init,
-      headers: { "Content-Type": "application/json", ...init?.headers },
+      headers: {
+        "Content-Type": "application/json",
+        // Socrates writes back, and serves workflows, in the reader's language.
+        "X-Socrates-Language": currentLanguage(),
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...init?.headers,
+      },
     })
     if (!res.ok) {
       const text = await res.text()
@@ -32,6 +42,9 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     request<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) })
 
   return {
+    getMe: () => request("/me"),
+    updateMe: (patch) => post("/me", patch, "PATCH"),
+
     listWorkMaps: () => request("/workmaps"),
     getWorkMap: (id) => request(`/workmaps/${id}`),
     findRelatedWorkMaps: (task) => post("/workmaps/related", { task }),
@@ -41,6 +54,7 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     createSession: (input) => post("/sessions", input),
     updateSession: (id, patch) => post(`/sessions/${id}`, patch, "PATCH"),
     listSessionEvents: (sessionId) => request(`/sessions/${sessionId}/events`),
+    listLiveSteps: (sessionId) => request(`/sessions/${sessionId}/steps`),
     recordEvent: (sessionId, event) => post(`/sessions/${sessionId}/events`, event),
     postTick: (sessionId, tick) => post(`/sessions/${sessionId}/ticks`, tick),
     getCaptureStatus: () => request("/capture/status"),
@@ -53,8 +67,14 @@ export function createHttpApi(baseUrl: string): SocratesApi {
     replyTeachBack: (id, reply) => post(`/workmaps/${id}/teach-back/reply`, reply),
 
     checkDecision: (id, check) => post(`/workmaps/${id}/check`, check),
+    startSupervision: (id, input) => post(`/workmaps/${id}/supervisions`, input),
+    postSupervisionTick: (supervisionId, tick) =>
+      post(`/supervisions/${supervisionId}/ticks`, tick),
+    askAboutScreen: (supervisionId, question) =>
+      post(`/supervisions/${supervisionId}/ask`, question),
     getVoiceSession: (role) => request(`/voice/${role}`),
 
     ask: (body) => post("/ask", body),
+    draftWorkflow: (body) => post("/workflows/draft", body),
   }
 }

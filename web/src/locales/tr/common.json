@@ -1,0 +1,60 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Socrates sizinle nasıl çalışır",
+    "askSocrates": "Socrates'e sorun",
+    "logIn": "Giriş yap",
+    "logOut": "Çıkış yap"
+  },
+  "profileMenu": {
+    "language": "Dil",
+    "languageHint": "Uygulamanın dili. Socrates da sizinle bu dilde konuşur ve yazar."
+  },
+  "askSuggestions": {
+    "capex": "Bir fatura ne zaman opex değil de capex olur?",
+    "unknownSupplier": "Bilinmeyen bir tedarikçiyle ne yapmalıyım?",
+    "intercompany": "Şirketler arası faturaları kim onaylar?"
+  },
+  "time": {
+    "justNow": "az önce"
+  },
+  "dialog": {
+    "close": "Kapat"
+  },
+  "mermaidDiagram": {
+    "error": "Diyagram çizilemedi: {{message}}",
+    "fitToView": "Ekrana sığdır",
+    "zoomIn": "Yakınlaştır",
+    "zoomOut": "Uzaklaştır"
+  },
+  "queryState": {
+    "errorTitle": "Bir şeyler ters gitti",
+    "retry": "Tekrar deneyin"
+  },
+  "screenMoment": {
+    "redacted": "Gizlendi"
+  },
+  "voicePanel": {
+    "placeholder": "Konuşmak yerine yazın…",
+    "mutedPlaceholder": "Mikrofon kapalı. Socrates'e yazın…",
+    "speaking": "Konuşuyor",
+    "muted": "Sessizde",
+    "listening": "Dinliyor",
+    "textMode": "Yazı modu",
+    "connecting": "Bağlanıyor…",
+    "voiceError": "Ses hatası",
+    "notConnected": "Bağlı değil",
+    "empty": "Konuşma burada görünecek.",
+    "you": "Siz",
+    "mute": "Mikrofonu kapat",
+    "unmute": "Mikrofonu aç",
+    "send": "Gönder"
+  },
+  "errorPages": {
+    "backToLibrary": "Kitaplığa dön",
+    "notFoundTitle": "Sayfa bulunamadı",
+    "notFoundMessage": "Socrates bu sayfayı henüz tanımıyor.",
+    "brokeTitle": "Bir şey bozuldu",
+    "unknownError": "Bilinmeyen hata"
+  }
+}

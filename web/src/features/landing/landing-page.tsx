@@ -104,6 +104,9 @@ export function LandingPage() {
             <a href="#questions">Questions</a>
           </nav>
           <div className="nav-actions">
+            <Link className="landing-login" to={paths.login()}>
+              Log in
+            </Link>
             <Link className="landing-button button-small" to={paths.library()}>
               Explore Socrates <ArrowUpRight />
             </Link>
@@ -129,6 +132,9 @@ export function LandingPage() {
             <a href="#questions" onClick={() => setMenuOpen(false)}>
               Questions
             </a>
+            <Link to={paths.login()} onClick={() => setMenuOpen(false)}>
+              Log in
+            </Link>
           </nav>
         )}
       </header>

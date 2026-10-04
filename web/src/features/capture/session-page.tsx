@@ -1,37 +1,55 @@
 import { ConversationProvider } from "@elevenlabs/react"
 import { useQueryClient } from "@tanstack/react-query"
 import {
+  ChevronRight,
   ExternalLink,
   Flag,
+  Keyboard,
   Loader2,
   MessageCircleQuestion,
+  Mic,
+  MicOff,
   MonitorUp,
   Sparkles,
 } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { useParams } from "react-router"
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react"
+import { Trans, useTranslation } from "react-i18next"
+import { Link, useParams } from "react-router"
 
 import { paths } from "@/app/paths"
+import { MermaidDiagram } from "@/components/mermaid-diagram"
 import { ErrorState } from "@/components/query-state"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { VoicePanel } from "@/components/voice-panel"
-import { api, type CaptureSession, type ID, type WorkMap, type WorkMapSummary } from "@/lib/api"
+import {
+  api,
+  type CaptureSession,
+  type ID,
+  type LiveStep,
+  type SessionEvent,
+  type WorkMap,
+  type WorkMapSummary,
+} from "@/lib/api"
+import { useMe } from "@/lib/auth/hooks"
+import { claimStream } from "@/lib/capture/pending-stream"
 import { startScreenShare } from "@/lib/capture/screen"
-import { formatTimestamp, pluralize } from "@/lib/format"
-import { useVoiceAgent } from "@/lib/voice/use-voice-agent"
+import { coachingStyle } from "@/lib/coaching"
+import { formatTimestamp } from "@/lib/format"
+import { cn } from "@/lib/utils"
+import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
+import { liveStepsToMermaid, stepNodeId } from "@/features/work-maps/flowchart"
 
-import { DebriefPanel } from "./components/debrief-panel"
-import { EventFeed } from "./components/event-feed"
+import { DebriefView } from "./components/debrief-view"
+import { LeaveGuard } from "./components/leave-guard"
+import { LiveStepList } from "./components/live-step-list"
 import { OffTheRecordSwitch } from "./components/off-the-record-switch"
-import { SessionStatusBadge } from "./components/session-status-badge"
 import {
   captureKeys,
   useCaptureStatus,
   useDraftWorkMap,
+  useLiveSteps,
   useSession,
   useSessionEvents,
   useSetOffTheRecord,
@@ -55,16 +73,35 @@ const openErp = () => window.open(paths.erp(), "nordwind-erp")
 const wallClock = () => Date.now()
 const secondsSince = (iso: string) => Math.round((Date.now() - Date.parse(iso)) / 1000)
 
-/** One capture session: intake → capture → debrief → teach-back, driven by voice or by hand. */
+/** Tells the interviewer where the debrief stands, so it can ask (or teach back) by voice. */
+function debriefBrief(map: WorkMap) {
+  const open = map.debrief.filter((d) => !d.resolved)
+  if (map.status === "confirmed") return "[SYSTEM] The workflow is already confirmed."
+  if (!open.length)
+    return "[SYSTEM] All debrief questions are answered. Continue with the Teach-back procedure."
+  return [
+    `[SYSTEM] The expert ended the task in the app, so finish_task already ran: don't call it. Draft workflow "${map.title}" with ${map.steps.length} steps. Continue with the Debrief procedure using these questions:`,
+    ...open.map((d) => `[${d.id}] ${d.question}`),
+  ].join("\n")
+}
+
+/**
+ * One capture session. While recording: the workflow graph grows on the left,
+ * the steps on the right. After "End workflow": debrief and teach-back.
+ */
 function SessionView({ session }: { session: CaptureSession }) {
+  const { t } = useTranslation("capture")
   const queryClient = useQueryClient()
   const { data: status } = useCaptureStatus()
   const setOffTheRecord = useSetOffTheRecord()
   const offRecord = !!status?.offTheRecord && status.liveSessionId === session.id
-  const events = useSessionEvents(session.id, { live: session.status !== "mapped" })
+  const recording = session.status === "intake" || session.status === "live"
+  const steps = useLiveSteps(session.id, { live: recording })
+  const events = useSessionEvents(session.id, { live: recording })
   const draft = useDraftWorkMap(session.workMapId)
 
-  const [stream, setStream] = useState<MediaStream>()
+  // Shared from the "Create workflow" click, if the browser allowed it there.
+  const [stream, setStream] = useState<MediaStream | undefined>(() => claimStream(session.id))
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
   const [related, setRelated] = useState<WorkMapSummary[]>()
   const [busy, setBusy] = useState<string>()
@@ -99,8 +136,8 @@ function SessionView({ session }: { session: CaptureSession }) {
     refresh()
   }
 
-  async function beginCapture(goal?: string) {
-    if (!stream) return false
+  async function beginCapture(goal?: string, media = stream) {
+    if (!media) return false
     await api.updateSession(session.id, {
       status: "live",
       task: goal ? `${session.task} — Goal: ${goal}` : undefined,
@@ -112,11 +149,15 @@ function SessionView({ session }: { session: CaptureSession }) {
     return true
   }
 
+  function stopSharing() {
+    stream?.getTracks().forEach((t) => t.stop())
+    setStream(undefined)
+  }
+
   async function finish() {
-    setBusy("Building the draft Work Map")
+    setBusy(t("busy.buildingDraft"))
     try {
-      stream?.getTracks().forEach((t) => t.stop())
-      setStream(undefined)
+      stopSharing()
       const map = await api.finishCapture(session.id)
       setMap(map)
       marker.current = wallClock()
@@ -137,7 +178,7 @@ function SessionView({ session }: { session: CaptureSession }) {
   }
 
   async function teachBack() {
-    setBusy("Writing the teach-back")
+    setBusy(t("busy.writingTeachBack"))
     try {
       const map = await api.requestTeachBack(session.workMapId!)
       setMap(map)
@@ -149,7 +190,7 @@ function SessionView({ session }: { session: CaptureSession }) {
   }
 
   async function reply(confirmed: boolean, correction?: string) {
-    setBusy(confirmed ? "Saving to memory" : "Updating the teach-back")
+    setBusy(confirmed ? t("busy.savingToMemory") : t("busy.updatingTeachBack"))
     try {
       const map = await api.replyTeachBack(session.workMapId!, {
         confirmed,
@@ -176,12 +217,12 @@ function SessionView({ session }: { session: CaptureSession }) {
     onUserText: (text) => {
       if (offRecord) return
       utterances.current.push({ text, at: wallClock() })
-      if (session.status === "intake" || session.status === "live") loop.recordSpeech(text)
+      if (recording) loop.recordSpeech(text)
     },
     tools: {
       lookup_memory: async ({ task }) => {
         const maps = await lookupMemory(String(task))
-        if (!maps.length) return "No saved Work Map matches. This is a new workflow."
+        if (!maps.length) return "No saved workflow matches. This is a new workflow."
         return maps
           .map((m) => `[${m.id}] "${m.title}" by ${m.expert.name}: ${m.summary}`)
           .join("\n")
@@ -191,11 +232,11 @@ function SessionView({ session }: { session: CaptureSession }) {
         await setBase(id === "none" || !id ? null : id)
         return id === "none"
           ? "Noted: new workflow."
-          : "Noted: this session extends that Work Map. Skip what it already explains."
+          : "Noted: this session extends that workflow. Skip what it already explains."
       },
       start_capture: async ({ goal }) =>
         (await beginCapture(String(goal ?? "")))
-          ? "Capture started. Stay quiet while they work; use skip_turn when they narrate."
+          ? "Capture is running. Stay quiet while they work; use skip_turn when they narrate."
           : "The screen isn't shared yet. Ask them to click 'Share screen' in the app first.",
       set_off_record: async ({ off }) => {
         const value = off === true || off === "true"
@@ -208,7 +249,7 @@ function SessionView({ session }: { session: CaptureSession }) {
         const map = await finish()
         const questions = map.debrief.filter((d) => !d.resolved)
         return [
-          `Draft Work Map "${map.title}" with ${map.steps.length} steps. Debrief questions, ask one at a time:`,
+          `Draft workflow "${map.title}" with ${map.steps.length} steps. Debrief questions, ask one at a time:`,
           ...questions.map((d) => `[${d.id}] ${d.question}`),
         ].join("\n")
       },
@@ -227,7 +268,7 @@ function SessionView({ session }: { session: CaptureSession }) {
         const words = yes ? "" : wordsSinceMarker() || String(correction ?? "")
         const map = await reply(yes, words || undefined)
         if (map.status === "confirmed")
-          return "The Work Map is saved to memory. Thank them and say goodbye."
+          return "The workflow is saved to memory. Thank them and say goodbye."
         const open = map.debrief.filter((d) => !d.resolved)
         if (yes && open.length) {
           return `Not done yet, these are still open:\n${open.map((d) => `[${d.id}] ${d.question}`).join("\n")}`
@@ -237,181 +278,374 @@ function SessionView({ session }: { session: CaptureSession }) {
     },
   })
 
+  // The expert recording is the signed-in user: their coaching style sets how often Socrates asks.
+  const { data: me } = useMe()
+  const chattiness = me?.preferences.chattiness
+
   const loop = useCaptureLoop({
     sessionId: session.id,
     startedAt: session.startedAt,
     video,
     live: session.status === "live" && !offRecord && !!stream,
     agent,
+    chattiness,
+    onSteps: (next) => queryClient.setQueryData(captureKeys.steps(session.id), next),
   })
 
-  /* Screen share ------------------------------------------------------ */
+  /* Debrief by voice -------------------------------------------------- */
 
-  async function start() {
+  // Set when the debrief should start as soon as the voice agent is connected.
+  const debriefPending = useRef(false)
+
+  /** Ended by button, not by voice: hand the open questions to the agent so it asks them. */
+  async function endWorkflow() {
+    const map = await finish()
+    if (!agent.prompt(debriefBrief(map))) debriefPending.current = true
+  }
+
+  /** Dynamic variables for the interviewer's prompt, first message and procedures. */
+  const agentVariables = () => ({
+    expert_name: session.expert.name.split(" ")[0],
+    workflow: session.title,
+    task: session.task ?? session.title,
+    coaching_style: coachingStyle(chattiness),
+  })
+
+  /** Coming back to a debrief (or voice was off): connect, then start asking. */
+  function startVoiceDebrief() {
+    debriefPending.current = true
+    void agent.start(agentVariables())
+  }
+
+  useEffect(() => {
+    if (agent.mode !== "voice" || !debriefPending.current || !draft.data) return
+    debriefPending.current = false
+    marker.current = wallClock()
+    agent.prompt(debriefBrief(draft.data))
+  }, [agent, draft.data])
+
+  /* Screen share: recording starts as soon as the screen is shared ----- */
+
+  /** Runs once per shared stream: recording starts as soon as the screen is shared. */
+  async function startRecording(media: MediaStream) {
+    media.getVideoTracks()[0]?.addEventListener("ended", () => setStream(undefined))
+    if (session.status === "intake") await beginCapture(undefined, media)
+    if (agent.mode === "idle" || agent.mode === "error") {
+      await agent.start(agentVariables())
+    }
+    if (!related) void lookupMemory(session.task ?? session.title)
+  }
+
+  async function share() {
     setShareError(undefined)
     try {
       // getDisplayMedia needs the click's user activation, so it goes first.
-      const media = await startScreenShare()
-      media.getVideoTracks()[0].addEventListener("ended", () => setStream(undefined))
-      setStream(media)
+      setStream(await startScreenShare())
     } catch (e) {
       setShareError(e instanceof Error ? e.message : String(e))
-      return
     }
-    if (agent.mode === "idle" || agent.mode === "error") {
-      await agent.start({
-        expert_name: session.expert.name.split(" ")[0],
-        task: session.task ?? session.title,
-      })
-    }
-    if (session.status === "intake" && !related) void lookupMemory(session.task ?? session.title)
   }
 
-  async function reshare() {
-    const media = await startScreenShare()
-    media.getVideoTracks()[0].addEventListener("ended", () => setStream(undefined))
-    setStream(media)
-  }
+  const started = useRef<MediaStream>(undefined)
+  const startRef = useRef(startRecording)
+  useEffect(() => {
+    startRef.current = startRecording
+  })
+  useEffect(() => {
+    if (!stream || started.current === stream) return
+    started.current = stream
+    void startRef.current(stream)
+  }, [stream])
 
-  // Stop everything when leaving the page.
-  useEffect(() => () => stream?.getTracks().forEach((t) => t.stop()), [stream])
+  // Stop sharing when leaving the page. Deferred, so StrictMode's test unmount doesn't.
+  const streamRef = useRef(stream)
+  useEffect(() => {
+    streamRef.current = stream
+  })
+  const mounted = useRef(false)
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+      setTimeout(() => {
+        if (!mounted.current) streamRef.current?.getTracks().forEach((t) => t.stop())
+      }, 0)
+    }
+  }, [])
 
-  const capturing = session.status === "intake" || session.status === "live"
   const elapsed = useElapsed(session)
-  const map = draft.data
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <SessionStatusBadge status={session.status} />
-            {offRecord && <Badge variant="outline">Off the record</Badge>}
-            <span className="text-sm text-muted-foreground">
-              {session.expert.name} · {formatTimestamp(elapsed)} ·{" "}
-              {pluralize(session.questionsAsked, "question")} asked live
-            </span>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">{session.title}</h1>
-          {session.task && <p className="max-w-3xl text-muted-foreground">{session.task}</p>}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={openErp}>
-            <ExternalLink /> Open mock ERP
-          </Button>
-          {capturing && !stream && (
-            <Button onClick={agent.mode === "idle" || agent.mode === "error" ? start : reshare}>
-              <MonitorUp />{" "}
-              {agent.mode === "idle" ? "Share screen & start talking" : "Share screen"}
-            </Button>
-          )}
-          {session.status === "live" && (
-            <Button variant="destructive" onClick={() => void finish()} disabled={!!busy}>
-              <Flag /> Finish task
-            </Button>
-          )}
-        </div>
-      </div>
-      {shareError && <p className="text-sm text-destructive">Screen share failed: {shareError}</p>}
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
-        <div className="min-w-0 space-y-6">
-          {session.status === "intake" && (
-            <IntakeCard
-              related={related}
-              basedOn={session.basedOnWorkMapId}
-              canStart={!!stream}
-              onBase={setBase}
-              onStart={() => void beginCapture()}
-            />
-          )}
-
-          {loop.textQuestion && (
+  if (recording) {
+    return (
+      <RecordingView
+        session={session}
+        steps={steps.data ?? []}
+        events={events.data ?? []}
+        elapsed={elapsed}
+        offRecord={offRecord}
+        agent={agent}
+        stream={stream}
+        onVideo={setVideo}
+        shareError={shareError}
+        onShare={() => void share()}
+        onEnd={() => void endWorkflow()}
+        ending={!!busy}
+        related={related}
+        basedOn={session.basedOnWorkMapId}
+        onBase={(id) => void setBase(id)}
+        textQuestion={
+          loop.textQuestion && (
             <TextQuestion
               question={loop.textQuestion.question}
               onAnswer={loop.answerTextQuestion}
               onSkip={loop.dismissTextQuestion}
             />
-          )}
+          )
+        }
+        loopError={loop.error}
+        onAbandon={() => {
+          stopSharing()
+          agent.stop()
+        }}
+      />
+    )
+  }
 
-          {capturing && (
-            <Card className="@container">
-              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <CardTitle>What Socrates sees</CardTitle>
-                  <CardDescription>
-                    {loop.screen ?? "Share the mock ERP tab, then work as usual."}
-                  </CardDescription>
-                </div>
-                <div className="w-48 shrink-0">
-                  <OffTheRecordSwitch id="session-off-the-record" />
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 @2xl:grid-cols-[16rem_1fr]">
-                <div className="space-y-2">
-                  <div className="aspect-video overflow-hidden rounded-lg border bg-muted">
-                    {stream ? (
-                      <ScreenPreview stream={stream} onVideo={setVideo} />
-                    ) : (
-                      <div className="flex size-full items-center justify-center p-4 text-center text-xs text-muted-foreground">
-                        Not sharing
-                      </div>
-                    )}
-                  </div>
-                  <LoopStatsLine stats={loop.stats} error={loop.error} />
-                  {loop.queue.length > 0 && (
-                    <div className="space-y-1 rounded-lg border p-2 text-xs">
-                      <p className="font-medium">Waiting for a pause</p>
-                      {loop.queue.map((q) => (
-                        <p key={q.id} className="text-muted-foreground">
-                          {q.question}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="max-h-[26rem] overflow-y-auto">
-                  {events.data?.length ? (
-                    <EventFeed events={events.data} />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Events appear here as Socrates understands what changes on screen.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+  return (
+    <DebriefView
+      session={session}
+      map={draft.data}
+      steps={steps.data ?? []}
+      events={events.data ?? []}
+      elapsed={elapsed}
+      agent={agent}
+      agentStatus={<SocratesStatus agent={agent} />}
+      busy={busy}
+      finalMapId={finalMapId ?? (session.status === "mapped" ? session.workMapId : undefined)}
+      onStartVoice={startVoiceDebrief}
+      onAnswer={(itemId, text) => void answer(itemId, text)}
+      onTeachBack={() => void teachBack()}
+      onReply={(confirmed, correction) => void reply(confirmed, correction)}
+    />
+  )
+}
 
-          {session.status === "processing" && (
-            <Card>
-              <CardContent className="flex items-center gap-3 py-10">
-                <Loader2 className="animate-spin" /> Building the draft Work Map from what Socrates
-                saw and heard…
-              </CardContent>
-            </Card>
-          )}
+/* Recording ------------------------------------------------------------ */
 
-          {map && (session.status === "awaiting_debrief" || session.status === "mapped") && (
-            <DebriefPanel
-              map={map}
-              busy={busy}
-              finalMapId={
-                finalMapId ?? (session.status === "mapped" ? session.workMapId : undefined)
-              }
-              onAnswer={(itemId, text) => void answer(itemId, text)}
-              onTeachBack={() => void teachBack()}
-              onReply={(confirmed, correction) => void reply(confirmed, correction)}
-            />
-          )}
+function RecordingView({
+  session,
+  steps,
+  events,
+  elapsed,
+  offRecord,
+  agent,
+  stream,
+  onVideo,
+  shareError,
+  onShare,
+  onEnd,
+  ending,
+  related,
+  basedOn,
+  onBase,
+  textQuestion,
+  loopError,
+  onAbandon,
+}: {
+  session: CaptureSession
+  steps: LiveStep[]
+  events: SessionEvent[]
+  elapsed: number
+  offRecord: boolean
+  agent: VoiceAgent
+  stream?: MediaStream
+  onVideo: (video: HTMLVideoElement | null) => void
+  shareError?: string
+  onShare: () => void
+  onEnd: () => void
+  ending: boolean
+  related?: WorkMapSummary[]
+  basedOn?: ID
+  onBase: (id: ID | null) => void
+  textQuestion?: ReactNode
+  loopError?: string
+  onAbandon: () => void
+}) {
+  const { t } = useTranslation("capture")
+  const [openId, setOpenId] = useState<ID>()
+  // Not memoized: the labels are translated, and the diagram only redraws when the text changes.
+  const chart = liveStepsToMermaid(steps)
+  const clicks = Object.fromEntries(
+    steps.map((step, i) => [stepNodeId(i), () => setOpenId(step.id)]),
+  )
+  const match = related?.[0]
+
+  return (
+    // Full-bleed under the app header: cancel <main>'s padding.
+    <div className="-m-4 flex h-[calc(100svh-3.5rem)] flex-col md:-m-8">
+      <LeaveGuard active onLeave={onAbandon} />
+
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 md:px-6">
+        <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+          <Link to={paths.library()} className="text-muted-foreground hover:text-foreground">
+            {t("breadcrumbWorkflows")}
+          </Link>
+          <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="truncate font-semibold">{session.title}</span>
+        </nav>
+        <span className="flex items-center gap-2 text-sm tabular-nums">
+          <span
+            className={cn(
+              "size-2.5 rounded-full",
+              !stream ? "bg-muted-foreground/40" : offRecord ? "bg-amber-500" : "bg-red-500",
+              stream && !offRecord && "animate-pulse",
+            )}
+          />
+          {!stream
+            ? t("recording.notRecording")
+            : offRecord
+              ? t("recording.paused")
+              : t("recording.recording")}{" "}
+          · {formatTimestamp(elapsed)}
+        </span>
+        <SocratesStatus agent={agent} />
+        <div className="ml-auto flex items-center gap-4">
+          <div className="w-40">
+            <OffTheRecordSwitch id="session-off-the-record" />
+          </div>
+          <Button variant="outline" size="sm" onClick={openErp}>
+            <ExternalLink /> {t("openErp")}
+          </Button>
         </div>
+      </header>
 
-        <VoicePanel
-          agent={agent}
-          title="Socrates · Interviewer"
-          className="lg:sticky lg:top-4 lg:max-h-[calc(100svh-6rem)] lg:self-start"
-        />
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[1fr_24rem]">
+        {/* Left: the workflow, growing as you go */}
+        <section className="relative min-h-80 overflow-hidden bg-muted/20">
+          <div className="absolute inset-x-4 top-4 z-10 space-y-3">
+            {match && basedOn === undefined && (
+              <MemoryMatch map={match} onSame={() => onBase(match.id)} onNew={() => onBase(null)} />
+            )}
+            {textQuestion}
+          </div>
+          {stream ? (
+            <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full pt-12" />
+          ) : (
+            <div className="flex size-full flex-col items-center justify-center gap-4 p-8 text-center">
+              <MonitorUp className="size-10 text-muted-foreground" />
+              <div className="space-y-1">
+                <p className="font-medium">{t("recording.shareTitle")}</p>
+                <p className="max-w-sm text-sm text-muted-foreground">{t("recording.shareHint")}</p>
+              </div>
+              <Button onClick={onShare}>
+                <MonitorUp /> {t("recording.shareScreen")}
+              </Button>
+              {shareError && <p className="text-sm text-destructive">{shareError}</p>}
+            </div>
+          )}
+        </section>
+
+        {/* Right: your steps */}
+        <aside className="flex min-h-0 flex-col border-t lg:border-t-0 lg:border-l">
+          <div className="flex items-center gap-3 border-b px-4 py-3">
+            {stream && (
+              <div className="aspect-video w-20 shrink-0 overflow-hidden rounded border bg-muted">
+                <ScreenPreview stream={stream} onVideo={onVideo} />
+              </div>
+            )}
+            <div className="min-w-0">
+              <h2 className="font-semibold">{t("yourSteps")}</h2>
+              <p className="text-xs text-muted-foreground">
+                {loopError ? (
+                  <span className="text-destructive">{loopError}</span>
+                ) : (
+                  t("recording.stepsSoFar", { count: steps.length })
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <LiveStepList
+              steps={steps}
+              events={events}
+              openId={openId}
+              onToggle={(id) => setOpenId((open) => (open === id ? undefined : id))}
+            />
+          </div>
+          <div className="flex justify-end border-t px-4 py-3">
+            <Button variant="destructive" onClick={onEnd} disabled={ending || !stream}>
+              {ending ? <Loader2 className="animate-spin" /> : <Flag />}{" "}
+              {t("recording.endWorkflow")}
+            </Button>
+          </div>
+        </aside>
       </div>
+    </div>
+  )
+}
+
+/** Compact voice status for the recording header: Socrates listens, asks at pauses. */
+function SocratesStatus({ agent }: { agent: VoiceAgent }) {
+  const { t } = useTranslation("capture")
+  const last = agent.transcript.findLast((l) => l.role === "agent")
+  const icon =
+    agent.mode === "voice" ? (
+      <Mic className={cn("size-3.5", agent.agentSpeaking && "text-primary")} />
+    ) : agent.mode === "connecting" ? (
+      <Loader2 className="size-3.5 animate-spin" />
+    ) : agent.mode === "text" ? (
+      <Keyboard className="size-3.5" />
+    ) : (
+      <MicOff className="size-3.5" />
+    )
+  const label =
+    agent.mode === "voice"
+      ? agent.agentSpeaking
+        ? t("socratesStatus.speaking")
+        : t("socratesStatus.listening")
+      : agent.mode === "connecting"
+        ? t("socratesStatus.connecting")
+        : agent.mode === "text"
+          ? t("socratesStatus.text")
+          : t("socratesStatus.off")
+  return (
+    <span className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+      {icon}
+      <span className="shrink-0">{label}</span>
+      {last && agent.mode === "voice" && (
+        <span className="hidden max-w-md truncate italic xl:inline">“{last.text}”</span>
+      )}
+    </span>
+  )
+}
+
+function MemoryMatch({
+  map,
+  onSame,
+  onNew,
+}: {
+  map: WorkMapSummary
+  onSame: () => void
+  onNew: () => void
+}) {
+  const { t } = useTranslation("capture")
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-background p-3 shadow-sm">
+      <Sparkles className="size-4 shrink-0 text-primary" />
+      <p className="min-w-0 flex-1 text-sm">
+        <Trans
+          t={t}
+          i18nKey="memoryMatch.text"
+          values={{ title: map.title, expert: map.expert.name }}
+          components={{ strong: <span className="font-medium" /> }}
+        />
+      </p>
+      <Button size="sm" variant="outline" onClick={onSame}>
+        {t("memoryMatch.same")}
+      </Button>
+      <Button size="sm" variant="ghost" onClick={onNew}>
+        {t("memoryMatch.new")}
+      </Button>
     </div>
   )
 }
@@ -447,69 +681,6 @@ function useElapsed(session: CaptureSession) {
   return live ? Math.max(0, (now - Date.parse(session.startedAt)) / 1000) : session.durationSec
 }
 
-function IntakeCard({
-  related,
-  basedOn,
-  canStart,
-  onBase,
-  onStart,
-}: {
-  related?: WorkMapSummary[]
-  basedOn?: ID
-  canStart: boolean
-  onBase: (id: ID | null) => void
-  onStart: () => void
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="size-4" /> Intake
-        </CardTitle>
-        <CardDescription>
-          Tell Socrates what you're about to do. It checks its memory so it doesn't document the
-          same workflow twice, then starts watching.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {related === undefined ? (
-          <p className="text-sm text-muted-foreground">Memory lookup runs when you start.</p>
-        ) : related.length === 0 ? (
-          <p className="text-sm">No saved Work Map matches. This is a new workflow.</p>
-        ) : (
-          related.map((m) => (
-            <div key={m.id} className="flex flex-wrap items-center gap-3 rounded-lg border p-3">
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">{m.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  Already shown by {m.expert.name} · {pluralize(m.stepCount, "step")}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant={basedOn === m.id ? "default" : "outline"}
-                onClick={() => onBase(m.id)}
-              >
-                Same workflow
-              </Button>
-              <Button
-                size="sm"
-                variant={basedOn ? "outline" : "secondary"}
-                onClick={() => onBase(null)}
-              >
-                It's new
-              </Button>
-            </div>
-          ))
-        )}
-        <Button onClick={onStart} disabled={!canStart} variant="outline">
-          Start capture now
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
-
 function TextQuestion({
   question,
   onAnswer,
@@ -519,9 +690,10 @@ function TextQuestion({
   onAnswer: (text: string) => void
   onSkip: () => void
 }) {
+  const { t } = useTranslation("capture")
   const [draft, setDraft] = useState("")
   return (
-    <Card className="border-primary/40 bg-primary/5">
+    <Card className="border-primary/40 bg-background shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <MessageCircleQuestion className="size-4" /> {question}
@@ -538,30 +710,14 @@ function TextQuestion({
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Your answer"
+            placeholder={t("textQuestion.placeholder")}
           />
-          <Button type="submit">Answer</Button>
+          <Button type="submit">{t("textQuestion.answer")}</Button>
           <Button type="button" variant="ghost" onClick={onSkip}>
-            Later
+            {t("textQuestion.later")}
           </Button>
         </form>
       </CardContent>
     </Card>
-  )
-}
-
-function LoopStatsLine({
-  stats,
-  error,
-}: {
-  stats: ReturnType<typeof useCaptureLoop>["stats"]
-  error?: string
-}) {
-  return (
-    <p className="text-xs text-muted-foreground">
-      {stats.sent} frames analysed · {stats.skipped} unchanged · {stats.dropped} dropped
-      {stats.visionMs ? ` · vision ${(stats.visionMs / 1000).toFixed(1)} s` : ""}
-      {error && <span className="block text-destructive">{error}</span>}
-    </p>
   )
 }

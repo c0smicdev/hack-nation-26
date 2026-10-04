@@ -1,22 +1,24 @@
 import { AlertCircle } from "lucide-react"
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 
 /** Shown when a query fails. Pass `retry` to offer a retry button. */
 export function ErrorState({ error, retry }: { error: unknown; retry?: () => void }) {
+  const { t } = useTranslation("common")
   return (
     <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-10 text-center">
       <AlertCircle className="size-6 text-destructive" />
       <div>
-        <p className="font-medium">Something went wrong</p>
+        <p className="font-medium">{t("queryState.errorTitle")}</p>
         <p className="text-sm text-muted-foreground">
           {error instanceof Error ? error.message : String(error)}
         </p>
       </div>
       {retry && (
         <Button variant="outline" size="sm" onClick={retry}>
-          Try again
+          {t("queryState.retry")}
         </Button>
       )}
     </div>

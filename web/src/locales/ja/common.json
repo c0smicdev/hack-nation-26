@@ -1,0 +1,60 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Socrates との関わり方",
+    "askSocrates": "Socrates に質問",
+    "logIn": "ログイン",
+    "logOut": "ログアウト"
+  },
+  "profileMenu": {
+    "language": "言語",
+    "languageHint": "アプリの表示言語です。Socrates もこの言語で話したり書いたりします。"
+  },
+  "askSuggestions": {
+    "capex": "請求書が opex ではなく capex になるのはどんなときですか？",
+    "unknownSupplier": "未登録のサプライヤーはどう扱えばよいですか？",
+    "intercompany": "グループ会社間の請求書は誰が承認しますか？"
+  },
+  "time": {
+    "justNow": "たった今"
+  },
+  "dialog": {
+    "close": "閉じる"
+  },
+  "mermaidDiagram": {
+    "error": "図を描画できませんでした: {{message}}",
+    "fitToView": "画面に合わせる",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小"
+  },
+  "queryState": {
+    "errorTitle": "問題が発生しました",
+    "retry": "再試行"
+  },
+  "screenMoment": {
+    "redacted": "非表示"
+  },
+  "voicePanel": {
+    "placeholder": "話す代わりに入力…",
+    "mutedPlaceholder": "マイクはミュート中です。Socrates に入力…",
+    "speaking": "話しています",
+    "muted": "ミュート中",
+    "listening": "聞いています",
+    "textMode": "テキストモード",
+    "connecting": "接続中…",
+    "voiceError": "音声エラー",
+    "notConnected": "未接続",
+    "empty": "会話はここに表示されます。",
+    "you": "あなた",
+    "mute": "マイクをミュート",
+    "unmute": "ミュートを解除",
+    "send": "送信"
+  },
+  "errorPages": {
+    "backToLibrary": "ライブラリに戻る",
+    "notFoundTitle": "ページが見つかりません",
+    "notFoundMessage": "Socrates はまだこのページを知りません。",
+    "brokeTitle": "エラーが発生しました",
+    "unknownError": "不明なエラー"
+  }
+}

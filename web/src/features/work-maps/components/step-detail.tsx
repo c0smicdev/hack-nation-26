@@ -1,11 +1,12 @@
 import { ArrowLeft, ArrowRight, GitBranch, ShieldAlert } from "lucide-react"
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Guardrail, WorkMapStep } from "@/lib/api"
 
-import { GUARDRAIL, JUDGMENT_CLASS } from "../labels"
+import { GUARDRAIL, guardrailLabel, JUDGMENT_CLASS } from "../labels"
 import { QuoteBlock } from "./quote-block"
 import { ScreenMomentView } from "@/components/screen-moment-view"
 
@@ -30,7 +31,8 @@ function Section({
 }
 
 function GuardrailItem({ guardrail }: { guardrail: Guardrail }) {
-  const { label, icon: Icon } = GUARDRAIL[guardrail.kind]
+  const { t } = useTranslation("workMaps")
+  const { icon: Icon } = GUARDRAIL[guardrail.kind]
   return (
     <li className="space-y-3 rounded-lg border border-rose-500/20 bg-rose-500/5 p-4">
       <div className="flex items-start gap-3">
@@ -38,8 +40,8 @@ function GuardrailItem({ guardrail }: { guardrail: Guardrail }) {
         <div className="space-y-1">
           <p className="font-medium">{guardrail.rule}</p>
           <p className="text-xs text-muted-foreground">
-            {label}
-            {guardrail.escalateTo && <> · Ask: {guardrail.escalateTo}</>}
+            {guardrailLabel(guardrail.kind)}
+            {guardrail.escalateTo && t("stepDetail.escalateTo", { who: guardrail.escalateTo })}
           </p>
         </div>
       </div>
@@ -61,12 +63,15 @@ export function StepDetail({
   onPrev?: () => void
   onNext?: () => void
 }) {
+  const { t } = useTranslation("workMaps")
   return (
     <article className="space-y-6">
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          Step {index + 1} of {total}
-          {step.kind === "judgment" && <Badge className={JUDGMENT_CLASS}>Judgment call</Badge>}
+          {t("stepDetail.position", { index: index + 1, total })}
+          {step.kind === "judgment" && (
+            <Badge className={JUDGMENT_CLASS}>{t("judgmentCall")}</Badge>
+          )}
         </div>
         <h2 className="text-xl font-semibold tracking-tight">{step.title}</h2>
       </header>
@@ -74,18 +79,18 @@ export function StepDetail({
       <ScreenMomentView moment={step.screen} />
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Section title="Decision">
+        <Section title={t("stepDetail.decision")}>
           <p className="text-base">{step.decision}</p>
         </Section>
         {step.reason && (
-          <Section title="Why">
+          <Section title={t("stepDetail.why")}>
             <QuoteBlock quote={step.reason} />
           </Section>
         )}
       </div>
 
       {step.guardrails.length > 0 && (
-        <Section title="Guardrails" icon={<ShieldAlert className="size-3.5" />}>
+        <Section title={t("stepDetail.guardrails")} icon={<ShieldAlert className="size-3.5" />}>
           <ul className="space-y-2">
             {step.guardrails.map((g) => (
               <GuardrailItem key={g.id} guardrail={g} />
@@ -95,12 +100,12 @@ export function StepDetail({
       )}
 
       {step.edgeCases.length > 0 && (
-        <Section title="Edge cases" icon={<GitBranch className="size-3.5" />}>
+        <Section title={t("stepDetail.edgeCases")} icon={<GitBranch className="size-3.5" />}>
           <ul className="space-y-2">
             {step.edgeCases.map((e) => (
               <li key={e.id} className="space-y-3 rounded-lg border p-4">
                 <p>
-                  <span className="text-muted-foreground">If</span>{" "}
+                  <span className="text-muted-foreground">{t("stepDetail.if")}</span>{" "}
                   {e.when.charAt(0).toLowerCase() + e.when.slice(1)}{" "}
                   <span className="text-muted-foreground">→</span> {e.then}
                 </p>
@@ -113,10 +118,10 @@ export function StepDetail({
 
       <footer className="flex justify-between border-t pt-4">
         <Button variant="ghost" size="sm" onClick={onPrev} disabled={!onPrev}>
-          <ArrowLeft /> Previous
+          <ArrowLeft /> {t("stepDetail.previous")}
         </Button>
         <Button variant="ghost" size="sm" onClick={onNext} disabled={!onNext}>
-          Next <ArrowRight />
+          {t("stepDetail.next")} <ArrowRight />
         </Button>
       </footer>
     </article>

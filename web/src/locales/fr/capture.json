@@ -1,0 +1,138 @@
+{
+  "captureState": {
+    "notCapturing": "Capture inactive",
+    "offTheRecord": "Hors enregistrement",
+    "capturing": "Capture en cours"
+  },
+  "sessionStatus": {
+    "intake": "Préparation",
+    "live": "En direct",
+    "processing": "Cartographie en cours",
+    "awaitingDebrief": "Débrief en attente",
+    "mapped": "Cartographié"
+  },
+  "eventKind": {
+    "screen": "Écran",
+    "speech": "Expert",
+    "question": "Question de Socrates",
+    "offRecord": "Confidentialité"
+  },
+  "capturePage": {
+    "title": "Capture",
+    "description": "Réalisez une vraie tâche pendant que Socrates observe votre écran. Il vous demande pourquoi lors des pauses naturelles, comble les lacunes lors d'un court débrief, puis en fait un workflow.",
+    "howItWorks": {
+      "title": "Comment ça marche",
+      "step1": "1. Ouvrez l'ERP de démo dans un autre onglet, lancez une session et partagez cet onglet. Dites à Socrates ce que vous allez faire.",
+      "step2": "2. Travaillez comme d'habitude en réfléchissant à voix haute. Socrates pose 3 à 5 questions lors des pauses naturelles.",
+      "step3": "3. Dites que vous avez terminé : un court débrief à l'oral, puis Socrates vous réexplique la tâche.",
+      "offTheRecord": "Dites « hors enregistrement » ou basculez l'interrupteur à tout moment. Rien n'est capturé tant que l'enregistrement n'a pas repris."
+    },
+    "sessions": "Sessions"
+  },
+  "sessionRow": {
+    "events_one": "{{count}} événement",
+    "events_many": "{{count}} événements",
+    "events_other": "{{count}} événements",
+    "liveQuestions_one": "{{count}} question en direct",
+    "liveQuestions_many": "{{count}} questions en direct",
+    "liveQuestions_other": "{{count}} questions en direct"
+  },
+  "newSession": {
+    "title": "Nouvelle session",
+    "description": "Qui montre quoi ? Vous pourrez préciser la tâche à l'oral.",
+    "expert": "Expert",
+    "role": "Poste",
+    "sessionTitle": "Titre de la session",
+    "task": "Qu'allez-vous faire ?",
+    "defaultTitle": "Factures fournisseurs de fin de mois",
+    "defaultTask": "Traiter les factures fournisseurs de la semaine dans l'ERP avant la clôture mensuelle.",
+    "start": "Démarrer la session"
+  },
+  "openErp": "Ouvrir l'ERP de démo",
+  "breadcrumbWorkflows": "Workflows",
+  "yourSteps": "Vos étapes",
+  "openWorkflow": "Ouvrir le workflow",
+  "confirmTeachBack": "Oui, c'est bien ça",
+  "busy": {
+    "buildingDraft": "Création du brouillon de workflow",
+    "writingTeachBack": "Rédaction de la reformulation",
+    "savingToMemory": "Enregistrement en mémoire",
+    "updatingTeachBack": "Mise à jour de la reformulation"
+  },
+  "recording": {
+    "notRecording": "Pas d'enregistrement",
+    "paused": "En pause",
+    "recording": "Enregistrement",
+    "shareTitle": "Partagez votre écran pour commencer l'enregistrement",
+    "shareHint": "Choisissez la fenêtre dans laquelle vous allez travailler (par ex. l'ERP de démo). Socrates observe, regroupe vos actions en étapes et dessine le workflow ici.",
+    "shareScreen": "Partager l'écran",
+    "stepsSoFar_one": "{{count}} étape pour l'instant",
+    "stepsSoFar_many": "{{count}} étapes pour l'instant",
+    "stepsSoFar_other": "{{count}} étapes pour l'instant",
+    "endWorkflow": "Terminer le workflow"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates parle",
+    "listening": "Socrates écoute",
+    "connecting": "Connexion…",
+    "text": "Les questions s'affichent à l'écran",
+    "off": "Voix désactivée"
+  },
+  "memoryMatch": {
+    "text": "Cela ressemble à <strong>{{title}}</strong>, que {{expert}} m'a déjà montré. Est-ce le même workflow ?",
+    "same": "Même workflow",
+    "new": "C'est nouveau"
+  },
+  "textQuestion": {
+    "placeholder": "Votre réponse",
+    "answer": "Répondre",
+    "later": "Plus tard"
+  },
+  "leaveGuard": {
+    "title": "Abandonner cet enregistrement ?",
+    "description": "Le workflow est encore en cours d'enregistrement. Si vous quittez maintenant, l'enregistrement s'arrête et les étapes capturées jusqu'ici ne deviendront pas un workflow.",
+    "keep": "Continuer l'enregistrement",
+    "abandon": "Abandonner l'enregistrement"
+  },
+  "offTheRecordSwitch": {
+    "label": "En off"
+  },
+  "liveStepList": {
+    "gettingStarted": "Démarrage",
+    "empty": "Commencez à travailler. Vos étapes s'affichent ici à mesure que Socrates les comprend.",
+    "decision": "Décision",
+    "differsFromMemory": "Diffère de la mémoire",
+    "events_one": "{{count}} événement",
+    "events_many": "{{count}} d'événements",
+    "events_other": "{{count}} événements",
+    "screenshotAlt": "Écran pendant : {{title}}"
+  },
+  "debriefView": {
+    "building": "Création du brouillon de workflow à partir de ce que Socrates a vu et entendu…",
+    "debrief": "Debrief",
+    "confirmed": "Confirmé et enregistré en mémoire",
+    "teachBack": "Restitution : Socrates a-t-il compris ?",
+    "questionsAnswered": "{{answered}} question(s) répondue(s) sur {{total}}",
+    "chat": "Chat",
+    "steps": "Étapes",
+    "voiceTitle": "Socrates · Debrief",
+    "voicePlaceholder": "Répondez à voix haute ou saisissez votre réponse ici…",
+    "debriefByVoice": "Debrief vocal"
+  },
+  "debriefPanel": {
+    "title": "Debrief",
+    "description": "{{answered}} question(s) ouverte(s) répondue(s) sur {{total}}. Socrates les pose une par une, puis vous réexplique l'ensemble du processus.",
+    "teachBackTitle": "Restitution",
+    "teachBackDescription": "C'est terminé lorsque toutes les questions ont une réponse et que {{expert}} confirme l'explication.",
+    "confirmed": "Confirmé. Le workflow est enregistré en mémoire.",
+    "explainBack": "Réexpliquer",
+    "about": "À propos de : {{title}}",
+    "answerPlaceholder": "Répondez à voix haute ou saisissez votre réponse ici",
+    "save": "Enregistrer",
+    "updatedAfter_one": "Mis à jour après {{count}} correction.",
+    "updatedAfter_many": "Mis à jour après {{count}} de corrections.",
+    "updatedAfter_other": "Mis à jour après {{count}} corrections.",
+    "correctionPlaceholder": "Une erreur ? Corrigez-la avec vos propres mots.",
+    "correct": "Corriger"
+  }
+}

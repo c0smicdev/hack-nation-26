@@ -1,4 +1,5 @@
 import { Lock } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import type { Rect, ScreenMoment } from "@/lib/api"
 import { formatTimestamp } from "@/lib/format"
@@ -26,6 +27,7 @@ export function ScreenMomentView({
   compact?: boolean
   className?: string
 }) {
+  const { t } = useTranslation("common")
   return (
     <figure className={cn("overflow-hidden rounded-xl border bg-muted", className)}>
       <div className="relative overflow-hidden">
@@ -43,7 +45,7 @@ export function ScreenMomentView({
           >
             {!compact && (
               <>
-                <Lock className="size-3" /> Redacted
+                <Lock className="size-3" /> {t("screenMoment.redacted")}
               </>
             )}
           </div>
