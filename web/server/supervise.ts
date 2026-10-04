@@ -3,6 +3,8 @@ import { z } from "zod"
 import type {
   ID,
   NewSupervision,
+  ScreenAnswer,
+  ScreenQuestion,
   SupervisionSession,
   SupervisionTickResult,
   SupervisorWarning,
@@ -240,4 +242,49 @@ export async function processSupervisionTick(
   } finally {
     runtime.visionBusy = false
   }
+}
+
+/* Questions: answered looking at the learner's screen ---------------- */
+
+const recentActions = (runtime: SupervisionRuntime) =>
+  runtime.actions
+    .slice(-12)
+    .map((a) => `  ${a.at.toFixed(0)}s ${a.text}`)
+    .join("\n") || "  (nothing yet)"
+
+const Answer = z.object({ answer: z.string(), stepId: z.string().nullable() })
+
+export async function askAboutScreen(
+  supervisionId: ID,
+  { question, image }: ScreenQuestion,
+): Promise<ScreenAnswer> {
+  const runtime = getSupervision(supervisionId)
+  const map = getWorkMap(runtime.session.workMapId)
+  if (!question?.trim()) throw new HttpError(400, "question is required")
+  const current = map.steps.find((s) => s.id === runtime.currentStepId)
+  const out = await structured({
+    model: models.reasoning,
+    effort: "low",
+    maxTokens: 3000,
+    system: prompt("supervise-ask", {
+      expert: map.expert.name,
+      learner: runtime.session.learnerName,
+    }),
+    schema: Answer,
+    content: [
+      text(
+        [
+          mapContext(map),
+          `Step the learner seems to be on: ${current ? `[${current.id}] ${current.title}` : "(unknown)"}`,
+          `What the learner did so far:\n${recentActions(runtime)}`,
+        ].join("\n\n"),
+      ),
+      ...(image
+        ? [text("The learner's screen right now:"), imageBlock(Buffer.from(image, "base64"))]
+        : [text("(The screen isn't shared right now.)")]),
+      text(`The learner asks: ${question.trim()}`),
+    ],
+  })
+  const stepId = map.steps.some((s) => s.id === out.stepId) ? out.stepId! : undefined
+  return { answer: out.answer, stepId }
 }

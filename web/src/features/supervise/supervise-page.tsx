@@ -33,7 +33,7 @@ import {
   type SupervisorWarning,
   type WorkMap,
 } from "@/lib/api"
-import { startScreenShare } from "@/lib/capture/screen"
+import { grabFrame, startScreenShare } from "@/lib/capture/screen"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useVoiceAgent, type VoiceAgent } from "@/lib/voice/use-voice-agent"
@@ -105,7 +105,14 @@ function SuperviseView({ map }: { map: WorkMap }) {
   const [thinking, setThinking] = useState(false)
   const seq = useRef(0)
 
-  const add = (item: ChatItem) => setLocal((items) => [...items, item])
+  const add = (item: ChatItem) =>
+    setLocal((items) =>
+      // look_at_screen and show_step often link the same step for one answer: show it once.
+      item.kind === "step" &&
+      items.some((i) => i.kind === "step" && i.stepId === item.stepId && item.at - i.at < 30_000)
+        ? items
+        : [...items, item],
+    )
   const nextId = (kind: string) => `${kind}-${++seq.current}`
 
   function openStep(id: ID) {
@@ -113,11 +120,34 @@ function SuperviseView({ map }: { map: WorkMap }) {
     setOpenStepId(id)
   }
 
+  /** Answers a question looking at the learner's screen right now (and the expert's Work Map). */
+  async function askScreen(question: string) {
+    if (!supervision) throw new Error("The run hasn't started yet")
+    const frame = video && stream ? grabFrame(video) : null
+    setThinking(true)
+    try {
+      const at = (Date.now() - Date.parse(supervision.startedAt)) / 1000
+      return await api.askAboutScreen(supervision.id, {
+        question,
+        image: frame?.base64 ?? "",
+        at,
+      })
+    } finally {
+      setThinking(false)
+    }
+  }
+
   /* Voice agent: stands by, answers when asked ------------------------ */
 
   const agent = useVoiceAgent({
     role: "supervisor",
     tools: {
+      look_at_screen: async ({ question }) => {
+        const { answer, stepId } = await askScreen(String(question ?? ""))
+        if (stepId) add({ kind: "step", id: nextId("step"), at: Date.now(), stepId })
+        // The agent tends to end its turn after a tool call: tell it to keep talking.
+        return `${answer}\n\n(What you see on their screen. Now say this to the learner, briefly, in your own words.${stepId ? ` The step [${stepId}] is already linked in their chat: don't call show_step for it.` : ""})`
+      },
       show_step: ({ step_id }) => {
         const step = map.steps.find((s) => s.id === String(step_id))
         if (!step) {
@@ -125,7 +155,8 @@ function SuperviseView({ map }: { map: WorkMap }) {
         }
         add({ kind: "step", id: nextId("step"), at: Date.now(), stepId: step.id })
         setOpenStepId(step.id)
-        return `The learner can now open "${step.title}" on screen. Don't mention this.`
+        // The agent tends to end its turn after a tool call: tell it to keep talking.
+        return `"${step.title}" is now linked in the learner's chat. Now give your answer out loud.`
       },
     },
   })
@@ -152,6 +183,15 @@ function SuperviseView({ map }: { map: WorkMap }) {
 
   /* Starting, re-sharing and ending ----------------------------------- */
 
+  /** Connects the supervisor agent; it listens for the learner's questions from then on. */
+  function startVoice(run: SupervisionSession) {
+    void agent.start({
+      learner_name: run.learnerName,
+      expert_name: expertFirst,
+      work_map: supervisorBrief(map),
+    })
+  }
+
   async function share() {
     setShareError(undefined)
     let media: MediaStream
@@ -174,13 +214,7 @@ function SuperviseView({ map }: { map: WorkMap }) {
         (await api.startSupervision(map.id, { learnerName: learner.trim() || "New hire" }))
       setSupervision(run)
       setStream(media)
-      if (agent.mode === "idle" || agent.mode === "error") {
-        void agent.start({
-          learner_name: run.learnerName,
-          expert_name: expertFirst,
-          work_map: supervisorBrief(map),
-        })
-      }
+      if (agent.mode === "idle" || agent.mode === "error") startVoice(run)
     } catch (e) {
       media.getTracks().forEach((t) => t.stop())
       setShareError(message(e))
@@ -224,16 +258,15 @@ function SuperviseView({ map }: { map: WorkMap }) {
       return
     }
     add({ kind: "user", id: nextId("user"), at: Date.now(), text })
-    setThinking(true)
     try {
-      const where = current ? `\n\n(I'm at the step "${current.title}" right now.)` : ""
-      const answer = await api.ask({ question: `${text}${where}`, workMapId: map.id })
+      // Typed questions see the screen too.
+      const { answer, stepId } = await askScreen(text)
       add({
         kind: "agent",
         id: nextId("agent"),
         at: Date.now(),
-        text: answer.answer,
-        stepIds: answer.citations.map((c) => c.stepId),
+        text: answer,
+        stepIds: stepId ? [stepId] : [],
       })
     } catch (e) {
       add({
@@ -242,8 +275,6 @@ function SuperviseView({ map }: { map: WorkMap }) {
         at: Date.now(),
         text: `Sorry, I couldn't look that up (${message(e)}).`,
       })
-    } finally {
-      setThinking(false)
     }
   }
 
@@ -435,6 +466,19 @@ function SuperviseView({ map }: { map: WorkMap }) {
           </div>
           {loop.error && (
             <p className="border-b px-4 py-2 text-xs text-destructive">{loop.error}</p>
+          )}
+          {supervision && !ended && (agent.mode === "text" || agent.mode === "error") && (
+            <div className="flex items-center gap-3 border-b bg-amber-500/5 px-4 py-2 text-xs">
+              <MicOff className="size-4 shrink-0 text-amber-600" />
+              <p className="min-w-0 flex-1">
+                {agent.error
+                  ? `Socrates can't hear you: ${agent.error}`
+                  : "Voice isn't set up for supervised runs (npm run setup:agents -- supervisor). Type your questions below."}
+              </p>
+              <Button size="sm" variant="outline" onClick={() => startVoice(supervision)}>
+                <Mic /> Turn on voice
+              </Button>
+            </div>
           )}
           {tab === "chat" ? (
             <ChatPanel

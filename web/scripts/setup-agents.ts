@@ -3,7 +3,8 @@
  * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
  * so agent config lives in git, not in a dashboard.
  *
- *   npm run setup:agents
+ *   npm run setup:agents               # all agents
+ *   npm run setup:agents -- supervisor # only the named ones
  *
  * Reads ELEVENLABS_API_KEY from .env.local and writes the agent ids back into it.
  */
@@ -306,6 +307,18 @@ const agents = {
     ] satisfies AudioTag[],
     tools: [
       clientTool(
+        "look_at_screen",
+        "Look at the learner's screen right now and get an answer to their question, grounded in what's on screen and the expert's Work Map. Use it for every question about their work.",
+        {
+          question: {
+            type: "string",
+            description:
+              "The learner's question, in their words, with what 'this' or 'here' refers to if you know",
+          },
+        },
+        45,
+      ),
+      clientTool(
         "show_step",
         "Show the learner the Work Map step your answer or heads-up is about: what the expert did on screen and why.",
         { step_id: { type: "string", description: "Id of the Work Map step, e.g. s4" } },
@@ -346,7 +359,13 @@ async function main() {
   const apiKey = env.ELEVENLABS_API_KEY
   if (!apiKey) throw new Error(`Set ELEVENLABS_API_KEY in ${ENV_FILE}`)
 
-  for (const [role, agent] of Object.entries(agents)) {
+  // Optional role names: sync only those agents and leave the others as they are.
+  const only = process.argv.slice(2)
+  const unknown = only.filter((role) => !(role in agents))
+  if (unknown.length) throw new Error(`Unknown agent(s): ${unknown.join(", ")}`)
+  const selected = Object.entries(agents).filter(([role]) => !only.length || only.includes(role))
+
+  for (const [role, agent] of selected) {
     const body = {
       name: agent.name,
       conversation_config: {

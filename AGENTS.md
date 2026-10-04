@@ -260,6 +260,7 @@ See [`web/README.md`](web/README.md) for the full structure and recipes. The ess
 - **Timestamps:** `at` = seconds since session start; wall-clock = ISO 8601. Rects are normalized to `0..1`.
 - **LLM output** must match `types.ts`. Validate it at the boundary (e.g. with zod) instead of trusting it.
 - **Prompts** live in their own files (one per prompt, e.g. `prompts/vision-events.md`, `prompts/interviewer.md`, `prompts/tutor.md`, `prompts/memory-match.md`) so we can iterate on them without touching code.
+- **UI** follows [`docs/brand-guidelines.md`](docs/brand-guidelines.md) (fonts, colors, shadcn token mapping).
 - Keep components small and readable. Comment the *why*, not the *what*.
 
 ---

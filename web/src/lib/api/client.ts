@@ -11,6 +11,8 @@ import type {
   NewSession,
   NewSessionEvent,
   NewSupervision,
+  ScreenAnswer,
+  ScreenQuestion,
   SessionEvent,
   SupervisionSession,
   SupervisionTickResult,
@@ -74,6 +76,8 @@ export interface SocratesApi {
   startSupervision(workMapId: ID, input: NewSupervision): Promise<SupervisionSession>
   /** Where the learner is in the Work Map, and a warning if they're about to go wrong. */
   postSupervisionTick(supervisionId: ID, tick: Tick): Promise<SupervisionTickResult>
+  /** Answers the learner's question looking at their screen right now. */
+  askAboutScreen(supervisionId: ID, question: ScreenQuestion): Promise<ScreenAnswer>
 
   /* Voice: `null` when no ElevenLabs agent is configured (the UI falls back to text). */
   getVoiceSession(role: VoiceRole): Promise<VoiceSession | null>

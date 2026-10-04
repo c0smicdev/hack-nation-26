@@ -456,6 +456,16 @@ export const mockApi: SocratesApi = {
     }
   },
 
+  async askAboutScreen(supervisionId, { question }) {
+    // No vision in the mock: answer from the Work Map, anchored to where the ERP says they are.
+    const supervision = supervisions.get(supervisionId) ?? notFound(`Supervision ${supervisionId}`)
+    await delay(600)
+    const map = findMap(supervision.workMapId)
+    const { answer: text, citations } = answer(question, [map])
+    const stepId = citations[0]?.stepId ?? supervision.currentStepId
+    return { answer: text, stepId }
+  },
+
   async getVoiceSession() {
     return null
   },

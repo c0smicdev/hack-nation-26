@@ -8,6 +8,7 @@ import type {
   NewSession,
   NewSessionEvent,
   NewSupervision,
+  ScreenQuestion,
   TeachBackReply,
   Tick,
   VoiceRole,
@@ -22,7 +23,7 @@ import {
   sessionView,
   updateSession,
 } from "./capture.js"
-import { processSupervisionTick, startSupervision } from "./supervise.js"
+import { askAboutScreen, processSupervisionTick, startSupervision } from "./supervise.js"
 import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
 import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
 import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
@@ -67,6 +68,11 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     "POST",
     "/supervisions/:id/ticks",
     async ({ params, body }) => processSupervisionTick(params.id, (await body()) as Tick),
+  ],
+  [
+    "POST",
+    "/supervisions/:id/ask",
+    async ({ params, body }) => askAboutScreen(params.id, (await body()) as ScreenQuestion),
   ],
 
   [

@@ -9,16 +9,16 @@ npm run dev:mock     # same UI on in-memory mocks, no keys needed
 npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents and their procedures
 ```
 
-| Script                 | What it does                                                                                                         |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                                                                 |
-| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend                                                          |
-| `npm run setup:agents` | Pushes the agent prompts (`interviewer`, `tutor`, `supervisor`, `drafter`) and `prompts/procedures/` to ElevenAgents |
-| `npm run eval:focus`   | Scores step-screenshot focus boxes against `eval/focus/labels.json` (needs the API key)                              |
-| `npm run build`        | Typecheck + production build                                                                                         |
-| `npm run lint`         | ESLint                                                                                                               |
-| `npm run format`       | Prettier (with Tailwind class order)                                                                                 |
-| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                                                                          |
+| Script                 | What it does                                                                                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                                                                                                      |
+| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend                                                                                               |
+| `npm run setup:agents` | Pushes the agent prompts (`interviewer`, `tutor`, `supervisor`, `drafter`) and `prompts/procedures/` to ElevenAgents; `-- supervisor` syncs only that one |
+| `npm run eval:focus`   | Scores step-screenshot focus boxes against `eval/focus/labels.json` (needs the API key)                                                                   |
+| `npm run build`        | Typecheck + production build                                                                                                                              |
+| `npm run lint`         | ESLint                                                                                                                                                    |
+| `npm run format`       | Prettier (with Tailwind class order)                                                                                                                      |
+| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                                                                                                               |
 
 ## Setup (real backend + voice)
 
@@ -89,7 +89,7 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 
 - **Mock ERP ↔ Socrates:** same origin, so a `BroadcastChannel` (`lib/erp/bridge.ts`): screen, field changes, typing, actions, and a save gate (`save_request` → `save_pending` → `save_decision`) that only waits while a Teach lesson sends a heartbeat.
 - **Capture:** the session page samples the shared tab every 1.5 s, skips unchanged frames, keeps one vision call in flight (stale frames are dropped), and posts `Tick`s. Vision (Claude Haiku 4.5) returns events, candidate steps and at most one question; the page decides _when_ to ask.
-- **Supervise:** same tick loop as capture, but `/supervisions/:id/ticks` returns where the learner is (current + done steps) and, rarely, a heads-up: the vision model flags a possible mistake, Opus double-checks it against the Work Map before anyone hears it, and each step gets at most one heads-up until the learner moves on. ERP saves go through the same save gate as Teach. The supervisor agent (`prompts/supervisor.md`) uses `skip_turn` unless addressed and speaks unprompted only for `[WARNING]` / `[HOLD]` messages; `show_step` links its answer to the expert's step. Without a supervisor agent the chat falls back to Ask.
+- **Supervise:** same tick loop as capture, but `/supervisions/:id/ticks` returns where the learner is (current + done steps) and, rarely, a heads-up: the vision model flags a possible mistake, Opus double-checks it against the Work Map before anyone hears it, and each step gets at most one heads-up until the learner moves on. ERP saves go through the same save gate as Teach. The supervisor agent (`prompts/supervisor.md`) uses `skip_turn` unless addressed and speaks unprompted only for `[WARNING]` / `[HOLD]` messages; For every question it calls `look_at_screen`: the browser grabs the current frame and `/supervisions/:id/ask` has Claude answer from that screenshot plus the Work Map (`prompts/supervise-ask.md`); `show_step` links the answer to the expert's step. Typed questions take the same path, so they see the screen too.
 - **Voice:** the browser gets a signed URL from `/api/voice/:role`; the agent calls client tools (`lookup_memory`, `start_capture`, `set_off_record`, `finish_task`, `record_debrief_answer`, `get_teach_back`, `reply_teach_back`, `finish_lesson`). Screen events reach it as contextual updates; live questions as `[QUESTION …]` messages.
 - **Quotes:** Work Map JSON from Claude references transcript utterances by id; the backend copies the expert's exact words, so every reason and guardrail links to what they actually said.
 

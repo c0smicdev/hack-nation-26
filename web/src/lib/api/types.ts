@@ -370,6 +370,22 @@ export interface SupervisorWarning {
   screen?: ScreenMoment
 }
 
+/** A question about what's on the learner's screen right now. */
+export interface ScreenQuestion {
+  question: string
+  /** Current frame: downscaled JPEG, base64 without the data: prefix. */
+  image: string
+  /** Seconds since the supervision started. */
+  at: number
+}
+
+export interface ScreenAnswer {
+  /** What Socrates says back, grounded in the screen and the expert's Work Map. */
+  answer: string
+  /** The Work Map step the answer is about. */
+  stepId?: ID
+}
+
 export interface SupervisionTickResult {
   /** False if the tick was dropped because a vision call was still running. */
   processed: boolean

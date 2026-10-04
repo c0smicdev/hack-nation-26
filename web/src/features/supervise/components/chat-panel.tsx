@@ -125,7 +125,7 @@ export function ChatPanel({
         })}
         {thinking && (
           <p className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="size-3.5 animate-spin" /> Socrates is looking it up…
+            <Loader2 className="size-3.5 animate-spin" /> Socrates is looking at your screen…
           </p>
         )}
         <div ref={end} />
