@@ -35,7 +35,10 @@ Without agent ids (or if the mic is blocked) the voice panel falls back to **tex
 
 | Route            | Page                                                                                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`              | **Workflows** library                                                                                                                       |
+| `/`              | **Landing page**: public product website                                                                                                    |
+| `/landing`       | **Landing page**: compatibility URL                                                                                                         |
+| `/login`         | **Login**: sign in or create an account                                                                                                     |
+| `/app`           | **Workflows** library                                                                                                                       |
 | `/work-maps/:id` | **Workflow**: steps, screen moments, reasons, guardrails, clickable **flowchart**, debrief, teach-back                                      |
 | `/ask`           | **Ask Socrates**: Q&A across workflows, answers cite the step                                                                               |
 | `/capture`       | **Capture**: start a session, list sessions                                                                                                 |
