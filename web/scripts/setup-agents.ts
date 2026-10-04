@@ -1,9 +1,10 @@
 /**
- * Creates or updates the ElevenAgents (interviewer, tutor, new-workflow drafter) from
+ * Creates or updates the ElevenAgents (interviewer, supervisor, new-workflow drafter) from
  * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
  * so agent config lives in git, not in a dashboard.
  *
- *   npm run setup:agents
+ *   npm run setup:agents               # all agents
+ *   npm run setup:agents -- supervisor # only the named ones
  *
  * Reads ELEVENLABS_API_KEY from .env.local and writes the agent ids back into it.
  */
@@ -198,10 +199,12 @@ const agents = {
       expert_name: "Sabine",
       workflow: "Month-end supplier invoices",
       task: "Process this week's supplier invoices in the ERP before the month-end close.",
+      coaching_style: "balanced",
     },
     // Experts pause to think while they work: don't jump in. turn_v3 is the prosody-aware
     // turn-taking that ships with expressive mode.
     turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
+    skipTurn: true,
     audioTags: [
       { tag: "curious", description: "Asking why the expert did something" },
       { tag: "thoughtful", description: "Playing back what you understood, or the teach-back" },
@@ -265,34 +268,46 @@ const agents = {
       ),
     ],
   },
-  tutor: {
-    envKey: "ELEVENLABS_TUTOR_AGENT_ID",
-    name: "Socrates · Tutor",
-    prompt: "tutor",
+  supervisor: {
+    envKey: "ELEVENLABS_SUPERVISOR_AGENT_ID",
+    name: "Socrates · Supervisor",
+    prompt: "supervisor",
     firstMessage:
-      "Hi {{learner_name}}, I'm Socrates. Today we'll work through how {{expert_name}} does this.",
-    placeholders: { learner_name: "Alex", expert_name: "Sabine", work_map: "(Workflow)" },
-    turn: { turn_eagerness: "normal", turn_timeout: 10, turn_model: "turn_v3" },
+      "Hi {{learner_name}}, I'm Socrates. Go ahead, I'll stay quiet. Just ask if you need me.",
+    placeholders: {
+      learner_name: "Alex",
+      expert_name: "Sabine",
+      work_map: "(Work Map)",
+      coaching_style: "balanced",
+    },
+    // The learner is waiting on the answer, so don't hold back the turn; skip_turn filters out
+    // thinking out loud. A run often takes longer than the default 10-minute call limit.
+    turn: { turn_eagerness: "normal", turn_timeout: 15, turn_model: "turn_v3" },
+    maxDurationSecs: 3600,
+    skipTurn: true,
     audioTags: [
-      { tag: "encouraging", description: "The learner made a good call or is close" },
-      { tag: "serious", description: "A held save or a guardrail the learner is about to break" },
+      { tag: "calm", description: "A heads-up before a mistake, or a held save" },
       { tag: "slow", description: "Stating a limit, an amount, or a rule word for word" },
-      { tag: "warm", description: "Greeting and wrapping up the lesson" },
+      { tag: "friendly", description: "Answering a question the learner asked" },
+      { tag: "reassuring", description: "The learner sounds unsure or stressed" },
     ] satisfies AudioTag[],
     tools: [
       clientTool(
-        "finish_lesson",
-        "The lesson is over. Show what the learner mastered and what to practice.",
+        "look_at_screen",
+        "Look at the learner's screen right now and get an answer to their question, grounded in what's on screen and the expert's Work Map. Use it for every question about their work.",
         {
-          mastered: {
+          question: {
             type: "string",
-            description: "What they got right, short phrases separated by semicolons",
-          },
-          practice: {
-            type: "string",
-            description: "What to practice, short phrases separated by semicolons",
+            description:
+              "The learner's question, in their words, with what 'this' or 'here' refers to if you know",
           },
         },
+        45,
+      ),
+      clientTool(
+        "show_step",
+        "Show the learner the Work Map step your answer or heads-up is about: what the expert did on screen and why.",
+        { step_id: { type: "string", description: "Id of the Work Map step, e.g. s4" } },
       ),
     ],
   },
@@ -330,7 +345,13 @@ async function main() {
   const apiKey = env.ELEVENLABS_API_KEY
   if (!apiKey) throw new Error(`Set ELEVENLABS_API_KEY in ${ENV_FILE}`)
 
-  for (const [role, agent] of Object.entries(agents)) {
+  // Optional role names: sync only those agents and leave the others as they are.
+  const only = process.argv.slice(2)
+  const unknown = only.filter((role) => !(role in agents))
+  if (unknown.length) throw new Error(`Unknown agent(s): ${unknown.join(", ")}`)
+  const selected = Object.entries(agents).filter(([role]) => !only.length || only.includes(role))
+
+  for (const [role, agent] of selected) {
     const body = {
       name: agent.name,
       conversation_config: {
@@ -352,6 +373,8 @@ async function main() {
           expressive_mode: true,
           suggested_audio_tags: "audioTags" in agent ? agent.audioTags : undefined,
         },
+        conversation:
+          "maxDurationSecs" in agent ? { max_duration_seconds: agent.maxDurationSecs } : undefined,
       },
     }
 
@@ -365,7 +388,7 @@ async function main() {
     const { agent_id } = (await res.json()) as { agent_id: string }
 
     // The API ignores built_in_tools when inline `tools` are in the same request, so set them separately.
-    if (role === "interviewer") {
+    if ("skipTurn" in agent && agent.skipTurn) {
       const patch = await fetch(`${API}/agents/${agent_id}`, {
         method: "PATCH",
         headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },

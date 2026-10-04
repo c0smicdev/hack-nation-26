@@ -21,7 +21,10 @@ export interface Person {
 /* Account — the signed-in user                                        */
 /* ------------------------------------------------------------------ */
 
-/** How much Socrates talks while the expert works. Set during onboarding (not built yet). */
+/**
+ * How much Socrates talks: Silent observer, Balanced (default) or Active coach.
+ * Picked in onboarding; shapes live questions, heads-ups and tips.
+ */
 export type Chattiness = "quiet" | "normal" | "curious"
 
 export interface UserPreferences {
@@ -36,11 +39,14 @@ export interface Profile {
   role?: string
   email?: string
   preferences: UserPreferences
-  /** False until the (future) onboarding flow has run. */
+  /** False until the user has picked a coaching style in onboarding. */
   onboarded: boolean
 }
 
-export type ProfilePatch = Partial<Pick<Profile, "displayName" | "role" | "preferences">>
+export type ProfilePatch = Partial<Pick<Profile, "displayName" | "role" | "preferences">> & {
+  /** Onboarding is done: sets `onboarded_at`. */
+  onboarded?: true
+}
 
 /* ------------------------------------------------------------------ */
 /* workflow — the "brief, interactive document" for one workflow       */
@@ -339,7 +345,7 @@ export interface TeachBackReply {
 /* Teach — guiding a new hire through a workflow                       */
 /* ------------------------------------------------------------------ */
 
-/** A save the mock ERP is holding until the tutor allows it. */
+/** A save the mock ERP is holding until Socrates allows it. */
 export interface DecisionCheck {
   /** "post" | "hold" | "request_approval" */
   action: string
@@ -359,10 +365,77 @@ export interface DecisionVerdict {
 }
 
 /* ------------------------------------------------------------------ */
+/* Supervise — a new hire runs the workflow, Socrates stands by        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One run of a confirmed Work Map by a new hire. Socrates watches the shared
+ * screen but stays quiet: it only speaks when asked, or when the learner is
+ * about to make a mistake the expert would have caught.
+ */
+export interface SupervisionSession {
+  id: ID
+  workMapId: ID
+  learnerName: string
+  startedAt: string
+}
+
+export interface NewSupervision {
+  learnerName: string
+}
+
+/** A heads-up before (or right after) a decision the expert would not have made. */
+export interface SupervisorWarning {
+  id: ID
+  /** Seconds since the supervision started. */
+  at: number
+  /** `screen`: spotted on the shared screen. `save`: the ERP held a save. */
+  source: "screen" | "save"
+  /** One or two sentences for the learner, in the expert's reasoning. */
+  message: string
+  stepId?: ID
+  guardrailId?: ID
+  /** The expert's own words backing the warning. */
+  quote?: Quote
+  /** The expert's screen moment for that step. */
+  screen?: ScreenMoment
+}
+
+/** A question about what's on the learner's screen right now. */
+export interface ScreenQuestion {
+  question: string
+  /** Current frame: downscaled JPEG, base64 without the data: prefix. */
+  image: string
+  /** Seconds since the supervision started. */
+  at: number
+}
+
+export interface ScreenAnswer {
+  /** What Socrates says back, grounded in the screen and the expert's Work Map. */
+  answer: string
+  /** The Work Map step the answer is about. */
+  stepId?: ID
+}
+
+export interface SupervisionTickResult {
+  /** False if the tick was dropped because a vision call was still running. */
+  processed: boolean
+  /** Short label of what's on screen now. */
+  screen?: string
+  /** The Work Map step the learner is working on. */
+  currentStepId?: ID
+  /** Steps the learner has done so far (cumulative). */
+  completedStepIds: ID[]
+  /** What the learner just did, as a log line. */
+  action?: string
+  warning?: SupervisorWarning
+}
+
+/* ------------------------------------------------------------------ */
 /* Voice — ElevenAgents                                                */
 /* ------------------------------------------------------------------ */
 
-export type VoiceRole = "interviewer" | "tutor" | "drafter"
+export type VoiceRole = "interviewer" | "drafter" | "supervisor"
 
 export interface VoiceSession {
   /** Signed WebSocket URL; the API key never reaches the browser. */

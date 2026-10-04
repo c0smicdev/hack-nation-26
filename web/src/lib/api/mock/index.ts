@@ -11,6 +11,7 @@ import type {
   Profile,
   Quote,
   SessionEvent,
+  SupervisionSession,
   WorkMap,
 } from "../types"
 import { answer } from "./ask"
@@ -149,6 +150,38 @@ function verdict(map: WorkMap, action: string, record: Record<string, unknown>):
     )
   }
   return { allow: true, message: "That's how it's done. Go ahead." }
+}
+
+/* Supervise: ERP signals stand in for vision -------------------------- */
+
+interface Supervision extends SupervisionSession {
+  currentStepId?: ID
+  completed: Set<ID>
+}
+
+const supervisions = new Map<ID, Supervision>()
+
+const words = (text: string) => new Set(text.toLowerCase().match(/[a-z0-9€]{4,}/g) ?? [])
+
+/** Which step an ERP signal belongs to: fixed rules for the seeded AP map, word overlap otherwise. */
+function stepForSignal(map: WorkMap, signal: ErpSignal): ID | undefined {
+  const text = signal.text.toLowerCase()
+  if (map.id === "wm-ap-month-end") {
+    if (/invoice list/.test(text)) return "s1"
+    if (/opened invoice \d+/.test(text)) return "s2"
+    if (/account|cost center|asset/.test(text)) return "s4"
+    if (/approver|approval/.test(text)) return "s5"
+    if (/hold/.test(text)) return "s6"
+    if (/posted/.test(text)) return "s7"
+    return undefined
+  }
+  const said = words(signal.text)
+  let best: { id: ID; score: number } | undefined
+  for (const step of map.steps) {
+    const score = [...words(`${step.title} ${step.decision}`)].filter((w) => said.has(w)).length
+    if (score >= 2 && score > (best?.score ?? 0)) best = { id: step.id, score }
+  }
+  return best?.id
 }
 
 /* API --------------------------------------------------------------- */
@@ -404,6 +437,55 @@ export const mockApi: SocratesApi = {
   async checkDecision(mapId, check) {
     await delay(700)
     return verdict(findMap(mapId), check.action, check.record)
+  },
+
+  async startSupervision(mapId, { learnerName }) {
+    await delay()
+    findMap(mapId)
+    const supervision: Supervision = {
+      id: id("sup"),
+      workMapId: mapId,
+      learnerName: learnerName.trim() || "New hire",
+      startedAt: new Date().toISOString(),
+      completed: new Set(),
+    }
+    supervisions.set(supervision.id, supervision)
+    const { workMapId, learnerName: name, startedAt: started } = supervision
+    return { id: supervision.id, workMapId, learnerName: name, startedAt: started }
+  },
+
+  async postSupervisionTick(supervisionId, tick) {
+    await delay(300)
+    const supervision = supervisions.get(supervisionId) ?? notFound(`Supervision ${supervisionId}`)
+    const map = findMap(supervision.workMapId)
+    let action: string | undefined
+    for (const signal of tick.erp) {
+      if (signal.kind !== "navigate") action = signal.text
+      const stepId = stepForSignal(map, signal)
+      if (!stepId) continue
+      // Moving on means the steps before this one are done.
+      const index = map.steps.findIndex((s) => s.id === stepId)
+      map.steps.slice(0, index).forEach((s) => supervision.completed.add(s.id))
+      if (signal.kind === "action") supervision.completed.add(stepId)
+      supervision.currentStepId = stepId
+    }
+    return {
+      processed: true,
+      screen: "current",
+      currentStepId: supervision.currentStepId,
+      completedStepIds: [...supervision.completed],
+      action,
+    }
+  },
+
+  async askAboutScreen(supervisionId, { question }) {
+    // No vision in the mock: answer from the Work Map, anchored to where the ERP says they are.
+    const supervision = supervisions.get(supervisionId) ?? notFound(`Supervision ${supervisionId}`)
+    await delay(600)
+    const map = findMap(supervision.workMapId)
+    const { answer: text, citations } = answer(question, [map])
+    const stepId = citations[0]?.stepId ?? supervision.currentStepId
+    return { answer: text, stepId }
   },
 
   async getVoiceSession() {

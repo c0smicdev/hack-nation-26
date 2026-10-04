@@ -8,6 +8,8 @@ import type {
   DecisionCheck,
   NewSession,
   NewSessionEvent,
+  NewSupervision,
+  ScreenQuestion,
   TeachBackReply,
   Tick,
   VoiceRole,
@@ -25,6 +27,7 @@ import {
 import { requireUser } from "./auth.js"
 import { loadFrame, withDb } from "./db.js"
 import { getProfile, personForUser, updateProfile } from "./profile.js"
+import { askAboutScreen, processSupervisionTick, startSupervision } from "./supervise.js"
 import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
 import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
 import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
@@ -69,6 +72,21 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     "/workmaps/:id/check",
     async ({ params, body }) => checkDecision(params.id, (await body()) as DecisionCheck),
   ],
+  [
+    "POST",
+    "/workmaps/:id/supervisions",
+    async ({ params, body }) => startSupervision(params.id, (await body()) as NewSupervision),
+  ],
+  [
+    "POST",
+    "/supervisions/:id/ticks",
+    async ({ params, body }) => processSupervisionTick(params.id, (await body()) as Tick),
+  ],
+  [
+    "POST",
+    "/supervisions/:id/ask",
+    async ({ params, body }) => askAboutScreen(params.id, (await body()) as ScreenQuestion),
+  ],
 
   ["GET", "/sessions", () => [...store.sessions.values()].reverse().map(sessionView)],
   [
@@ -77,7 +95,8 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
     async ({ body, user }) => {
       const input = (await body()) as NewSession
       const expert = user && (await personForUser(user, input.expertName, input.expertRole))
-      return createSession(input, expert)
+      const { preferences } = await getProfile(user)
+      return createSession(input, expert, preferences.chattiness)
     },
   ],
   ["GET", "/sessions/:id", ({ params }) => sessionView(getRuntime(params.id))],

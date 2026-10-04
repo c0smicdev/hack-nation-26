@@ -1,10 +1,11 @@
 import type { WorkMap } from "@/lib/api"
-import { eur, type Invoice, net } from "@/lib/erp/data"
 
-/** The workflow as plain text for the tutor's prompt ({{work_map}}). */
-export function workMapBrief(map: WorkMap) {
+/** The workflow as plain text for the supervisor's prompt ({{work_map}}), with step ids for show_step. */
+export function supervisorBrief(map: WorkMap) {
   const steps = map.steps.map((s, i) => {
-    const lines = [`${i + 1}. ${s.title} (${s.kind}). What ${map.expert.name} does: ${s.decision}`]
+    const lines = [
+      `[${s.id}] Step ${i + 1}: ${s.title} (${s.kind}). What ${map.expert.name} does: ${s.decision}`,
+    ]
     if (s.reason) lines.push(`   Why, in their words: "${s.reason.text}"`)
     for (const g of s.guardrails) {
       const who = g.escalateTo ? ` Ask: ${g.escalateTo}.` : ""
@@ -30,9 +31,4 @@ export function workMapBrief(map: WorkMap) {
   ]
     .filter(Boolean)
     .join("\n\n")
-}
-
-/** One line about a case, for the tutor when the learner opens it. */
-export function caseLine(invoice: Invoice) {
-  return `invoice ${invoice.id} from ${invoice.supplier.name} (${invoice.supplier.city}, ${invoice.supplier.country}${invoice.supplier.intercompany ? ", group company" : ""}): ${invoice.description}, ${eur(net(invoice))} net, dated ${invoice.invoiceDate}`
 }

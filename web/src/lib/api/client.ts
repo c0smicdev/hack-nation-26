@@ -10,9 +10,14 @@ import type {
   LiveStep,
   NewSession,
   NewSessionEvent,
+  NewSupervision,
   Profile,
   ProfilePatch,
+  ScreenAnswer,
+  ScreenQuestion,
   SessionEvent,
+  SupervisionSession,
+  SupervisionTickResult,
   TeachBackReply,
   Tick,
   TickResult,
@@ -71,8 +76,15 @@ export interface SocratesApi {
   /** Confirmed → the map is finalized (possibly merged into an existing map: mind the returned id). */
   replyTeachBack(workMapId: ID, reply: TeachBackReply): Promise<WorkMap>
 
-  /* Teach */
+  /* Save gate: may the ERP save this? */
   checkDecision(workMapId: ID, check: DecisionCheck): Promise<DecisionVerdict>
+
+  /* Supervise: a new hire runs a confirmed Work Map, Socrates stands by */
+  startSupervision(workMapId: ID, input: NewSupervision): Promise<SupervisionSession>
+  /** Where the learner is in the Work Map, and a warning if they're about to go wrong. */
+  postSupervisionTick(supervisionId: ID, tick: Tick): Promise<SupervisionTickResult>
+  /** Answers the learner's question looking at their screen right now. */
+  askAboutScreen(supervisionId: ID, question: ScreenQuestion): Promise<ScreenAnswer>
 
   /* Voice: `null` when no ElevenLabs agent is configured (the UI falls back to text). */
   getVoiceSession(role: VoiceRole): Promise<VoiceSession | null>

@@ -7,7 +7,7 @@ import { HttpError } from "./store.js"
 
 /**
  * The signed-in user's profile (`profiles` table, created by a trigger on sign-up).
- * Onboarding will fill `role` and `preferences` and set `onboarded_at`.
+ * Onboarding fills `preferences` (the coaching style) and sets `onboarded_at`.
  * Without Supabase there's no login, so everyone shares one local profile.
  */
 
@@ -40,6 +40,7 @@ const Patch = z
     displayName: z.string().trim().min(1).max(80),
     role: z.string().trim().max(80),
     preferences: z.object({ chattiness: z.enum(["quiet", "normal", "curious"]) }).partial(),
+    onboarded: z.literal(true),
   })
   .partial()
 
@@ -75,7 +76,12 @@ export async function updateProfile(user: User | undefined, input: unknown): Pro
   const preferences = { ...current.preferences, ...patch.preferences }
   const supabase = db()
   if (!supabase || !user) {
-    localProfile = { ...localProfile, ...patch, preferences }
+    localProfile = {
+      ...localProfile,
+      ...patch,
+      preferences,
+      onboarded: localProfile.onboarded || !!patch.onboarded,
+    }
     return localProfile
   }
 
@@ -85,6 +91,7 @@ export async function updateProfile(user: User | undefined, input: unknown): Pro
       ...(patch.displayName !== undefined && { display_name: patch.displayName }),
       ...(patch.role !== undefined && { role: patch.role || null }),
       preferences,
+      ...(patch.onboarded && { onboarded_at: new Date().toISOString() }),
     })
     .eq("id", user.id)
     .select("id, display_name, role, preferences, onboarded_at")
