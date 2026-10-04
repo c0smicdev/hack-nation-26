@@ -10,7 +10,10 @@ import type {
   LiveStep,
   NewSession,
   NewSessionEvent,
+  NewSupervision,
   SessionEvent,
+  SupervisionSession,
+  SupervisionTickResult,
   TeachBackReply,
   Tick,
   TickResult,
@@ -66,6 +69,11 @@ export interface SocratesApi {
 
   /* Teach */
   checkDecision(workMapId: ID, check: DecisionCheck): Promise<DecisionVerdict>
+
+  /* Supervise: a new hire runs a confirmed Work Map, Socrates stands by */
+  startSupervision(workMapId: ID, input: NewSupervision): Promise<SupervisionSession>
+  /** Where the learner is in the Work Map, and a warning if they're about to go wrong. */
+  postSupervisionTick(supervisionId: ID, tick: Tick): Promise<SupervisionTickResult>
 
   /* Voice: `null` when no ElevenLabs agent is configured (the UI falls back to text). */
   getVoiceSession(role: VoiceRole): Promise<VoiceSession | null>

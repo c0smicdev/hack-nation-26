@@ -1,5 +1,5 @@
 /**
- * Creates or updates the two ElevenAgents (interviewer + tutor) from
+ * Creates or updates the ElevenAgents (interviewer, tutor, supervisor, drafter) from
  * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
  * so agent config lives in git, not in a dashboard.
  *
@@ -193,6 +193,7 @@ const agents = {
     // Experts pause to think while they work: don't jump in. turn_v3 is the prosody-aware
     // turn-taking that ships with expressive mode.
     turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
+    skipTurn: true,
     audioTags: [
       { tag: "curious", description: "Asking why the expert did something" },
       { tag: "thoughtful", description: "Playing back what you understood, or the teach-back" },
@@ -287,6 +288,30 @@ const agents = {
       ),
     ],
   },
+  supervisor: {
+    envKey: "ELEVENLABS_SUPERVISOR_AGENT_ID",
+    name: "Socrates · Supervisor",
+    prompt: "supervisor",
+    firstMessage:
+      "Hi {{learner_name}}, I'm Socrates. Go ahead, I'll stay quiet. Just ask if you need me.",
+    placeholders: { learner_name: "Alex", expert_name: "Sabine", work_map: "(Work Map)" },
+    // The learner thinks out loud while they work: only answer when addressed.
+    turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
+    skipTurn: true,
+    audioTags: [
+      { tag: "calm", description: "A heads-up before a mistake, or a held save" },
+      { tag: "slow", description: "Stating a limit, an amount, or a rule word for word" },
+      { tag: "friendly", description: "Answering a question the learner asked" },
+      { tag: "reassuring", description: "The learner sounds unsure or stressed" },
+    ] satisfies AudioTag[],
+    tools: [
+      clientTool(
+        "show_step",
+        "Show the learner the Work Map step your answer or heads-up is about: what the expert did on screen and why.",
+        { step_id: { type: "string", description: "Id of the Work Map step, e.g. s4" } },
+      ),
+    ],
+  },
   drafter: {
     envKey: "ELEVENLABS_DRAFTER_AGENT_ID",
     name: "Socrates · New workflow",
@@ -356,7 +381,7 @@ async function main() {
     const { agent_id } = (await res.json()) as { agent_id: string }
 
     // The API ignores built_in_tools when inline `tools` are in the same request, so set them separately.
-    if (role === "interviewer") {
+    if ("skipTurn" in agent && agent.skipTurn) {
       const patch = await fetch(`${API}/agents/${agent_id}`, {
         method: "PATCH",
         headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },

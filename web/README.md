@@ -9,43 +9,45 @@ npm run dev:mock     # same UI on in-memory mocks, no keys needed
 npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents and their procedures
 ```
 
-| Script                 | What it does                                                                                   |
-| ---------------------- | ---------------------------------------------------------------------------------------------- |
-| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                                           |
-| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend                                    |
-| `npm run setup:agents` | Pushes `prompts/interviewer.md` + `prompts/tutor.md` and `prompts/procedures/` to ElevenAgents |
-| `npm run eval:focus`   | Scores step-screenshot focus boxes against `eval/focus/labels.json` (needs the API key)        |
-| `npm run build`        | Typecheck + production build                                                                   |
-| `npm run lint`         | ESLint                                                                                         |
-| `npm run format`       | Prettier (with Tailwind class order)                                                           |
-| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                                                    |
+| Script                 | What it does                                                                                                         |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                                                                 |
+| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend                                                          |
+| `npm run setup:agents` | Pushes the agent prompts (`interviewer`, `tutor`, `supervisor`, `drafter`) and `prompts/procedures/` to ElevenAgents |
+| `npm run eval:focus`   | Scores step-screenshot focus boxes against `eval/focus/labels.json` (needs the API key)                              |
+| `npm run build`        | Typecheck + production build                                                                                         |
+| `npm run lint`         | ESLint                                                                                                               |
+| `npm run format`       | Prettier (with Tailwind class order)                                                                                 |
+| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                                                                          |
 
 ## Setup (real backend + voice)
 
 1. `cp .env.example .env.local` and fill in `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`, and `VITE_API_URL=/api`. `.env.local` is gitignored; never prefix secrets with `VITE_`.
-2. `npm run setup:agents`: creates the agents (interviewer, tutor, new-workflow drafter), syncs and publishes their procedures, and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` / `ELEVENLABS_DRAFTER_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts or procedures.
+2. `npm run setup:agents`: creates the agents (interviewer, tutor, new-workflow drafter), syncs and publishes their procedures, and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` / `ELEVENLABS_SUPERVISOR_AGENT_ID` / `ELEVENLABS_DRAFTER_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts or procedures.
 3. `npm run dev`. Use Chrome (tab sharing + microphone).
 
 Without agent ids (or if the mic is blocked) the voice panel falls back to **text mode**: questions, debrief and teach-back still work with buttons and text boxes.
 
 ## Pages
 
-| Route                  | Page                                                                                                   |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| `/`                    | **Work Maps** library                                                                                  |
-| `/work-maps/:id`       | **Work Map**: steps, screen moments, reasons, guardrails, clickable **flowchart**, debrief, teach-back |
-| `/ask`                 | **Ask Socrates**: Q&A across Work Maps, answers cite the step                                          |
-| `/capture`             | **Capture**: start a session, list sessions                                                            |
-| `/capture/:id`         | **Live session**: intake (memory lookup) → screen capture with live questions → debrief → teach-back   |
-| `/teach`, `/teach/:id` | **Teach**: a new hire works training cases in the ERP; the tutor holds wrong saves                     |
-| `/erp`                 | **Mock ERP** (Nordwind): open in its own tab, share it during capture                                  |
+| Route                  | Page                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                    | **Work Maps** library                                                                                                                       |
+| `/work-maps/:id`       | **Work Map**: steps, screen moments, reasons, guardrails, clickable **flowchart**, debrief, teach-back                                      |
+| `/ask`                 | **Ask Socrates**: Q&A across Work Maps, answers cite the step                                                                               |
+| `/capture`             | **Capture**: start a session, list sessions                                                                                                 |
+| `/capture/:id`         | **Live session**: intake (memory lookup) → screen capture with live questions → debrief → teach-back                                        |
+| `/teach`, `/teach/:id` | **Teach**: a new hire works training cases in the ERP; the tutor holds wrong saves                                                          |
+| `/supervise/:id`       | **Supervise**: a new hire runs the workflow on a shared screen; Socrates stays quiet, answers when asked and steps in only before a mistake |
+| `/erp`                 | **Mock ERP** (Nordwind): open in its own tab, share it during capture                                                                       |
 
 ## Demo script
 
 1. **Capture.** `/capture` → _Open mock ERP_ → _Start session_ → _Share screen & start talking_ and pick the "Nordwind ERP" tab. Tell Socrates what you're doing; it checks memory (the seeded AP Work Map matches, so say "it's new" to document from scratch, or "same" to see it skip known steps).
 2. Work the **Month-end batch**: re-code 4471 to `0400` capex, send 4472 (Plzeň) for a second approval, hold 4473 (Weber, December), post 4474. Think out loud. Socrates asks at pauses (never while you type or talk, max 5 per 10 min).
 3. Say "I'm done". Answer the debrief questions, then confirm (or correct) the teach-back. The Work Map is saved to memory with a flowchart.
-4. **Teach.** Open the Work Map → _Teach a new hire_ → _Start lesson_. In the ERP switch to **Training cases** and try to post 4480 as opex: the save is held and the tutor explains it in the expert's words.
+4. **Supervise.** Open the Work Map → _Supervise a run_ → _Share screen & start_ and pick the ERP tab (switch it to **Training cases**). Work a case without help; the graph lights up as you go. Ask "Socrates, which account for this?" (or type it in the chat). Code the €11,900 pump (4480) as opex: Socrates gives a heads-up in Sabine's words, and a post is held. Toggle the right panel to _What Sabine did_ to see her steps.
+5. **Teach.** Open the Work Map → _Teach a new hire_ → _Start lesson_. In the ERP switch to **Training cases** and try to post 4480 as opex: the save is held and the tutor explains it in the expert's words.
 
 ## Structure
 
@@ -56,6 +58,7 @@ server/                backend (runs in the Vite dev server, and on Vercel via a
   focus.ts             focus box for a step's screenshot (one grounding call per important event)
   workmap.ts           draft Work Map, debrief, teach-back, merge into memory
   teach.ts             save checks, ElevenLabs signed URLs, Ask
+  supervise.ts         supervised runs: where the learner is, heads-ups (Haiku flags, Opus verifies)
   llm.ts               Claude calls (structured output, validated with zod)
   store.ts             in-memory storage (MVP)
 prompts/               one markdown file per prompt (vision, Work Map, tutor, agents…)
@@ -71,6 +74,7 @@ src/
     ask/               Q&A panel and page
     capture/           session list, live session, debrief
     teach/             lesson with the tutor
+    supervise/         supervised run: progress graph, chat, the mentor's steps
     erp/               mock ERP (separate shell)
   lib/
     api/               types.ts (THE contract), client.ts, http.ts, mock/
@@ -85,6 +89,7 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 
 - **Mock ERP ↔ Socrates:** same origin, so a `BroadcastChannel` (`lib/erp/bridge.ts`): screen, field changes, typing, actions, and a save gate (`save_request` → `save_pending` → `save_decision`) that only waits while a Teach lesson sends a heartbeat.
 - **Capture:** the session page samples the shared tab every 1.5 s, skips unchanged frames, keeps one vision call in flight (stale frames are dropped), and posts `Tick`s. Vision (Claude Haiku 4.5) returns events, candidate steps and at most one question; the page decides _when_ to ask.
+- **Supervise:** same tick loop as capture, but `/supervisions/:id/ticks` returns where the learner is (current + done steps) and, rarely, a heads-up: the vision model flags a possible mistake, Opus double-checks it against the Work Map before anyone hears it, and each step gets at most one heads-up until the learner moves on. ERP saves go through the same save gate as Teach. The supervisor agent (`prompts/supervisor.md`) uses `skip_turn` unless addressed and speaks unprompted only for `[WARNING]` / `[HOLD]` messages; `show_step` links its answer to the expert's step. Without a supervisor agent the chat falls back to Ask.
 - **Voice:** the browser gets a signed URL from `/api/voice/:role`; the agent calls client tools (`lookup_memory`, `start_capture`, `set_off_record`, `finish_task`, `record_debrief_answer`, `get_teach_back`, `reply_teach_back`, `finish_lesson`). Screen events reach it as contextual updates; live questions as `[QUESTION …]` messages.
 - **Quotes:** Work Map JSON from Claude references transcript utterances by id; the backend copies the expert's exact words, so every reason and guardrail links to what they actually said.
 

@@ -1,4 +1,4 @@
-import type { Guardrail, LiveStep, WorkMap } from "@/lib/api"
+import type { Guardrail, ID, LiveStep, WorkMap } from "@/lib/api"
 
 /**
  * Work Map → Mermaid, deterministically. Steps become nodes (judgment steps are
@@ -24,7 +24,15 @@ const GUARDRAIL_PREFIX: Record<Guardrail["kind"], string> = {
 
 export const stepNodeId = (index: number) => `step${index}`
 
-export function workMapToMermaid(map: WorkMap) {
+/** Where a new hire is in the Work Map while they run it (Supervise). */
+export interface MapProgress {
+  currentStepId?: ID
+  doneStepIds?: ID[]
+  /** Steps Socrates warned about. */
+  flaggedStepIds?: ID[]
+}
+
+export function workMapToMermaid(map: WorkMap, progress?: MapProgress) {
   const lines = ["flowchart TD", `  start(["${label(`When: ${map.trigger}`, 80)}"])`]
   map.steps.forEach((step, i) => {
     const id = stepNodeId(i)
@@ -32,6 +40,10 @@ export function workMapToMermaid(map: WorkMap) {
     const text = `${i + 1}. ${label(step.title, step.kind === "judgment" ? 44 : 70)}`
     lines.push(step.kind === "judgment" ? `  ${id}{"${text}"}` : `  ${id}["${text}"]`)
     lines.push(`  class ${id} ${step.kind}`)
+    // Later classes win, so the order is done → flagged → here.
+    if (progress?.doneStepIds?.includes(step.id)) lines.push(`  class ${id} done`)
+    if (progress?.flaggedStepIds?.includes(step.id)) lines.push(`  class ${id} flagged`)
+    if (progress?.currentStepId === step.id) lines.push(`  class ${id} here`)
 
     const from = i === 0 ? "start" : stepNodeId(i - 1)
     const prev = map.steps[i - 1]
@@ -69,6 +81,9 @@ const CLASS_DEFS = [
   "  classDef edge fill:#f0fdf4,stroke:#22c55e,color:#14532d",
   "  classDef current stroke-width:3px",
   "  classDef pending fill:none,stroke:#cbd5e1,stroke-dasharray:4 4,color:#94a3b8",
+  "  classDef done fill:#ecfdf5,stroke:#10b981,color:#064e3b",
+  "  classDef flagged stroke:#f59e0b,stroke-width:3px",
+  "  classDef here stroke:#2563eb,stroke-width:4px",
 ]
 
 /**

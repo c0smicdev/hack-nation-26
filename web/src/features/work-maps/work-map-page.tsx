@@ -1,4 +1,4 @@
-import { ChevronLeft, GraduationCap, MessageCircleQuestion } from "lucide-react"
+import { ChevronLeft, GraduationCap, MessageCircleQuestion, ShieldCheck } from "lucide-react"
 import { useCallback, useEffect, useRef } from "react"
 import { Link, useParams, useSearchParams } from "react-router"
 
@@ -103,6 +103,13 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
             <p className="text-muted-foreground">{workMap.summary}</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            {workMap.status === "confirmed" && (
+              <Button asChild>
+                <Link to={paths.supervise(workMap.id)}>
+                  <ShieldCheck /> Supervise a run
+                </Link>
+              </Button>
+            )}
             {workMap.status === "confirmed" && (
               <Button variant="outline" asChild>
                 <Link to={paths.teach(workMap.id)}>

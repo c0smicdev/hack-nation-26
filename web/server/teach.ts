@@ -65,6 +65,7 @@ const agentEnv: Record<VoiceRole, string> = {
   interviewer: "ELEVENLABS_INTERVIEWER_AGENT_ID",
   tutor: "ELEVENLABS_TUTOR_AGENT_ID",
   drafter: "ELEVENLABS_DRAFTER_AGENT_ID",
+  supervisor: "ELEVENLABS_SUPERVISOR_AGENT_ID",
 }
 
 export async function voiceSession(role: VoiceRole): Promise<VoiceSession | null> {

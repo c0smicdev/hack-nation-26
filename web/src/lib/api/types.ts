@@ -334,10 +334,61 @@ export interface DecisionVerdict {
 }
 
 /* ------------------------------------------------------------------ */
+/* Supervise — a new hire runs the workflow, Socrates stands by        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One run of a confirmed Work Map by a new hire. Socrates watches the shared
+ * screen but stays quiet: it only speaks when asked, or when the learner is
+ * about to make a mistake the expert would have caught.
+ */
+export interface SupervisionSession {
+  id: ID
+  workMapId: ID
+  learnerName: string
+  startedAt: string
+}
+
+export interface NewSupervision {
+  learnerName: string
+}
+
+/** A heads-up before (or right after) a decision the expert would not have made. */
+export interface SupervisorWarning {
+  id: ID
+  /** Seconds since the supervision started. */
+  at: number
+  /** `screen`: spotted on the shared screen. `save`: the ERP held a save. */
+  source: "screen" | "save"
+  /** One or two sentences for the learner, in the expert's reasoning. */
+  message: string
+  stepId?: ID
+  guardrailId?: ID
+  /** The expert's own words backing the warning. */
+  quote?: Quote
+  /** The expert's screen moment for that step. */
+  screen?: ScreenMoment
+}
+
+export interface SupervisionTickResult {
+  /** False if the tick was dropped because a vision call was still running. */
+  processed: boolean
+  /** Short label of what's on screen now. */
+  screen?: string
+  /** The Work Map step the learner is working on. */
+  currentStepId?: ID
+  /** Steps the learner has done so far (cumulative). */
+  completedStepIds: ID[]
+  /** What the learner just did, as a log line. */
+  action?: string
+  warning?: SupervisorWarning
+}
+
+/* ------------------------------------------------------------------ */
 /* Voice — ElevenAgents                                                */
 /* ------------------------------------------------------------------ */
 
-export type VoiceRole = "interviewer" | "tutor" | "drafter"
+export type VoiceRole = "interviewer" | "tutor" | "drafter" | "supervisor"
 
 export interface VoiceSession {
   /** Signed WebSocket URL; the API key never reaches the browser. */

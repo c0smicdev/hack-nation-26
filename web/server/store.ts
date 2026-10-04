@@ -10,6 +10,8 @@ import type {
   ScreenMoment,
   SessionEvent,
   StepKind,
+  SupervisionSession,
+  SupervisorWarning,
   WorkMap,
 } from "../src/lib/api/types.js"
 
@@ -66,9 +68,31 @@ export interface SessionRuntime {
   draftWorkMapId?: ID
 }
 
+/** A new hire running a confirmed Work Map while Socrates stands by. */
+export interface SupervisionRuntime {
+  session: SupervisionSession
+  startedAtMs: number
+  /** Kept only to compare with the next frame; the learner's screen is never stored. */
+  lastFrame?: Buffer
+  lastScreen?: string
+  currentStepId?: ID
+  completed: Set<ID>
+  /** What the learner did, as log lines (vision + ERP signals). */
+  actions: { at: number; text: string }[]
+  warnings: SupervisorWarning[]
+  /** Steps the learner was warned about since they moved to their current step. */
+  warned: Set<string>
+  /** Concerns already verified as fine, so the same one isn't re-checked on every tick. */
+  ruledOut: Set<string>
+  visionBusy: boolean
+  /** ERP signals from ticks that were dropped while vision was busy. */
+  pendingErp: ErpSignal[]
+}
+
 interface Store {
   workMaps: WorkMap[]
   sessions: Map<ID, SessionRuntime>
+  supervisions: Map<ID, SupervisionRuntime>
   frames: Map<ID, Frame>
   captureStatus: CaptureStatus
 }
@@ -78,6 +102,7 @@ function createStore(): Store {
     // Fixtures are confirmed Work Maps, i.e. the agent's starting memory.
     workMaps: structuredClone(fixtureWorkMaps),
     sessions: new Map(),
+    supervisions: new Map(),
     frames: new Map(),
     captureStatus: {
       active: false,
@@ -90,6 +115,8 @@ function createStore(): Store {
 // Survives Vite's server-module reloads in dev, so editing a prompt doesn't wipe a session.
 const globalStore = globalThis as { __socratesStore?: Store }
 export const store: Store = (globalStore.__socratesStore ??= createStore())
+// A store kept across dev reloads may predate this field.
+store.supervisions ??= new Map()
 
 export const newId = (prefix: string) => `${prefix}-${randomUUID().slice(0, 8)}`
 
