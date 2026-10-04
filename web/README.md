@@ -24,7 +24,8 @@ npm run setup:agents # create/update the ElevenLabs interviewer + tutor agents a
 
 1. `cp .env.example .env.local` and fill in `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`, and `VITE_API_URL=/api`. `.env.local` is gitignored; never prefix secrets with `VITE_`.
 2. `npm run setup:agents`: creates the agents (interviewer, tutor, new-workflow drafter), syncs and publishes their procedures, and writes `ELEVENLABS_INTERVIEWER_AGENT_ID` / `ELEVENLABS_TUTOR_AGENT_ID` / `ELEVENLABS_DRAFTER_AGENT_ID` into `.env.local`. Re-run it after editing the agent prompts or procedures.
-3. `npm run dev`. Use Chrome (tab sharing + microphone).
+3. Optional, for accounts + persistence: create a Supabase project, run `supabase/schema.sql` in its SQL editor (tables, `profiles` + sign-up trigger, private `frames` bucket), and set `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`. Sign-up asks for a name, which fills the header, the capture form and the tutor. For the demo, turn off "Confirm email" under Auth → Providers → Email. Onboarding (role, chattiness) will write to the same `profiles` row via `PATCH /me`.
+4. `npm run dev`. Use Chrome (tab sharing + microphone).
 
 Without agent ids (or if the mic is blocked) the voice panel falls back to **text mode**: questions, debrief and teach-back still work with buttons and text boxes.
 
@@ -92,7 +93,7 @@ Each feature folder owns its pages, components and `hooks.ts` (React Query). Fea
 
 - **Mock by default.** Without `VITE_API_URL`, `api` is `mockApi` (no vision or voice; ERP signals become events and questions are canned).
 - **Changing the contract:** edit `lib/api/types.ts`, then update `client.ts`, `http.ts`, `mock/` and `server/`. Tell the team.
-- **Storage is in memory** (`server/store.ts`): restart = clean slate, seeded with the fixture Work Maps. Move to Postgres + Blob before relying on Vercel (each warm function has its own copy).
+- **Storage is in memory** (`server/store.ts`) unless Supabase is configured; then `server/db.ts` syncs it with Postgres and the `frames` bucket around every request.
 - **Models:** vision and focus boxes `claude-haiku-4-5`, everything else `claude-opus-5-5`; override with `SOCRATES_VISION_MODEL` / `SOCRATES_FOCUS_MODEL` / `SOCRATES_REASONING_MODEL`. The voice agents run Claude Sonnet 5.5 inside ElevenAgents (`ELEVENLABS_LLM` in the setup script) and speak in [Expressive Mode](https://elevenlabs.io/docs/eleven-agents/customization/voice/expressive-mode): Eleven v3 Conversational TTS plus the `turn_v3` turn-taking model. Each agent gets suggested audio tags (`audioTags` in the setup script) and tone rules in its prompt's "Your voice" section; `use-voice-agent.ts` strips the tags from the on-screen transcript.
 
 ## Recipes

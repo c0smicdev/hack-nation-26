@@ -81,7 +81,7 @@ There is a list of the prompts in `docs/PROMPTS.md`
   - send typing / field-change events to the web app (`postMessage`), so **no browser extension is needed for the MVP**;
   - **pause a save** and ask the tutor first. That's how Teach catches a wrong decision *before it's saved*.
 - **Backend** = Vercel functions (`web/api/`). It holds every API key and makes every model call. **Never call a model provider from the browser and never put secrets in `VITE_*` env vars**, because those ship to the client.
-- **Storage:** Vercel functions have no persistent disk. Screenshots go to **Vercel Blob**, everything else to **Postgres** (Supabase or Neon, pick one and note it here).
+- **Storage + login:** **Supabase**. Postgres tables hold Work Maps, sessions and capture status as JSONB (`web/supabase/schema.sql`); screenshots go to the private Storage bucket `frames`. `server/db.ts` syncs the in-memory store with Supabase around each request; `server/auth.ts` checks the Supabase access token. Without `SUPABASE_*` env vars everything runs in memory with no login.
 - **The data contract** is [`web/src/lib/api/types.ts`](web/src/lib/api/types.ts). If you change it, update `client.ts`, `http.ts` and `mock/`, and tell the team.
 - **Browser extension** (`extension/`) is postponed. Only build it if we need to capture apps we don't control.
 

@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { VoicePanel } from "@/components/voice-panel"
 import { api, type DecisionVerdict, type WorkMap } from "@/lib/api"
+import { useMe } from "@/lib/auth/hooks"
 import { ACTION_LABEL, type ErpAction, openErpChannel } from "@/lib/erp/bridge"
 import { INITIAL_INVOICES } from "@/lib/erp/data"
 import { cn } from "@/lib/utils"
@@ -69,7 +70,11 @@ const split = (s: unknown) =>
  * Work Map, so a wrong decision is caught before it's saved.
  */
 function Lesson({ map }: { map: WorkMap }) {
-  const [learner, setLearner] = useState("Alex")
+  const { data: me } = useMe()
+  const [learnerEdit, setLearner] = useState<string>()
+  // The signed-in user, unless they'd be learning their own map (e.g. Sabine in mock mode).
+  const learner =
+    learnerEdit ?? (me && me.id !== map.expert.id ? me.displayName.split(" ")[0] : "Alex")
   const [started, setStarted] = useState(false)
   const [checks, setChecks] = useState<Check[]>([])
   const [report, setReport] = useState<Report>()
