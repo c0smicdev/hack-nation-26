@@ -18,6 +18,31 @@ export interface Person {
 }
 
 /* ------------------------------------------------------------------ */
+/* Account — the signed-in user                                        */
+/* ------------------------------------------------------------------ */
+
+/** How much Socrates talks while the expert works. Set during onboarding (not built yet). */
+export type Chattiness = "quiet" | "normal" | "curious"
+
+export interface UserPreferences {
+  chattiness?: Chattiness
+}
+
+/** The signed-in user. `id` is also their `Person.id` on sessions they record. */
+export interface Profile {
+  id: ID
+  displayName: string
+  /** Job title, e.g. "Head of Accounts Payable". Filled in during onboarding. */
+  role?: string
+  email?: string
+  preferences: UserPreferences
+  /** False until the (future) onboarding flow has run. */
+  onboarded: boolean
+}
+
+export type ProfilePatch = Partial<Pick<Profile, "displayName" | "role" | "preferences">>
+
+/* ------------------------------------------------------------------ */
 /* Work Map — the "brief, interactive document" for one workflow       */
 /* ------------------------------------------------------------------ */
 
@@ -314,7 +339,7 @@ export interface TeachBackReply {
 /* Teach — guiding a new hire through a Work Map                       */
 /* ------------------------------------------------------------------ */
 
-/** A save the mock ERP is holding until the tutor allows it. */
+/** A save the mock ERP is holding until Socrates allows it. */
 export interface DecisionCheck {
   /** "post" | "hold" | "request_approval" */
   action: string

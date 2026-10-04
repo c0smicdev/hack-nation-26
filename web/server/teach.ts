@@ -15,7 +15,7 @@ import { memoryContext } from "./capture.js"
 import { models, prompt, structured, text } from "./llm.js"
 import { getWorkMap, HttpError, store } from "./store.js"
 
-/* Save gate: the mock ERP holds a save until the tutor allows it ----- */
+/* Save gate: the mock ERP holds a save until Socrates allows it --- */
 
 const VerdictOut = z.object({
   allow: z.boolean(),

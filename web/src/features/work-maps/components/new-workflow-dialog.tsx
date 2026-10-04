@@ -1,13 +1,15 @@
 import { ConversationProvider } from "@elevenlabs/react"
-import { ArrowUp, Keyboard, Landmark, Loader2, Mic } from "lucide-react"
+import { ArrowUp, Keyboard, Landmark, Loader2, Mic, MicOff } from "lucide-react"
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useNavigate } from "react-router"
 
 import { paths } from "@/app/paths"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import type { WorkflowDraftMessage } from "@/lib/api"
+import { useMe } from "@/lib/auth/hooks"
 import { handOverStream } from "@/lib/capture/pending-stream"
 import { startScreenShare } from "@/lib/capture/screen"
 import { cn } from "@/lib/utils"
@@ -57,6 +59,12 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
   const draft = useDraftWorkflow()
   const create = useCreateSession()
+  const { data: me } = useMe()
+  // Read inside createWorkflow, which the voice agent's tool may call from a stale closure.
+  const meRef = useRef(me)
+  useEffect(() => {
+    meRef.current = me
+  })
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -104,8 +112,8 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
       .mutateAsync({
         title: title.trim() || "Untitled",
         task: description.trim() || title.trim() || "Untitled",
-        expertName: "You",
-        expertRole: "Expert",
+        expertName: meRef.current?.displayName ?? "You",
+        expertRole: meRef.current?.role ?? "Expert",
       })
       .catch((e: unknown) => {
         stream?.getTracks().forEach((t) => t.stop())
@@ -283,46 +291,106 @@ function VoiceStage({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
   const lastAgent = agent.transcript.findLast((l) => l.role === "agent")
   const lastUser = agent.transcript.findLast((l) => l.role === "user")
   const live = agent.mode === "voice"
+  const listening = live && !agent.muted
   const status = !live
     ? "Connecting…"
     : agent.agentSpeaking
       ? "Socrates is speaking"
-      : "Listening — just talk"
+      : agent.muted
+        ? "Mic muted — write to Socrates below"
+        : "Listening — just talk"
 
   return (
-    <div className="flex flex-col items-center gap-4 px-6 py-8 text-center">
-      <div className="relative flex size-20 items-center justify-center">
-        {live && (
-          <span
-            className={cn(
-              "absolute inset-0 rounded-full bg-primary/20",
-              agent.agentSpeaking ? "animate-pulse" : "animate-ping [animation-duration:2s]",
-            )}
-          />
-        )}
-        <div
-          className={cn(
-            "relative flex size-16 items-center justify-center rounded-full shadow-sm transition-colors",
-            live ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+    <>
+      <div className="flex flex-col items-center gap-4 px-6 py-8 text-center">
+        <div className="relative flex size-20 items-center justify-center">
+          {live && (agent.agentSpeaking || listening) && (
+            <span
+              className={cn(
+                "absolute inset-0 rounded-full bg-primary/20",
+                agent.agentSpeaking ? "animate-pulse" : "animate-ping [animation-duration:2s]",
+              )}
+            />
           )}
-        >
-          {!live ? (
-            <Loader2 className="size-6 animate-spin" />
-          ) : agent.agentSpeaking ? (
-            <Landmark className="size-6" />
-          ) : (
-            <Mic className="size-6" />
+          <div
+            className={cn(
+              "relative flex size-16 items-center justify-center rounded-full shadow-sm transition-colors",
+              listening || (live && agent.agentSpeaking)
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground",
+            )}
+          >
+            {!live ? (
+              <Loader2 className="size-6 animate-spin" />
+            ) : agent.agentSpeaking ? (
+              <Landmark className="size-6" />
+            ) : agent.muted ? (
+              <MicOff className="size-6" />
+            ) : (
+              <Mic className="size-6" />
+            )}
+          </div>
+        </div>
+        <p className="text-xs font-medium text-muted-foreground">{status}</p>
+        <div className="min-h-16 max-w-md space-y-2">
+          {lastAgent && <p className="text-sm leading-relaxed">{lastAgent.text}</p>}
+          {lastUser && lastUser.at > (lastAgent?.at ?? 0) && (
+            <p className="text-sm text-muted-foreground italic">“{lastUser.text}”</p>
           )}
         </div>
       </div>
-      <p className="text-xs font-medium text-muted-foreground">{status}</p>
-      <div className="min-h-16 max-w-md space-y-2">
-        {lastAgent && <p className="text-sm leading-relaxed">{lastAgent.text}</p>}
-        {lastUser && lastUser.at > (lastAgent?.at ?? 0) && (
-          <p className="text-sm text-muted-foreground italic">“{lastUser.text}”</p>
-        )}
-      </div>
-    </div>
+      {live && <VoiceComposer agent={agent} />}
+    </>
+  )
+}
+
+/** Mute the mic and write to the same live conversation; Socrates still answers out loud. */
+function VoiceComposer({ agent }: { agent: ReturnType<typeof useVoiceAgent> }) {
+  const [input, setInput] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function toggleMute() {
+    const muted = !agent.muted
+    agent.setMuted(muted)
+    if (muted) inputRef.current?.focus()
+  }
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    const text = input.trim()
+    if (!text) return
+    agent.type(text)
+    setInput("")
+  }
+
+  return (
+    <form onSubmit={submit} className="flex items-center gap-2 border-t px-4 py-3">
+      <Button
+        type="button"
+        variant={agent.muted ? "destructive" : "outline"}
+        size="icon"
+        onClick={toggleMute}
+        aria-pressed={agent.muted}
+        aria-label={agent.muted ? "Unmute microphone" : "Mute microphone"}
+        title={agent.muted ? "Unmute microphone" : "Mute microphone"}
+      >
+        {agent.muted ? <MicOff /> : <Mic />}
+      </Button>
+      <Input
+        ref={inputRef}
+        value={input}
+        onChange={(e) => {
+          setInput(e.target.value)
+          agent.activity()
+        }}
+        placeholder={agent.muted ? "Write to Socrates…" : "Or write to Socrates…"}
+        aria-label="Message to Socrates"
+        className="flex-1 bg-background"
+      />
+      <Button type="submit" size="icon" disabled={!input.trim()} aria-label="Send">
+        <ArrowUp />
+      </Button>
+    </form>
   )
 }
 

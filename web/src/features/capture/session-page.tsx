@@ -294,13 +294,17 @@ function SessionView({ session }: { session: CaptureSession }) {
     if (!agent.prompt(debriefBrief(map))) debriefPending.current = true
   }
 
+  /** Dynamic variables for the interviewer's prompt, first message and procedures. */
+  const agentVariables = () => ({
+    expert_name: session.expert.name.split(" ")[0],
+    workflow: session.title,
+    task: session.task ?? session.title,
+  })
+
   /** Coming back to a debrief (or voice was off): connect, then start asking. */
   function startVoiceDebrief() {
     debriefPending.current = true
-    void agent.start({
-      expert_name: session.expert.name.split(" ")[0],
-      task: session.task ?? session.title,
-    })
+    void agent.start(agentVariables())
   }
 
   useEffect(() => {
@@ -317,10 +321,7 @@ function SessionView({ session }: { session: CaptureSession }) {
     media.getVideoTracks()[0]?.addEventListener("ended", () => setStream(undefined))
     if (session.status === "intake") await beginCapture(undefined, media)
     if (agent.mode === "idle" || agent.mode === "error") {
-      await agent.start({
-        expert_name: session.expert.name.split(" ")[0],
-        task: session.task ?? session.title,
-      })
+      await agent.start(agentVariables())
     }
     if (!related) void lookupMemory(session.task ?? session.title)
   }

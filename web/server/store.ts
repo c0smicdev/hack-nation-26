@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto"
 
-import { workMaps as fixtureWorkMaps } from "../src/lib/api/mock/fixtures.js"
 import type {
   CaptureSession,
   CaptureStatus,
@@ -16,9 +15,8 @@ import type {
 } from "../src/lib/api/types.js"
 
 /**
- * In-memory storage (MVP). Everything is lost on restart. On Vercel each warm
- * function instance has its own copy, so run the demo locally (`npm run dev`)
- * until we move this to Postgres + Blob.
+ * In-memory storage. With SUPABASE_URL / SUPABASE_SECRET_KEY set, server/db.ts
+ * syncs it with Supabase around every request; otherwise everything is lost on restart.
  */
 
 /** A step candidate collected while the expert works; becomes a WorkMapStep after the debrief. */
@@ -99,8 +97,8 @@ interface Store {
 
 function createStore(): Store {
   return {
-    // Fixtures are confirmed Work Maps, i.e. the agent's starting memory.
-    workMaps: structuredClone(fixtureWorkMaps),
+    // Starts empty: the team's own confirmed Work Maps become the agent's memory.
+    workMaps: [],
     sessions: new Map(),
     supervisions: new Map(),
     frames: new Map(),

@@ -33,6 +33,7 @@ import {
   type SupervisorWarning,
   type WorkMap,
 } from "@/lib/api"
+import { useMe } from "@/lib/auth/hooks"
 import { grabFrame, startScreenShare } from "@/lib/capture/screen"
 import { formatTimestamp, pluralize } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -92,7 +93,11 @@ type Tab = "chat" | "mentor"
  */
 function SuperviseView({ map }: { map: WorkMap }) {
   const expertFirst = map.expert.name.split(" ")[0]
-  const [learner, setLearner] = useState("Alex")
+  const { data: me } = useMe()
+  const [learnerEdit, setLearner] = useState<string>()
+  // The signed-in user, unless they'd be running their own map (e.g. Sabine in mock mode).
+  const learner =
+    learnerEdit ?? (me && me.id !== map.expert.id ? me.displayName.split(" ")[0] : "Alex")
   const [supervision, setSupervision] = useState<SupervisionSession>()
   const [stream, setStream] = useState<MediaStream>()
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
