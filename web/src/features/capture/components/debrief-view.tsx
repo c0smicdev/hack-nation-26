@@ -135,6 +135,7 @@ export function DebriefView({
                 agent={agent}
                 title="Socrates · Debrief"
                 placeholder="Answer by voice, or type it here…"
+                mutable
                 className="h-full rounded-none shadow-none ring-0"
               />
             ) : (

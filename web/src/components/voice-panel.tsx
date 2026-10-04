@@ -13,11 +13,14 @@ export function VoicePanel({
   agent,
   title = "Socrates",
   placeholder = "Type instead of speaking…",
+  mutable = false,
   className,
 }: {
   agent: VoiceAgent
   title?: string
   placeholder?: string
+  /** Show a mic mute toggle in the input bar, so the user can write without being overheard. */
+  mutable?: boolean
   className?: string
 }) {
   const [draft, setDraft] = useState("")
@@ -33,6 +36,9 @@ export function VoicePanel({
     agent.type(draft.trim())
     setDraft("")
   }
+
+  const canMute = mutable && agent.mode === "voice"
+  const muted = canMute && agent.muted
 
   return (
     <Card className={cn("flex flex-col gap-3", className)}>
@@ -53,7 +59,9 @@ export function VoicePanel({
           {agent.mode === "voice"
             ? agent.agentSpeaking
               ? "Speaking"
-              : "Listening"
+              : muted
+                ? "Muted"
+                : "Listening"
             : agent.mode === "text"
               ? "Text mode"
               : agent.mode === "connecting"
@@ -93,10 +101,26 @@ export function VoicePanel({
         </div>
         {(agent.mode === "voice" || agent.mode === "text") && (
           <form onSubmit={submit} className="flex gap-2">
+            {canMute && (
+              <Button
+                type="button"
+                size="icon"
+                variant={muted ? "destructive" : "outline"}
+                onClick={() => agent.setMuted(!muted)}
+                aria-pressed={muted}
+                aria-label={muted ? "Unmute microphone" : "Mute microphone"}
+                title={muted ? "Unmute microphone" : "Mute microphone"}
+              >
+                <MicOff />
+              </Button>
+            )}
             <Input
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder={placeholder}
+              onChange={(e) => {
+                setDraft(e.target.value)
+                if (canMute) agent.activity()
+              }}
+              placeholder={muted ? "Mic muted. Write to Socrates…" : placeholder}
             />
             <Button type="submit" size="icon" variant="outline" aria-label="Send">
               <Send />
