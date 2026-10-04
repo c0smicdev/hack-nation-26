@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "다이어그램을 그리지 못했어요: {{message}}",
     "fitToView": "화면에 맞추기",
-    "actualSize": "실제 크기"
+    "zoomIn": "확대",
+    "zoomOut": "축소"
   },
   "queryState": {
     "errorTitle": "문제가 발생했어요",

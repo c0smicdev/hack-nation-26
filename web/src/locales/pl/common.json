@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "Nie udało się narysować diagramu: {{message}}",
     "fitToView": "Dopasuj do widoku",
-    "actualSize": "Rzeczywisty rozmiar"
+    "zoomIn": "Powiększ",
+    "zoomOut": "Pomniejsz"
   },
   "queryState": {
     "errorTitle": "Coś poszło nie tak",

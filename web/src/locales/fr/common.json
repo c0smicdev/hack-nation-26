@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "Impossible de dessiner le diagramme : {{message}}",
     "fitToView": "Ajuster à l'écran",
-    "actualSize": "Taille réelle"
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière"
   },
   "queryState": {
     "errorTitle": "Un problème est survenu",

@@ -3,7 +3,7 @@ import { i18n } from "@/lib/i18n"
 
 /**
  * workflow → Mermaid, deterministically. Steps become nodes (judgment steps are
- * decision diamonds), guardrails hang off their step as side notes. The LLM
+ * decision hexagons: diamonds balloon with their text), guardrails hang off their step as side notes. The LLM
  * never writes Mermaid itself: it breaks the syntax too easily.
  */
 
@@ -34,9 +34,8 @@ export function workMapToMermaid(map: WorkMap, progress?: MapProgress) {
   const lines = ["flowchart TD", `  start(["${when}"])`]
   map.steps.forEach((step, i) => {
     const id = stepNodeId(i)
-    // Diamonds grow with their text, so judgment labels stay shorter.
-    const text = `${i + 1}. ${label(step.title, step.kind === "judgment" ? 44 : 70)}`
-    lines.push(step.kind === "judgment" ? `  ${id}{"${text}"}` : `  ${id}["${text}"]`)
+    const text = `${i + 1}. ${label(step.title)}`
+    lines.push(step.kind === "judgment" ? `  ${id}{{"${text}"}}` : `  ${id}["${text}"]`)
     lines.push(`  class ${id} ${step.kind}`)
     // Later classes win, so the order is done → flagged → here.
     if (progress?.doneStepIds?.includes(step.id)) lines.push(`  class ${id} done`)
@@ -54,9 +53,9 @@ export function workMapToMermaid(map: WorkMap, progress?: MapProgress) {
 
     step.guardrails.forEach((g, j) => {
       const gid = `${id}g${j}`
-      const who = g.kind === "stop_and_ask" && g.escalateTo ? ` (${g.escalateTo})` : ""
+      const who = g.kind === "stop_and_ask" && g.escalateTo ? ` (${label(g.escalateTo, 40)})` : ""
       const prefix = label(t(`workMaps:flowchart.guardrail.${g.kind}`))
-      lines.push(`  ${gid}[/"${prefix}${label(who, 40)}: ${label(g.rule, 60)}"/]`)
+      lines.push(`  ${gid}[/"${prefix}${who}: ${label(g.rule, 60)}"/]`)
       lines.push(`  class ${gid} guardrail`)
       lines.push(`  ${id} -.- ${gid}`)
     })
@@ -75,21 +74,26 @@ export function workMapToMermaid(map: WorkMap, progress?: MapProgress) {
     const done = label(t("workMaps:flowchart.done"))
     lines.push(`  ${stepNodeId(map.steps.length - 1)} --> done(["${done}"])`)
   }
+  lines.push("  class start terminal")
+  if (map.steps.length) lines.push("  class done terminal")
 
   lines.push(...CLASS_DEFS)
   return lines.join("\n")
 }
 
+// Brand palette (docs/brand-guidelines.md): Mist nodes, Mint + Forest for judgment,
+// a muted amber only where the expert said to stop.
 const CLASS_DEFS = [
-  "  classDef routine fill:#f8fafc,stroke:#94a3b8,color:#0f172a",
-  "  classDef judgment fill:#eef2ff,stroke:#6366f1,color:#1e1b4b",
-  "  classDef guardrail fill:#fff7ed,stroke:#f97316,color:#7c2d12",
-  "  classDef edge fill:#f0fdf4,stroke:#22c55e,color:#14532d",
-  "  classDef current stroke-width:3px",
-  "  classDef pending fill:none,stroke:#cbd5e1,stroke-dasharray:4 4,color:#94a3b8",
-  "  classDef done fill:#ecfdf5,stroke:#10b981,color:#064e3b",
-  "  classDef flagged stroke:#f59e0b,stroke-width:3px",
-  "  classDef here stroke:#2563eb,stroke-width:4px",
+  "  classDef terminal fill:#064420,stroke:#064420,color:#f6f8f7",
+  "  classDef routine fill:#f6f8f7,stroke:#c9d3ce,color:#1a2620",
+  "  classDef judgment fill:#e4efe7,stroke:#064420,color:#064420",
+  "  classDef guardrail fill:#fbf4e8,stroke:#d4a35a,color:#6b4613",
+  "  classDef edge fill:#eef5f0,stroke:#7fb291,stroke-dasharray:5 3,color:#1a2620",
+  "  classDef current stroke:#064420,stroke-width:2.5px",
+  "  classDef pending fill:none,stroke:#b6c2bc,stroke-dasharray:4 4,color:#66706b",
+  "  classDef done fill:#e4efe7,stroke:#7fb291,color:#3d5a48",
+  "  classDef flagged stroke:#d4a35a,stroke-width:3px",
+  "  classDef here stroke:#064420,stroke-width:3.5px",
 ]
 
 /**
@@ -100,8 +104,8 @@ export function liveStepsToMermaid(steps: LiveStep[]) {
   const lines = ["flowchart TD", `  start(["${label(i18n.t("workMaps:flowchart.start"))}"])`]
   steps.forEach((step, i) => {
     const id = stepNodeId(i)
-    const text = label(step.title, step.kind === "judgment" ? 44 : 70)
-    lines.push(step.kind === "judgment" ? `  ${id}{"${text}"}` : `  ${id}["${text}"]`)
+    const text = label(step.title)
+    lines.push(step.kind === "judgment" ? `  ${id}{{"${text}"}}` : `  ${id}["${text}"]`)
     lines.push(`  class ${id} ${step.kind}`)
     const from = i === 0 ? "start" : stepNodeId(i - 1)
     const prev = steps[i - 1]
@@ -112,6 +116,7 @@ export function liveStepsToMermaid(steps: LiveStep[]) {
     )
   })
   const last = steps.length ? stepNodeId(steps.length - 1) : "start"
+  lines.push("  class start terminal")
   if (steps.length) lines.push(`  class ${last} current`)
   lines.push('  next(["…"])', "  class next pending", `  ${last} -.-> next`, ...CLASS_DEFS)
   return lines.join("\n")

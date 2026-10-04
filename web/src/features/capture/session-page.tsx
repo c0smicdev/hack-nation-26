@@ -529,7 +529,7 @@ function RecordingView({
             {textQuestion}
           </div>
           {stream ? (
-            <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full p-8 pt-20" />
+            <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full pt-12" />
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-4 p-8 text-center">
               <MonitorUp className="size-10 text-muted-foreground" />

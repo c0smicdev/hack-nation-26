@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "无法绘制图表：{{message}}",
     "fitToView": "适应窗口",
-    "actualSize": "实际大小"
+    "zoomIn": "放大",
+    "zoomOut": "缩小"
   },
   "queryState": {
     "errorTitle": "出了点问题",

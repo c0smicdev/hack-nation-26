@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "Diyagram çizilemedi: {{message}}",
     "fitToView": "Ekrana sığdır",
-    "actualSize": "Gerçek boyut"
+    "zoomIn": "Yakınlaştır",
+    "zoomOut": "Uzaklaştır"
   },
   "queryState": {
     "errorTitle": "Bir şeyler ters gitti",

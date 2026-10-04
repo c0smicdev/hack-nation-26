@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "डायग्राम नहीं बन पाया: {{message}}",
     "fitToView": "स्क्रीन में फ़िट करें",
-    "actualSize": "असली साइज़"
+    "zoomIn": "ज़ूम इन करें",
+    "zoomOut": "ज़ूम आउट करें"
   },
   "queryState": {
     "errorTitle": "कुछ गड़बड़ हो गई",

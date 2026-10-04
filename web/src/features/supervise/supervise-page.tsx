@@ -344,17 +344,6 @@ function SuperviseView({ map }: { map: WorkMap }) {
   const elapsed = useElapsed(supervision?.startedAt, running)
   const currentIndex = current ? map.steps.indexOf(current) : -1
 
-  // Keep the learner's step in view as they move through a long graph (after Mermaid redraws).
-  const graph = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (currentIndex < 0) return
-    const timer = setTimeout(() => {
-      graph.current
-        ?.querySelector(`g.node[id*="-${stepNodeId(currentIndex)}-"]`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" })
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [currentIndex])
   const questions = items.filter((i) => i.kind === "user").length
 
   return (
@@ -455,13 +444,13 @@ function SuperviseView({ map }: { map: WorkMap }) {
                   />
                 )}
               </div>
-              <div ref={graph} className="size-full">
-                <MermaidDiagram
-                  chart={chart}
-                  onNodeClick={clicks}
-                  className="size-full p-8 pt-24"
-                />
-              </div>
+              <MermaidDiagram
+                chart={chart}
+                onNodeClick={clicks}
+                // Keep the learner's step in view as they move through a long graph.
+                focusNodeId={currentIndex >= 0 ? stepNodeId(currentIndex) : undefined}
+                className="size-full pt-16"
+              />
             </>
           ) : (
             <StartPanel

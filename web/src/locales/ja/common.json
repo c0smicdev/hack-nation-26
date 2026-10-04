@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "図を描画できませんでした: {{message}}",
     "fitToView": "画面に合わせる",
-    "actualSize": "実寸表示"
+    "zoomIn": "拡大",
+    "zoomOut": "縮小"
   },
   "queryState": {
     "errorTitle": "問題が発生しました",

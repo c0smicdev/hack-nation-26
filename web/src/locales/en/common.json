@@ -24,7 +24,8 @@
   "mermaidDiagram": {
     "error": "Couldn't draw the diagram: {{message}}",
     "fitToView": "Fit to view",
-    "actualSize": "Actual size"
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out"
   },
   "queryState": {
     "errorTitle": "Something went wrong",

@@ -97,7 +97,7 @@ export function DebriefView({
               <Loader2 className="animate-spin" /> {t("debriefView.building")}
             </div>
           ) : (
-            <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full p-8" />
+            <MermaidDiagram chart={chart} onNodeClick={clicks} className="size-full" />
           )}
         </section>
 
