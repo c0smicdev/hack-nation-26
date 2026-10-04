@@ -32,7 +32,7 @@ export function LeaveGuard({ active, onLeave }: { active: boolean; onLeave: () =
           <DialogTitle>Abandon this recording?</DialogTitle>
           <DialogDescription>
             The workflow is still being recorded. If you leave now, recording stops and the steps
-            captured so far won't become a Work Map.
+            captured so far won't become a workflow.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

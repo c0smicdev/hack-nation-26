@@ -9,7 +9,7 @@ import { HttpError } from "./store.js"
 
 /**
  * Vision runs on every tick, so it uses the fast model; everything that writes
- * the Work Map or judges a learner's decision uses Opus. Focus boxes are only
+ * the workflow or judges a learner's decision uses Opus. Focus boxes are only
  * located for important events and need precise grounding. Override via env.
  */
 export const models = {

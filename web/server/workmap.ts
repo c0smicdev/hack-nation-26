@@ -107,7 +107,7 @@ function nearestScreen(runtime: SessionRuntime, at: number, caption: string): Sc
   }
 }
 
-/* End of capture → draft Work Map with debrief questions ------------- */
+/* End of capture → draft workflow with debrief questions ------------- */
 
 export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   const runtime = getRuntime(sessionId)
@@ -143,7 +143,7 @@ export async function finishCapture(sessionId: ID): Promise<WorkMap> {
   const candidates = runtime.candidates.map(
     (c) =>
       `  [${c.id}] ${c.at.toFixed(0)}s ${c.kind}: ${c.title} — ${c.decision}` +
-      (c.deviation ? " (DEVIATES from the saved Work Map)" : ""),
+      (c.deviation ? " (DEVIATES from the saved workflow)" : ""),
   )
   const open = runtime.questions
     .filter((q) => !q.answer)
@@ -217,7 +217,7 @@ function draftContext(map: WorkMap) {
   )
   const corrections = map.teachBack?.corrections.map((c) => `  "${c.text}"`) ?? []
   return [
-    `Work Map "${map.title}" — ${map.summary}`,
+    `Workflow "${map.title}" — ${map.summary}`,
     `When: ${map.trigger}`,
     `Steps:\n${steps.join("\n")}`,
     `Debrief:\n${debrief.join("\n") || "  (none)"}`,
@@ -329,8 +329,8 @@ async function finalize(draft: WorkMap): Promise<WorkMap> {
       text(
         [
           base
-            ? `SAVED Work Map (update this one):\n${draftContext(base)}`
-            : "No saved Work Map; this is a new one.",
+            ? `SAVED workflow (update this one):\n${draftContext(base)}`
+            : "No saved workflow; this is a new one.",
           `NEW session (draft, debrief and corrections):\n${draftContext(draft)}`,
           `Quotes (ids usable as reasonQuoteId / quoteId):\n${poolText(pool)}`,
         ].join("\n\n"),

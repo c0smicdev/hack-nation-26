@@ -73,11 +73,11 @@ const secondsSince = (iso: string) => Math.round((Date.now() - Date.parse(iso)) 
 /** Tells the interviewer where the debrief stands, so it can ask (or teach back) by voice. */
 function debriefBrief(map: WorkMap) {
   const open = map.debrief.filter((d) => !d.resolved)
-  if (map.status === "confirmed") return "[SYSTEM] The Work Map is already confirmed."
+  if (map.status === "confirmed") return "[SYSTEM] The workflow is already confirmed."
   if (!open.length)
     return "[SYSTEM] All debrief questions are answered. Continue with the Teach-back procedure."
   return [
-    `[SYSTEM] The expert ended the task in the app, so finish_task already ran: don't call it. Draft Work Map "${map.title}" with ${map.steps.length} steps. Continue with the Debrief procedure using these questions:`,
+    `[SYSTEM] The expert ended the task in the app, so finish_task already ran: don't call it. Draft workflow "${map.title}" with ${map.steps.length} steps. Continue with the Debrief procedure using these questions:`,
     ...open.map((d) => `[${d.id}] ${d.question}`),
   ].join("\n")
 }
@@ -151,7 +151,7 @@ function SessionView({ session }: { session: CaptureSession }) {
   }
 
   async function finish() {
-    setBusy("Building the draft Work Map")
+    setBusy("Building the draft workflow")
     try {
       stopSharing()
       const map = await api.finishCapture(session.id)
@@ -218,7 +218,7 @@ function SessionView({ session }: { session: CaptureSession }) {
     tools: {
       lookup_memory: async ({ task }) => {
         const maps = await lookupMemory(String(task))
-        if (!maps.length) return "No saved Work Map matches. This is a new workflow."
+        if (!maps.length) return "No saved workflow matches. This is a new workflow."
         return maps
           .map((m) => `[${m.id}] "${m.title}" by ${m.expert.name}: ${m.summary}`)
           .join("\n")
@@ -228,7 +228,7 @@ function SessionView({ session }: { session: CaptureSession }) {
         await setBase(id === "none" || !id ? null : id)
         return id === "none"
           ? "Noted: new workflow."
-          : "Noted: this session extends that Work Map. Skip what it already explains."
+          : "Noted: this session extends that workflow. Skip what it already explains."
       },
       start_capture: async ({ goal }) =>
         (await beginCapture(String(goal ?? "")))
@@ -245,7 +245,7 @@ function SessionView({ session }: { session: CaptureSession }) {
         const map = await finish()
         const questions = map.debrief.filter((d) => !d.resolved)
         return [
-          `Draft Work Map "${map.title}" with ${map.steps.length} steps. Debrief questions, ask one at a time:`,
+          `Draft workflow "${map.title}" with ${map.steps.length} steps. Debrief questions, ask one at a time:`,
           ...questions.map((d) => `[${d.id}] ${d.question}`),
         ].join("\n")
       },
@@ -264,7 +264,7 @@ function SessionView({ session }: { session: CaptureSession }) {
         const words = yes ? "" : wordsSinceMarker() || String(correction ?? "")
         const map = await reply(yes, words || undefined)
         if (map.status === "confirmed")
-          return "The Work Map is saved to memory. Thank them and say goodbye."
+          return "The workflow is saved to memory. Thank them and say goodbye."
         const open = map.debrief.filter((d) => !d.resolved)
         if (yes && open.length) {
           return `Not done yet, these are still open:\n${open.map((d) => `[${d.id}] ${d.question}`).join("\n")}`

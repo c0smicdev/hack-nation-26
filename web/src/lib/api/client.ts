@@ -10,6 +10,8 @@ import type {
   LiveStep,
   NewSession,
   NewSessionEvent,
+  Profile,
+  ProfilePatch,
   SessionEvent,
   TeachBackReply,
   Tick,
@@ -36,7 +38,12 @@ export interface SessionPatch {
  * Add a method here first, then implement it in both.
  */
 export interface SocratesApi {
-  /* Work Maps + memory */
+  /* Account */
+  getMe(): Promise<Profile>
+  /** For the onboarding flow: name, role, preferences. */
+  updateMe(patch: ProfilePatch): Promise<Profile>
+
+  /* workflows + memory */
   listWorkMaps(): Promise<WorkMapSummary[]>
   getWorkMap(id: ID): Promise<WorkMap>
   findRelatedWorkMaps(task: string): Promise<WorkMapSummary[]>
@@ -55,8 +62,8 @@ export interface SocratesApi {
   setCaptureStatus(patch: Partial<CaptureStatus>): Promise<CaptureStatus>
   setOffTheRecord(offTheRecord: boolean): Promise<CaptureStatus>
 
-  /* Debrief → Work Map */
-  /** Ends capture; returns the draft Work Map with its debrief questions. */
+  /* Debrief → workflow */
+  /** Ends capture; returns the draft workflow with its debrief questions. */
   finishCapture(sessionId: ID): Promise<WorkMap>
   answerDebrief(workMapId: ID, itemId: ID, answer: DebriefAnswer): Promise<WorkMap>
   /** Generates the explanation the agent reads back to the expert. */

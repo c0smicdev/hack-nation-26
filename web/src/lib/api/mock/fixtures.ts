@@ -42,7 +42,7 @@ const button = {
 /** IBAN + supplier contact on every invoice screen. */
 const invoicePii: Rect[] = [field(0, 3), field(1, 3, 2)]
 
-/* Work Maps --------------------------------------------------------- */
+/* workflows --------------------------------------------------------- */
 
 const AP_SESSION = "ses-0412"
 

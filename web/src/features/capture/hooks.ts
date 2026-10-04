@@ -79,7 +79,7 @@ export function useCreateSession() {
   })
 }
 
-/** The session's draft Work Map during the debrief (owned by this flow until it's confirmed). */
+/** The session's draft workflow during the debrief (owned by this flow until it's confirmed). */
 export function useDraftWorkMap(workMapId: ID | undefined) {
   return useQuery({
     queryKey: ["work-maps", workMapId ?? ""],

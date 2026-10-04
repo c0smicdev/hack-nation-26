@@ -40,15 +40,16 @@ function personFor(name: string, role: string): Person {
   return known?.expert ?? { id: `p-${slug}`, name, role }
 }
 
-export function createSession(input: NewSession): CaptureSession {
-  if (!input.task.trim() || !input.expertName.trim()) {
+/** `expert` is the signed-in user; without login the expert is matched by name. */
+export function createSession(input: NewSession, expert?: Person): CaptureSession {
+  if (!input.task.trim() || (!expert && !input.expertName.trim())) {
     throw new HttpError(400, "task and expertName are required")
   }
   const session: CaptureSession = {
     id: newId("ses"),
     title: input.title.trim() || input.task.trim().slice(0, 60),
     task: input.task.trim(),
-    expert: personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
+    expert: expert ?? personFor(input.expertName.trim(), input.expertRole.trim() || "Expert"),
     startedAt: new Date().toISOString(),
     durationSec: 0,
     status: "intake",
@@ -127,7 +128,7 @@ const VisionResult = z.object({
 
 /**
  * Boxes the step's element on its screenshot without holding up the tick (one more model call);
- * finishCapture waits for these before the Work Map is written. A failed lookup leaves no box.
+ * finishCapture waits for these before the workflow is written. A failed lookup leaves no box.
  */
 function locateInBackground(runtime: SessionRuntime, screen: ScreenMoment, frameId: ID) {
   const frame = store.frames.get(frameId)
@@ -149,9 +150,9 @@ const normalize = (q: string) =>
     .replace(/[^a-z0-9€]+/g, " ")
     .trim()
 
-/** What the saved Work Map (memory) already knows, so vision doesn't ask it again. */
+/** What the saved workflow (memory) already knows, so vision doesn't ask it again. */
 export function memoryContext(map: WorkMap | undefined) {
-  if (!map) return "No saved Work Map matches this task. Everything is new."
+  if (!map) return "No saved workflow matches this task. Everything is new."
   const steps = map.steps.map((s) => {
     const rules = s.guardrails.map((g) => `      guardrail (${g.kind}): ${g.rule}`)
     const cases = s.edgeCases.map((e) => `      edge case: if ${e.when} → ${e.then}`)
@@ -168,7 +169,7 @@ export function memoryContext(map: WorkMap | undefined) {
     .filter((d) => d.answer)
     .map((d) => `  Q: ${d.question}\n  A: "${d.answer!.text}"`)
   return [
-    `Saved Work Map "${map.title}" by ${map.expert.name}:`,
+    `Saved workflow "${map.title}" by ${map.expert.name}:`,
     ...steps,
     answered.length ? `Answered in an earlier debrief:\n${answered.join("\n")}` : "",
   ]
@@ -418,7 +419,7 @@ const MemoryMatch = z.object({
   matches: z.array(z.object({ workMapId: z.string(), why: z.string() })),
 })
 
-/** Confirmed Work Maps that describe the same (or an overlapping) task. */
+/** Confirmed workflows that describe the same (or an overlapping) task. */
 export async function findRelatedWorkMaps(task: string) {
   const confirmed = store.workMaps.filter((m) => m.status === "confirmed")
   if (!task.trim() || confirmed.length === 0) return []
@@ -434,7 +435,7 @@ export async function findRelatedWorkMaps(task: string) {
     maxTokens: 2000,
     system: prompt("memory-match"),
     schema: MemoryMatch,
-    content: [text(`Task the expert is about to do:\n${task}\n\nSaved Work Maps:\n${catalog}`)],
+    content: [text(`Task the expert is about to do:\n${task}\n\nSaved workflows:\n${catalog}`)],
   })
   return matches
     .map((match) => confirmed.find((m) => m.id === match.workMapId))

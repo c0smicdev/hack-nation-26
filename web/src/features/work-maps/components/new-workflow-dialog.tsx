@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import type { WorkflowDraftMessage } from "@/lib/api"
+import { useMe } from "@/lib/auth/hooks"
 import { handOverStream } from "@/lib/capture/pending-stream"
 import { startScreenShare } from "@/lib/capture/screen"
 import { cn } from "@/lib/utils"
@@ -58,6 +59,12 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
   const draft = useDraftWorkflow()
   const create = useCreateSession()
+  const { data: me } = useMe()
+  // Read inside createWorkflow, which the voice agent's tool may call from a stale closure.
+  const meRef = useRef(me)
+  useEffect(() => {
+    meRef.current = me
+  })
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -105,8 +112,8 @@ function NewWorkflowBody({ onClose }: { onClose: () => void }) {
       .mutateAsync({
         title: title.trim() || "Untitled",
         task: description.trim() || title.trim() || "Untitled",
-        expertName: "You",
-        expertRole: "Expert",
+        expertName: meRef.current?.displayName ?? "You",
+        expertRole: meRef.current?.role ?? "Expert",
       })
       .catch((e: unknown) => {
         stream?.getTracks().forEach((t) => t.stop())

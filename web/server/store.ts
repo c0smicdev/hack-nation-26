@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto"
 
-import { workMaps as fixtureWorkMaps } from "../src/lib/api/mock/fixtures.js"
 import type {
   CaptureSession,
   CaptureStatus,
@@ -14,9 +13,8 @@ import type {
 } from "../src/lib/api/types.js"
 
 /**
- * In-memory storage (MVP). Everything is lost on restart. On Vercel each warm
- * function instance has its own copy, so run the demo locally (`npm run dev`)
- * until we move this to Postgres + Blob.
+ * In-memory storage. With SUPABASE_URL / SUPABASE_SECRET_KEY set, server/db.ts
+ * syncs it with Supabase around every request; otherwise everything is lost on restart.
  */
 
 /** A step candidate collected while the expert works; becomes a WorkMapStep after the debrief. */
@@ -62,7 +60,7 @@ export interface SessionRuntime {
   pendingErp: ErpSignal[]
   /** Focus boxes still being located for candidate step screenshots. */
   pendingFocus: Set<Promise<void>>
-  /** Draft Work Map built at the end of capture. */
+  /** Draft workflow built at the end of capture. */
   draftWorkMapId?: ID
 }
 
@@ -75,8 +73,8 @@ interface Store {
 
 function createStore(): Store {
   return {
-    // Fixtures are confirmed Work Maps, i.e. the agent's starting memory.
-    workMaps: structuredClone(fixtureWorkMaps),
+    // Starts empty: the team's own confirmed workflows become the agent's memory.
+    workMaps: [],
     sessions: new Map(),
     frames: new Map(),
     captureStatus: {
@@ -101,7 +99,7 @@ export function getRuntime(sessionId: ID): SessionRuntime {
 
 export function getWorkMap(id: ID): WorkMap {
   const map = store.workMaps.find((m) => m.id === id)
-  if (!map) throw new HttpError(404, `Work map ${id} not found`)
+  if (!map) throw new HttpError(404, `Workflow ${id} not found`)
   return map
 }
 

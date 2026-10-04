@@ -1,6 +1,6 @@
 import type { AskResponse, Citation, WorkMap, WorkMapStep } from "../types"
 
-/** Keyword search over Work Map steps: good enough to demo Ask without a model. */
+/** Keyword search over workflow steps: good enough to demo Ask without a model. */
 
 const STOPWORDS = new Set(
   "a an and are be do does for how i if in is it of on or should the this to what when where which who why with you".split(
