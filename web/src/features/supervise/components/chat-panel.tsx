@@ -1,4 +1,4 @@
-import { BookOpen, Loader2, Send, ShieldAlert } from "lucide-react"
+import { BookOpen, Loader2, MicOff, Send, ShieldAlert } from "lucide-react"
 import { type FormEvent, useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -24,14 +24,20 @@ export function ChatPanel({
   items,
   thinking,
   canSend,
+  mute,
   onSend,
+  onTyping,
   onOpenStep,
 }: {
   map: WorkMap
   items: ChatItem[]
   thinking: boolean
   canSend: boolean
+  /** Mic mute toggle, while the voice is live: the learner can type without being overheard. */
+  mute?: { muted: boolean; onToggle: () => void }
   onSend: (text: string) => void
+  /** The learner is typing (keeps the voice from talking over them). */
+  onTyping?: () => void
   onOpenStep: (id: ID) => void
 }) {
   const [draft, setDraft] = useState("")
@@ -131,10 +137,32 @@ export function ChatPanel({
         <div ref={end} />
       </div>
       <form onSubmit={submit} className="flex gap-2 border-t px-4 py-3">
+        {mute && (
+          <Button
+            type="button"
+            size="icon"
+            variant={mute.muted ? "destructive" : "outline"}
+            onClick={mute.onToggle}
+            aria-pressed={mute.muted}
+            aria-label={mute.muted ? "Unmute microphone" : "Mute microphone"}
+            title={mute.muted ? "Unmute microphone" : "Mute microphone"}
+          >
+            <MicOff />
+          </Button>
+        )}
         <Input
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={canSend ? "Ask Socrates…" : "Share your screen to start"}
+          onChange={(e) => {
+            setDraft(e.target.value)
+            onTyping?.()
+          }}
+          placeholder={
+            !canSend
+              ? "Share your screen to start"
+              : mute?.muted
+                ? "Mic muted. Type to Socrates…"
+                : "Ask Socrates…"
+          }
           disabled={!canSend}
         />
         <Button

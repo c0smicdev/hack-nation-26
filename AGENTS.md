@@ -16,7 +16,7 @@ The brief requires all three modules. We build them in this order:
 | ----------- | ------------------------------------------------------------------------------------------------------ | -------------------------- |
 | **Capture** | Expert shares their screen; frames go to a vision model every ~1–2 s; an ElevenLabs voice agent asks *why* at pauses | 1st: MVP core             |
 | **Map**     | Spoken debrief closes the gaps, ends with a teach-back; output is a clickable Work Map + flowchart       | 2nd: MVP core              |
-| **Teach**   | A new hire picks a Work Map and is guided through it by voice on their own screen                      | 3rd: required for judging  |
+| **Teach**   | A new hire runs a Work Map on their own screen (a *supervised run*); Socrates answers by voice and steps in before a mistake | 3rd: required for judging  |
 
 Running example from the brief: Sabine (accounts payable, 24 years) processes supplier invoices. One is over the €5,000 capex line, one supplier double-bills every December, one needs a second approval because it comes from the Czech subsidiary. Our demo runs on our own **mock ERP** (§3) with this fake data.
 
@@ -24,9 +24,9 @@ Running example from the brief: Sabine (accounts payable, 24 years) processes su
 
 - **Capture:** during a real task the agent asks **≥ 3 questions**, each at a natural pause and about something **visible on screen**. **At least one is about a guardrail** (a limit, an exception, when to stop and ask someone).
 - **Map:** the debrief asks **≥ 3 follow-up questions** not answered during the task and ends with a **teach-back the expert confirms**. Every step and guardrail links to a **screen moment** and the **expert's own words**.
-- **Teach:** a new hire processes a case the expert never showed; the tutor **catches at least one wrong decision before it's saved** and explains it using the expert's reasoning.
+- **Teach:** a new hire processes a case the expert never showed; Socrates **catches at least one wrong decision before it's saved** and explains it using the expert's reasoning.
 - **Ask less, later:** 3–5 live questions per 10 minutes. Everything else waits for the debrief.
-- **The voice agent is the product.** ElevenAgents plays interviewer and tutor in **Expressive Mode** (Eleven v3 Conversational voice + prosody-aware turn-taking); Scribe v2 Realtime handles listening and pauses.
+- **The voice agent is the product.** ElevenAgents plays interviewer and supervisor in **Expressive Mode** (Eleven v3 Conversational voice + prosody-aware turn-taking); Scribe v2 Realtime handles listening and pauses.
 - The demo must answer: *When to ask? What to ask? When has it understood? Did the new hire learn? Trust (off the record + personal data)?*
 - The pitch ends with **one moonshot slide** and how the MVP gets there. Our memory (§5) is the start of the brief's "living company memory".
 
@@ -67,7 +67,7 @@ There is a list of the prompts in `docs/PROMPTS.md`
                                                ▼               ▼
                                  ┌──────────────────────┐  ┌──────────────────────┐
                                  │ Backend (Vercel fns) │  │ ElevenAgents         │
-                                 │ vision, LLM, memory, │◄─┤ interviewer / tutor, │
+                                 │ vision, LLM, memory, │◄─┤ interviewer, superv. │
                                  │ redaction, storage   │  │ Scribe v2 Realtime   │
                                  └──────────┬───────────┘  └──────────────────────┘
                                             ▼
@@ -79,7 +79,7 @@ There is a list of the prompts in `docs/PROMPTS.md`
 - **ElevenAgents** runs the conversation. The browser connects directly using a **signed URL from our backend** (the API key stays server-side). Screen events go into the conversation as **contextual updates / client tools**, so the agent knows what's on screen. The agent calls our backend through **tools** (e.g. `lookup_memory`, `get_open_questions`, `record_answer`). Its transcript is the source of every `Quote`.
 - **Mock ERP** (`sandbox/`, planned) is a small web app with the invoice demo data. Because we control it, it can:
   - send typing / field-change events to the web app (`postMessage`), so **no browser extension is needed for the MVP**;
-  - **pause a save** and ask the tutor first. That's how Teach catches a wrong decision *before it's saved*.
+  - **pause a save** and ask Socrates first. That's how Teach catches a wrong decision *before it's saved*.
 - **Backend** = Vercel functions (`web/api/`). It holds every API key and makes every model call. **Never call a model provider from the browser and never put secrets in `VITE_*` env vars**, because those ship to the client.
 - **Storage:** Vercel functions have no persistent disk. Screenshots go to **Vercel Blob**, everything else to **Postgres** (Supabase or Neon, pick one and note it here).
 - **The data contract** is [`web/src/lib/api/types.ts`](web/src/lib/api/types.ts). If you change it, update `client.ts`, `http.ts` and `mock/`, and tell the team.
@@ -156,7 +156,7 @@ flowchart TD
 
 ### Teach (3rd)
 
-A new hire picks a Work Map and works a case in the mock ERP. The tutor (same ElevenAgents setup, tutor prompt, Work Map from memory) watches the screen the same way, explains each step in the expert's words and asks them to predict the next decision. When they're about to break a guardrail, the mock ERP **holds the save** and the tutor steps in: *"Sabine would stop here. Why do you think?"*, replaying her screen moment. At the end: what they mastered, what to practice.
+Delivered by the **supervised run** (`features/supervise/`, route `/supervise/:id`). A new hire opens a confirmed Work Map and works a case in the mock ERP on a shared screen. Socrates (the supervisor agent, `prompts/supervisor.md`, Work Map from memory) watches the screen the same way and stays quiet: the new hire asks by voice or in the chat, and Socrates looks at their screen (`look_at_screen`) and answers in the expert's words. When they're about to break a guardrail, the mock ERP **holds the save** and Socrates steps in: *"Sabine would stop here."*, linking her step and screen moment.
 
 ---
 
@@ -174,7 +174,7 @@ The agent must know which Work Maps already exist, so it skips what's documented
 | Each event    | Match against the matched Work Map's steps → known / deviation / new                                  |
 | Question pick | Never ask something memory already answers (reason, guardrail, debrief answer)                       |
 | End of session| Update the matched Work Map instead of creating a duplicate; otherwise create a new one              |
-| Teach         | The tutor loads the Work Map it teaches from memory                                                  |
+| Teach         | The supervisor loads the Work Map it guides from memory                                              |
 
 **Implementation (MVP):**
 
@@ -251,7 +251,7 @@ AI agents: if you're on `main` when starting a task, create a branch first. Don'
 
 See [`web/README.md`](web/README.md) for the full structure and recipes. The essentials:
 
-- **Feature folders.** `src/features/<name>/` owns its pages, components and `hooks.ts`. Features may import from `lib/`, `components/` and `app/paths`, **not from each other** (the only exception: `AskPanel` is reused on the Work Map page). New areas (`session/`, `debrief/`, `voice/`, `teach/`) get their own folder.
+- **Feature folders.** `src/features/<name>/` owns its pages, components and `hooks.ts`. Features may import from `lib/`, `components/` and `app/paths`, **not from each other** (the only exception: `AskPanel` is reused on the Work Map page). New areas (`session/`, `debrief/`, `voice/`, `supervise/`) get their own folder.
 - **Data access** goes through the `SocratesApi` interface (`lib/api/client.ts`) and React Query hooks. To add a call: add it to `SocratesApi`, implement it in **both** `http.ts` and `mock/index.ts`, then wrap it in a hook.
 - **Mocks stay working.** Without `VITE_API_URL` the app uses `mockApi`. Every new feature needs mock data so others can work without the backend.
 - **Routes:** add the page in `app/router.tsx`, the path in `app/paths.ts`, the nav item in `app/app-layout.tsx`. Build links with `paths.*`, never hand-written URLs.
@@ -259,7 +259,7 @@ See [`web/README.md`](web/README.md) for the full structure and recipes. The ess
 - **Imports** use the `@/` alias for `src/`.
 - **Timestamps:** `at` = seconds since session start; wall-clock = ISO 8601. Rects are normalized to `0..1`.
 - **LLM output** must match `types.ts`. Validate it at the boundary (e.g. with zod) instead of trusting it.
-- **Prompts** live in their own files (one per prompt, e.g. `prompts/vision-events.md`, `prompts/interviewer.md`, `prompts/tutor.md`, `prompts/memory-match.md`) so we can iterate on them without touching code.
+- **Prompts** live in their own files (one per prompt, e.g. `prompts/vision-events.md`, `prompts/interviewer.md`, `prompts/supervisor.md`, `prompts/memory-match.md`) so we can iterate on them without touching code.
 - **UI** follows [`docs/brand-guidelines.md`](docs/brand-guidelines.md) (fonts, colors, shadcn token mapping).
 - Keep components small and readable. Comment the *why*, not the *what*.
 

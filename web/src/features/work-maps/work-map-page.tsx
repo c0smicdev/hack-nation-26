@@ -1,4 +1,4 @@
-import { ChevronLeft, GraduationCap, MessageCircleQuestion, ShieldCheck } from "lucide-react"
+import { ChevronLeft, MessageCircleQuestion, ShieldCheck } from "lucide-react"
 import { useCallback, useEffect, useRef } from "react"
 import { Link, useParams, useSearchParams } from "react-router"
 
@@ -107,13 +107,6 @@ function WorkMapView({ workMap }: { workMap: WorkMap }) {
               <Button asChild>
                 <Link to={paths.supervise(workMap.id)}>
                   <ShieldCheck /> Supervise a run
-                </Link>
-              </Button>
-            )}
-            {workMap.status === "confirmed" && (
-              <Button variant="outline" asChild>
-                <Link to={paths.teach(workMap.id)}>
-                  <GraduationCap /> Teach a new hire
                 </Link>
               </Button>
             )}

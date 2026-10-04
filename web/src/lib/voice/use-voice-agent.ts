@@ -146,6 +146,29 @@ export function useVoiceAgent({
   /** Tell the agent what's on screen without making it talk. */
   const context = useCallback((text: string) => void send("context", text), [send])
 
+  /** Mic off (e.g. to type instead): Socrates keeps talking but stops listening. */
+  const setMuted = useCallback(
+    (muted: boolean) => {
+      if (conversation.status !== "connected") return
+      try {
+        conversation.setMuted(muted)
+      } catch {
+        // The session just ended; the SDK unmutes on disconnect anyway.
+      }
+    },
+    [conversation],
+  )
+
+  /** The user is typing: keeps the agent from talking over them. */
+  const activity = useCallback(() => {
+    if (conversation.status !== "connected") return
+    try {
+      conversation.sendUserActivity()
+    } catch {
+      // Best effort only.
+    }
+  }, [conversation])
+
   /** Typed instead of spoken: same path as a transcript. */
   const type = useCallback(
     (text: string) => {
@@ -162,6 +185,9 @@ export function useVoiceAgent({
     transcript,
     connected: conversation.status === "connected",
     agentSpeaking: conversation.isSpeaking,
+    muted: conversation.isMuted,
+    setMuted,
+    activity,
     /** ms since the user's voice was last detected (Scribe VAD). */
     msSinceUserVoice: () => Date.now() - lastUserVoiceAt.current,
     start,

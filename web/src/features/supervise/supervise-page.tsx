@@ -14,7 +14,7 @@ import {
   Square,
   X,
 } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -78,6 +78,8 @@ const openErp = () => window.open(paths.erp(), "nordwind-erp")
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 /** A heads-up stays on the graph this long when the chat isn't open. */
 const BANNER_MS = 20_000
+/** Reconnects after a dropped call before we leave it to the "Turn on voice" button. */
+const MAX_RECONNECTS = 3
 
 type Tab = "chat" | "mentor"
 
@@ -184,13 +186,16 @@ function SuperviseView({ map }: { map: WorkMap }) {
   /* Starting, re-sharing and ending ----------------------------------- */
 
   /** Connects the supervisor agent; it listens for the learner's questions from then on. */
-  function startVoice(run: SupervisionSession) {
-    void agent.start({
-      learner_name: run.learnerName,
-      expert_name: expertFirst,
-      work_map: supervisorBrief(map),
-    })
-  }
+  const { start: startAgent } = agent
+  const startVoice = useCallback(
+    (run: SupervisionSession) =>
+      void startAgent({
+        learner_name: run.learnerName,
+        expert_name: expertFirst,
+        work_map: supervisorBrief(map),
+      }),
+    [startAgent, expertFirst, map],
+  )
 
   async function share() {
     setShareError(undefined)
@@ -310,6 +315,23 @@ function SuperviseView({ map }: { map: WorkMap }) {
   )
 
   const running = !!stream && !!supervision && !ended
+
+  // A call can drop mid-run (network, ElevenLabs' call limit). Without this the learner silently
+  // loses Socrates' voice, so reconnect while the run goes on.
+  const reconnects = useRef(0)
+  const wasLive = useRef(false)
+  useEffect(() => {
+    if (agent.mode === "voice") {
+      wasLive.current = true
+      return
+    }
+    if (agent.mode !== "idle" || !wasLive.current || !running || !supervision) return
+    wasLive.current = false
+    if (reconnects.current >= MAX_RECONNECTS) return
+    reconnects.current += 1
+    startVoice(supervision)
+  }, [agent.mode, running, supervision, startVoice])
+
   const elapsed = useElapsed(supervision?.startedAt, running)
   const currentIndex = current ? map.steps.indexOf(current) : -1
 
@@ -467,15 +489,24 @@ function SuperviseView({ map }: { map: WorkMap }) {
           {loop.error && (
             <p className="border-b px-4 py-2 text-xs text-destructive">{loop.error}</p>
           )}
-          {supervision && !ended && (agent.mode === "text" || agent.mode === "error") && (
+          {supervision && !ended && agent.mode !== "voice" && agent.mode !== "connecting" && (
             <div className="flex items-center gap-3 border-b bg-amber-500/5 px-4 py-2 text-xs">
               <MicOff className="size-4 shrink-0 text-amber-600" />
               <p className="min-w-0 flex-1">
                 {agent.error
                   ? `Socrates can't hear you: ${agent.error}`
-                  : "Voice isn't set up for supervised runs (npm run setup:agents -- supervisor). Type your questions below."}
+                  : agent.mode === "idle"
+                    ? "Socrates' voice disconnected. Type your questions below, or turn voice back on."
+                    : "Voice isn't set up for supervised runs (npm run setup:agents -- supervisor). Type your questions below."}
               </p>
-              <Button size="sm" variant="outline" onClick={() => startVoice(supervision)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  reconnects.current = 0
+                  startVoice(supervision)
+                }}
+              >
                 <Mic /> Turn on voice
               </Button>
             </div>
@@ -486,7 +517,13 @@ function SuperviseView({ map }: { map: WorkMap }) {
               items={items}
               thinking={thinking}
               canSend={!!supervision && !ended}
+              mute={
+                agent.mode === "voice"
+                  ? { muted: agent.muted, onToggle: () => agent.setMuted(!agent.muted) }
+                  : undefined
+              }
               onSend={(text) => void send(text)}
+              onTyping={agent.activity}
               onOpenStep={openStep}
             />
           ) : (
@@ -616,7 +653,11 @@ function RunSummary({
 function SocratesStatus({ agent }: { agent: VoiceAgent }) {
   const icon =
     agent.mode === "voice" ? (
-      <Mic className={cn("size-3.5", agent.agentSpeaking && "text-primary")} />
+      agent.muted ? (
+        <MicOff className="size-3.5 text-destructive" />
+      ) : (
+        <Mic className={cn("size-3.5", agent.agentSpeaking && "text-primary")} />
+      )
     ) : agent.mode === "connecting" ? (
       <Loader2 className="size-3.5 animate-spin" />
     ) : agent.mode === "text" ? (
@@ -628,7 +669,9 @@ function SocratesStatus({ agent }: { agent: VoiceAgent }) {
     agent.mode === "voice"
       ? agent.agentSpeaking
         ? "Socrates is speaking"
-        : "Socrates is standing by"
+        : agent.muted
+          ? "Mic muted"
+          : "Socrates is standing by"
       : agent.mode === "connecting"
         ? "Connecting…"
         : agent.mode === "text"

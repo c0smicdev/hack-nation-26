@@ -404,7 +404,7 @@ export interface SupervisionTickResult {
 /* Voice — ElevenAgents                                                */
 /* ------------------------------------------------------------------ */
 
-export type VoiceRole = "interviewer" | "tutor" | "drafter" | "supervisor"
+export type VoiceRole = "interviewer" | "drafter" | "supervisor"
 
 export interface VoiceSession {
   /** Signed WebSocket URL; the API key never reaches the browser. */

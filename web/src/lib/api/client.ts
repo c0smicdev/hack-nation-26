@@ -69,7 +69,7 @@ export interface SocratesApi {
   /** Confirmed → the map is finalized (possibly merged into an existing map: mind the returned id). */
   replyTeachBack(workMapId: ID, reply: TeachBackReply): Promise<WorkMap>
 
-  /* Teach */
+  /* Save gate: may the ERP save this? */
   checkDecision(workMapId: ID, check: DecisionCheck): Promise<DecisionVerdict>
 
   /* Supervise: a new hire runs a confirmed Work Map, Socrates stands by */

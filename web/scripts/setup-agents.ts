@@ -1,5 +1,5 @@
 /**
- * Creates or updates the ElevenAgents (interviewer, tutor, supervisor, drafter) from
+ * Creates or updates the ElevenAgents (interviewer, supervisor, drafter) from
  * prompts/*.md and their Procedures from prompts/procedures/<role>/*.md,
  * so agent config lives in git, not in a dashboard.
  *
@@ -258,37 +258,6 @@ const agents = {
       ),
     ],
   },
-  tutor: {
-    envKey: "ELEVENLABS_TUTOR_AGENT_ID",
-    name: "Socrates · Tutor",
-    prompt: "tutor",
-    firstMessage:
-      "Hi {{learner_name}}, I'm Socrates. Today we'll work through how {{expert_name}} does this.",
-    placeholders: { learner_name: "Alex", expert_name: "Sabine", work_map: "(Work Map)" },
-    turn: { turn_eagerness: "normal", turn_timeout: 10, turn_model: "turn_v3" },
-    audioTags: [
-      { tag: "encouraging", description: "The learner made a good call or is close" },
-      { tag: "serious", description: "A held save or a guardrail the learner is about to break" },
-      { tag: "slow", description: "Stating a limit, an amount, or a rule word for word" },
-      { tag: "warm", description: "Greeting and wrapping up the lesson" },
-    ] satisfies AudioTag[],
-    tools: [
-      clientTool(
-        "finish_lesson",
-        "The lesson is over. Show what the learner mastered and what to practice.",
-        {
-          mastered: {
-            type: "string",
-            description: "What they got right, short phrases separated by semicolons",
-          },
-          practice: {
-            type: "string",
-            description: "What to practice, short phrases separated by semicolons",
-          },
-        },
-      ),
-    ],
-  },
   supervisor: {
     envKey: "ELEVENLABS_SUPERVISOR_AGENT_ID",
     name: "Socrates · Supervisor",
@@ -296,8 +265,10 @@ const agents = {
     firstMessage:
       "Hi {{learner_name}}, I'm Socrates. Go ahead, I'll stay quiet. Just ask if you need me.",
     placeholders: { learner_name: "Alex", expert_name: "Sabine", work_map: "(Work Map)" },
-    // The learner thinks out loud while they work: only answer when addressed.
-    turn: { turn_eagerness: "patient", turn_timeout: 15, turn_model: "turn_v3" },
+    // The learner is waiting on the answer, so don't hold back the turn; skip_turn filters out
+    // thinking out loud. A run often takes longer than the default 10-minute call limit.
+    turn: { turn_eagerness: "normal", turn_timeout: 15, turn_model: "turn_v3" },
+    maxDurationSecs: 3600,
     skipTurn: true,
     audioTags: [
       { tag: "calm", description: "A heads-up before a mistake, or a held save" },
@@ -387,6 +358,8 @@ async function main() {
           expressive_mode: true,
           suggested_audio_tags: "audioTags" in agent ? agent.audioTags : undefined,
         },
+        conversation:
+          "maxDurationSecs" in agent ? { max_duration_seconds: agent.maxDurationSecs } : undefined,
       },
     }
 

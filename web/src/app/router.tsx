@@ -7,8 +7,6 @@ import { ErpLayout } from "@/features/erp/erp-layout"
 import { InvoiceListPage } from "@/features/erp/invoice-list-page"
 import { InvoicePage } from "@/features/erp/invoice-page"
 import { SupervisePage } from "@/features/supervise/supervise-page"
-import { LessonPage } from "@/features/teach/lesson-page"
-import { TeachPage } from "@/features/teach/teach-page"
 import { LibraryPage } from "@/features/work-maps/library-page"
 import { WorkMapPage } from "@/features/work-maps/work-map-page"
 
@@ -26,8 +24,6 @@ export const router = createBrowserRouter([
       { path: "ask", element: <AskPage /> },
       { path: "capture", element: <CapturePage /> },
       { path: "capture/:sessionId", element: <SessionPage /> },
-      { path: "teach", element: <TeachPage /> },
-      { path: "teach/:workMapId", element: <LessonPage /> },
       { path: "supervise/:workMapId", element: <SupervisePage /> },
       { path: "*", element: <NotFoundPage /> },
     ],

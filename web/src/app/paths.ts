@@ -8,7 +8,6 @@ export const paths = {
   ask: () => "/ask",
   capture: () => "/capture",
   session: (id: ID) => `/capture/${id}`,
-  teach: (workMapId?: ID) => (workMapId ? `/teach/${workMapId}` : "/teach"),
   /** A new hire runs a confirmed Work Map while Socrates stands by. */
   supervise: (workMapId: ID) => `/supervise/${workMapId}`,
   /** Mock ERP (opens in its own tab). */
