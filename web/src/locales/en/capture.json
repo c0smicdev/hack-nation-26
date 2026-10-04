@@ -1,0 +1,133 @@
+{
+  "captureState": {
+    "notCapturing": "Not capturing",
+    "offTheRecord": "Off the record",
+    "capturing": "Capturing"
+  },
+  "sessionStatus": {
+    "intake": "Intake",
+    "live": "Live",
+    "processing": "Building map",
+    "awaitingDebrief": "Awaiting debrief",
+    "mapped": "Mapped"
+  },
+  "eventKind": {
+    "screen": "Screen",
+    "speech": "Expert",
+    "question": "Socrates asked",
+    "offRecord": "Privacy"
+  },
+  "capturePage": {
+    "title": "Capture",
+    "description": "Do a real task while Socrates watches your screen. It asks why at natural pauses, closes the gaps in a short debrief, and turns it into a workflow.",
+    "howItWorks": {
+      "title": "How it works",
+      "step1": "1. Open the mock ERP in another tab, start a session and share that tab. Tell Socrates what you're about to do.",
+      "step2": "2. Work as usual and think out loud. Socrates asks 3–5 questions at natural pauses.",
+      "step3": "3. Say you're done: a short spoken debrief, then Socrates explains it back.",
+      "offTheRecord": "Say \"off the record\" or flip the switch any time. Nothing is captured until you're back on the record."
+    },
+    "sessions": "Sessions"
+  },
+  "sessionRow": {
+    "events_one": "{{count}} event",
+    "events_other": "{{count}} events",
+    "liveQuestions_one": "{{count}} live question",
+    "liveQuestions_other": "{{count}} live questions"
+  },
+  "newSession": {
+    "title": "New session",
+    "description": "Who's showing what? You can refine the task by voice.",
+    "expert": "Expert",
+    "role": "Role",
+    "sessionTitle": "Session title",
+    "task": "What are you about to do?",
+    "defaultTitle": "Month-end supplier invoices",
+    "defaultTask": "Process this week's supplier invoices in the ERP before the month-end close.",
+    "start": "Start session"
+  },
+  "openErp": "Open mock ERP",
+  "breadcrumbWorkflows": "Workflows",
+  "yourSteps": "Your steps",
+  "openWorkflow": "Open the workflow",
+  "confirmTeachBack": "Yes, that's right",
+  "busy": {
+    "buildingDraft": "Building the draft workflow",
+    "writingTeachBack": "Writing the teach-back",
+    "savingToMemory": "Saving to memory",
+    "updatingTeachBack": "Updating the teach-back"
+  },
+  "recording": {
+    "notRecording": "Not recording",
+    "paused": "Paused",
+    "recording": "Recording",
+    "shareTitle": "Share your screen to start recording",
+    "shareHint": "Pick the window you'll work in (e.g. the mock ERP). Socrates watches, groups what you do into steps and draws the workflow here.",
+    "shareScreen": "Share screen",
+    "stepsSoFar_one": "{{count}} step so far",
+    "stepsSoFar_other": "{{count}} steps so far",
+    "endWorkflow": "End workflow"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates is speaking",
+    "listening": "Socrates is listening",
+    "connecting": "Connecting…",
+    "text": "Questions appear on screen",
+    "off": "Voice off"
+  },
+  "memoryMatch": {
+    "text": "Looks like <strong>{{title}}</strong>, which {{expert}} already showed me. Same workflow?",
+    "same": "Same workflow",
+    "new": "It's new"
+  },
+  "textQuestion": {
+    "placeholder": "Your answer",
+    "answer": "Answer",
+    "later": "Later"
+  },
+  "leaveGuard": {
+    "title": "Abandon this recording?",
+    "description": "The workflow is still being recorded. If you leave now, recording stops and the steps captured so far won't become a workflow.",
+    "keep": "Keep recording",
+    "abandon": "Abandon recording"
+  },
+  "offTheRecordSwitch": {
+    "label": "Off the record"
+  },
+  "liveStepList": {
+    "gettingStarted": "Getting started",
+    "empty": "Start working. Your steps appear here as Socrates understands them.",
+    "decision": "Decision",
+    "differsFromMemory": "Differs from memory",
+    "events_one": "{{count}} event",
+    "events_other": "{{count}} events",
+    "screenshotAlt": "Screen during: {{title}}"
+  },
+  "debriefView": {
+    "building": "Building the draft workflow from what Socrates saw and heard…",
+    "debrief": "Debrief",
+    "confirmed": "Confirmed and saved to memory",
+    "teachBack": "Teach-back: does Socrates get it?",
+    "questionsAnswered": "{{answered}} of {{total}} questions answered",
+    "chat": "Chat",
+    "steps": "Steps",
+    "voiceTitle": "Socrates · Debrief",
+    "voicePlaceholder": "Answer by voice, or type it here…",
+    "debriefByVoice": "Debrief by voice"
+  },
+  "debriefPanel": {
+    "title": "Debrief",
+    "description": "{{answered}} of {{total}} open questions answered. Socrates asks them one at a time, then explains the whole process back.",
+    "teachBackTitle": "Teach-back",
+    "teachBackDescription": "Done means every question is answered and {{expert}} confirms the explanation.",
+    "confirmed": "Confirmed. The workflow is saved to memory.",
+    "explainBack": "Explain it back",
+    "about": "About: {{title}}",
+    "answerPlaceholder": "Answer by voice, or type it here",
+    "save": "Save",
+    "updatedAfter_one": "Updated after {{count}} correction.",
+    "updatedAfter_other": "Updated after {{count}} corrections.",
+    "correctionPlaceholder": "Something wrong? Correct it in your own words.",
+    "correct": "Correct it"
+  }
+}

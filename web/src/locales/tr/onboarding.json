@@ -1,0 +1,23 @@
+{
+  "greeting": "Merhaba {{name}}, ben Socrates",
+  "greetingNoName": "Merhaba, ben Socrates",
+  "intro": "Yapay zekâ asistanınız olacağım. Bana işinizi gösterdiğinizde izler, doğru anlarda nedenini sorar ve aklımda tutarım; böylece bilginiz sizden sonra gelene de yardımcı olur. Yeni bir şey öğrenirken ise uzmanınızın kendi sözleriyle hemen yanınızdayım. Sizinle nasıl çalışayım?",
+  "styles": {
+    "quiet": {
+      "title": "Sessiz gözlemci",
+      "description": "İzlerim ve size engel olmam. Yalnızca gerçekten önemli olanlar için araya girerim: bir limit, bir istisna ya da bir hata."
+    },
+    "normal": {
+      "title": "Dengeli",
+      "description": "Doğal duraklamalarda birkaç soru, istediğiniz her an yardım. Geri kalan her şey siz işinizi bitirene kadar bekler."
+    },
+    "curious": {
+      "title": "Aktif koç",
+      "description": "Siz ilerledikçe daha çok soru sorar, sizin istemenizi beklemeden yol boyunca ipuçları veririm."
+    }
+  },
+  "default": "Varsayılan",
+  "start": "Haydi başlayalım",
+  "save": "Kaydet",
+  "saveError": "Kaydedilemedi: {{message}}"
+}

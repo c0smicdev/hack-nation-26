@@ -1,0 +1,129 @@
+{
+  "status": {
+    "confirmed": "Uzman tarafından onaylandı",
+    "in_debrief": "Değerlendirmede",
+    "draft": "Taslak"
+  },
+  "guardrail": {
+    "limit": "Sınır",
+    "stop_and_ask": "Dur ve sor",
+    "never": "Asla"
+  },
+  "quoteSource": {
+    "narration": "çalışırken",
+    "live_question": "canlı bir soruyu yanıtlarken",
+    "debrief": "değerlendirmede"
+  },
+  "counts": {
+    "steps_one": "{{count}} adım",
+    "steps_other": "{{count}} adım",
+    "judgmentCalls_one": "{{count}} takdir kararı",
+    "judgmentCalls_other": "{{count}} takdir kararı",
+    "guardrails_one": "{{count}} güvenlik kuralı",
+    "guardrails_other": "{{count}} güvenlik kuralı",
+    "openQuestions_one": "{{count}} açık soru",
+    "openQuestions_other": "{{count}} açık soru"
+  },
+  "judgmentCall": "Takdir kararı",
+  "quoted": "“{{text}}”",
+  "flowchart": {
+    "when": "Ne zaman: {{trigger}}",
+    "start": "Başla",
+    "done": "Bitti",
+    "edgeCase": "Eğer {{when}} → {{then}}",
+    "guardrail": {
+      "limit": "Sınır",
+      "stop_and_ask": "Dur ve sor",
+      "never": "Asla"
+    }
+  },
+  "libraryPage": {
+    "title": "İş akışları",
+    "description": "Uzmanlarınızdan derlenen kısa, etkileşimli rehberler — her adım, takdir kararı ve güvenlik kuralı, kendi sözleriyle.",
+    "searchPlaceholder": "İş akışı, uzman ara…",
+    "filters": {
+      "all": "Tümü",
+      "confirmed": "Onaylanan"
+    },
+    "newWorkflow": "Yeni iş akışı",
+    "empty": {
+      "title": "İş akışı bulunamadı",
+      "noWorkflows": "Kaydedilen oturumlar burada iş akışına dönüşür.",
+      "noMatches": "Farklı bir arama veya filtre deneyin."
+    }
+  },
+  "workMapPage": {
+    "back": "İş akışları",
+    "updated": "güncellendi: {{when}}",
+    "supervise": "Gözetimli uygulama başlat",
+    "when": "Ne zaman:",
+    "flowchart": "Akış şeması"
+  },
+  "askSheet": {
+    "trigger": "Bunu sorun",
+    "title": "Socrates'e sorun",
+    "description": "Yanıtlar, bu iş akışında {{expert}} adlı uzmanın kendi sözlerine dayanır.",
+    "stopAndAsk": "Ne zaman durup birine sormalıyım?",
+    "howDoI": "Şunu nasıl yaparım: {{task}}?"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates:",
+    "caption": "{{speaker}}, {{source}} ({{time}})",
+    "original": "Orijinali: “{{text}}”"
+  },
+  "stepDetail": {
+    "position": "Adım {{index}} / {{total}}",
+    "decision": "Karar",
+    "why": "Neden",
+    "guardrails": "Güvenlik kuralları",
+    "edgeCases": "Özel durumlar",
+    "escalateTo": " · Danışın: {{who}}",
+    "if": "Eğer",
+    "previous": "Önceki",
+    "next": "Sonraki"
+  },
+  "debrief": {
+    "title": "Değerlendirme",
+    "description": "Socrates'in eksikleri tamamlamak için görevden sonra sorduğu sorular.",
+    "notStarted": "Değerlendirme henüz başlamadı.",
+    "stillOpen": "Hâlâ açık — Socrates bir sonraki değerlendirmede soracak.",
+    "goToStep": "{{number}}. adıma git",
+    "teachBack": "Geri anlatım",
+    "confirmed": "Onaylandı",
+    "teachBackDescription": "Socrates, uzman “evet, aynen böyle işliyor” diyene kadar süreci geri anlatır.",
+    "correction": "Düzeltme",
+    "teachBackPending": "Tüm değerlendirme soruları yanıtlandığında başlar."
+  },
+  "newWorkflow": {
+    "greeting": "Bana hangi iş akışını göstermek istersiniz? Ne yaptığınızı, kimin için ve ne zaman yaptığınızı anlatın. Başlığı ve açıklamayı ben doldururum.",
+    "draftError": "Üzgünüm, bunun taslağını oluşturamadım: {{message}}",
+    "title": "Yeni iş akışı",
+    "titlePlaceholder": "Adsız iş akışı",
+    "titleLabel": "Başlık",
+    "descriptionPlaceholderText": "Siz iş akışını anlattıkça Socrates burayı doldurur…",
+    "descriptionPlaceholderVoice": "Siz konuştukça Socrates burayı doldurur…",
+    "descriptionLabel": "Açıklama",
+    "voiceUnavailable": "Burada sesli kullanım mevcut değil, yazarak devam edelim.",
+    "talkInstead": "Konuşarak anlat",
+    "typeInstead": "Yazarak anlat",
+    "cancel": "İptal",
+    "create": "İş akışı oluştur",
+    "status": {
+      "connecting": "Bağlanıyor…",
+      "speaking": "Socrates konuşuyor",
+      "muted": "Mikrofon kapalı — Socrates'e aşağıdan yazın",
+      "listening": "Dinliyor — konuşmanız yeterli"
+    },
+    "unmute": "Mikrofonu aç",
+    "mute": "Mikrofonu kapat",
+    "writePlaceholderMuted": "Socrates'e yazın…",
+    "writePlaceholder": "Ya da Socrates'e yazın…",
+    "messageLabel": "Socrates'e mesaj",
+    "send": "Gönder",
+    "textPlaceholder": "ör. Ay sonu kapanışından önce tedarikçi faturalarını kontrol ediyorum…"
+  },
+  "translation": {
+    "pending": "Bu iş akışı dilinize çevriliyor…",
+    "translatedFrom": "Otomatik olarak çevrildi · orijinal dil: {{language}}. Alıntılarda uzmanın kendi sözleri de gösterilir."
+  }
+}

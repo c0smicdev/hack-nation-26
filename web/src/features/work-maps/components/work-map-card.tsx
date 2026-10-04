@@ -1,16 +1,18 @@
 import { CircleHelp, Footprints, Scale, ShieldAlert } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { paths } from "@/app/paths"
 import { Card } from "@/components/ui/card"
 import type { WorkMapSummary } from "@/lib/api"
-import { formatRelative, pluralize } from "@/lib/format"
+import { formatRelative } from "@/lib/format"
 
 import { Expert } from "./expert"
 import { ScreenMomentView } from "@/components/screen-moment-view"
 import { StatusBadge } from "./status-badge"
 
 export function WorkMapCard({ workMap }: { workMap: WorkMapSummary }) {
+  const { t } = useTranslation("workMaps")
   return (
     <Link
       to={paths.workMap(workMap.id)}
@@ -34,18 +36,20 @@ export function WorkMapCard({ workMap }: { workMap: WorkMapSummary }) {
           </div>
           <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <li className="flex items-center gap-1">
-              <Footprints className="size-3.5" /> {pluralize(workMap.stepCount, "step")}
+              <Footprints className="size-3.5" /> {t("counts.steps", { count: workMap.stepCount })}
             </li>
             <li className="flex items-center gap-1">
-              <Scale className="size-3.5" /> {pluralize(workMap.judgmentCount, "judgment call")}
+              <Scale className="size-3.5" />{" "}
+              {t("counts.judgmentCalls", { count: workMap.judgmentCount })}
             </li>
             <li className="flex items-center gap-1">
-              <ShieldAlert className="size-3.5" /> {pluralize(workMap.guardrailCount, "guardrail")}
+              <ShieldAlert className="size-3.5" />{" "}
+              {t("counts.guardrails", { count: workMap.guardrailCount })}
             </li>
             {workMap.openQuestionCount > 0 && (
               <li className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
                 <CircleHelp className="size-3.5" />{" "}
-                {pluralize(workMap.openQuestionCount, "open question")}
+                {t("counts.openQuestions", { count: workMap.openQuestionCount })}
               </li>
             )}
           </ul>

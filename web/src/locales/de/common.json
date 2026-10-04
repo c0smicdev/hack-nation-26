@@ -1,0 +1,59 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "So arbeitet Socrates mit dir",
+    "askSocrates": "Socrates fragen",
+    "logIn": "Anmelden",
+    "logOut": "Abmelden"
+  },
+  "profileMenu": {
+    "language": "Sprache",
+    "languageHint": "Die Sprache der App. Socrates spricht und schreibt auch in dieser Sprache mit dir."
+  },
+  "askSuggestions": {
+    "capex": "Wann ist eine Rechnung Capex statt Opex?",
+    "unknownSupplier": "Was mache ich mit einem unbekannten Lieferanten?",
+    "intercompany": "Wer gibt Intercompany-Rechnungen frei?"
+  },
+  "time": {
+    "justNow": "gerade eben"
+  },
+  "dialog": {
+    "close": "Schließen"
+  },
+  "mermaidDiagram": {
+    "error": "Diagramm konnte nicht gezeichnet werden: {{message}}",
+    "fitToView": "An Ansicht anpassen",
+    "actualSize": "Originalgröße"
+  },
+  "queryState": {
+    "errorTitle": "Etwas ist schiefgelaufen",
+    "retry": "Erneut versuchen"
+  },
+  "screenMoment": {
+    "redacted": "Geschwärzt"
+  },
+  "voicePanel": {
+    "placeholder": "Tippen statt sprechen…",
+    "mutedPlaceholder": "Mikro stumm. Schreib Socrates…",
+    "speaking": "Spricht",
+    "muted": "Stumm",
+    "listening": "Hört zu",
+    "textMode": "Textmodus",
+    "connecting": "Verbinde…",
+    "voiceError": "Sprachfehler",
+    "notConnected": "Nicht verbunden",
+    "empty": "Hier erscheint das Gespräch.",
+    "you": "Du",
+    "mute": "Mikrofon stummschalten",
+    "unmute": "Mikrofon einschalten",
+    "send": "Senden"
+  },
+  "errorPages": {
+    "backToLibrary": "Zurück zur Bibliothek",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundMessage": "Diese Seite kennt Socrates nicht – noch nicht.",
+    "brokeTitle": "Etwas ist kaputtgegangen",
+    "unknownError": "Unbekannter Fehler"
+  }
+}

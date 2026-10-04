@@ -1,0 +1,137 @@
+{
+  "status": {
+    "confirmed": "Potwierdzony przez eksperta",
+    "in_debrief": "W trakcie debriefingu",
+    "draft": "Wersja robocza"
+  },
+  "guardrail": {
+    "limit": "Limit",
+    "stop_and_ask": "Stop i zapytaj",
+    "never": "Nigdy"
+  },
+  "quoteSource": {
+    "narration": "podczas pracy",
+    "live_question": "odpowiadając na pytanie na żywo",
+    "debrief": "podczas debriefingu"
+  },
+  "counts": {
+    "steps_one": "{{count}} krok",
+    "steps_few": "{{count}} kroki",
+    "steps_many": "{{count}} kroków",
+    "steps_other": "{{count}} kroku",
+    "judgmentCalls_one": "{{count}} decyzja uznaniowa",
+    "judgmentCalls_few": "{{count}} decyzje uznaniowe",
+    "judgmentCalls_many": "{{count}} decyzji uznaniowych",
+    "judgmentCalls_other": "{{count}} decyzji uznaniowej",
+    "guardrails_one": "{{count}} zabezpieczenie",
+    "guardrails_few": "{{count}} zabezpieczenia",
+    "guardrails_many": "{{count}} zabezpieczeń",
+    "guardrails_other": "{{count}} zabezpieczenia",
+    "openQuestions_one": "{{count}} otwarte pytanie",
+    "openQuestions_few": "{{count}} otwarte pytania",
+    "openQuestions_many": "{{count}} otwartych pytań",
+    "openQuestions_other": "{{count}} otwartego pytania"
+  },
+  "judgmentCall": "Decyzja uznaniowa",
+  "quoted": "„{{text}}”",
+  "flowchart": {
+    "when": "Kiedy: {{trigger}}",
+    "start": "Start",
+    "done": "Gotowe",
+    "edgeCase": "Jeśli {{when}} → {{then}}",
+    "guardrail": {
+      "limit": "Limit",
+      "stop_and_ask": "Zatrzymaj się i zapytaj",
+      "never": "Nigdy"
+    }
+  },
+  "libraryPage": {
+    "title": "Procesy",
+    "description": "Krótkie, interaktywne przewodniki spisane od Twoich ekspertów — każdy krok, decyzja uznaniowa i zabezpieczenie, ich własnymi słowami.",
+    "searchPlaceholder": "Szukaj procesów, ekspertów…",
+    "filters": {
+      "all": "Wszystkie",
+      "confirmed": "Potwierdzone"
+    },
+    "newWorkflow": "Nowy proces",
+    "empty": {
+      "title": "Nie znaleziono procesów",
+      "noWorkflows": "Tutaj nagrane sesje zamieniają się w procesy.",
+      "noMatches": "Spróbuj innego wyszukiwania lub filtra."
+    }
+  },
+  "workMapPage": {
+    "back": "Procesy",
+    "updated": "zaktualizowano {{when}}",
+    "supervise": "Nadzoruj wykonanie",
+    "when": "Kiedy:",
+    "flowchart": "Schemat"
+  },
+  "askSheet": {
+    "trigger": "Zapytaj o to",
+    "title": "Zapytaj Socrates",
+    "description": "Odpowiedzi opierają się na słowach eksperta ({{expert}}) z tego procesu.",
+    "stopAndAsk": "Kiedy powinienem się zatrzymać i kogoś zapytać?",
+    "howDoI": "Jak {{task}}?"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates:",
+    "caption": "{{speaker}}, {{source}} o {{time}}",
+    "original": "Oryginał: „{{text}}”"
+  },
+  "stepDetail": {
+    "position": "Krok {{index}} z {{total}}",
+    "decision": "Decyzja",
+    "why": "Dlaczego",
+    "guardrails": "Zabezpieczenia",
+    "edgeCases": "Przypadki szczególne",
+    "escalateTo": " · Zapytaj: {{who}}",
+    "if": "Jeśli",
+    "previous": "Wstecz",
+    "next": "Dalej"
+  },
+  "debrief": {
+    "title": "Debriefing",
+    "description": "Pytania, które Socrates zadał po zadaniu, żeby uzupełnić luki.",
+    "notStarted": "Debriefing jeszcze się nie zaczął.",
+    "stillOpen": "Wciąż otwarte — Socrates zapyta w następnym debriefingu.",
+    "goToStep": "Przejdź do kroku {{number}}",
+    "teachBack": "Teach-back",
+    "confirmed": "Potwierdzone",
+    "teachBackDescription": "Socrates opowiada proces własnymi słowami, dopóki ekspert nie powie: tak, właśnie tak to działa.",
+    "correction": "Poprawka",
+    "teachBackPending": "Nastąpi, gdy odpowiesz na wszystkie pytania z omówienia."
+  },
+  "newWorkflow": {
+    "greeting": "Jaki proces chcesz mi pokazać? Opowiedz, co robisz, dla kogo i kiedy. Uzupełnię tytuł i opis.",
+    "draftError": "Przepraszam, nie udało mi się tego przygotować: {{message}}",
+    "title": "Nowy proces",
+    "titlePlaceholder": "Proces bez nazwy",
+    "titleLabel": "Tytuł",
+    "descriptionPlaceholderText": "Socrates uzupełni to pole, gdy będziesz opisywać proces…",
+    "descriptionPlaceholderVoice": "Socrates uzupełni to pole, gdy będziesz mówić…",
+    "descriptionLabel": "Opis",
+    "voiceUnavailable": "Głos nie jest tu dostępny, więc piszmy.",
+    "talkInstead": "Przejdź na głos",
+    "typeInstead": "Przejdź na pisanie",
+    "cancel": "Anuluj",
+    "create": "Utwórz proces",
+    "status": {
+      "connecting": "Łączenie…",
+      "speaking": "Socrates mówi",
+      "muted": "Mikrofon wyciszony — napisz do Socratesa poniżej",
+      "listening": "Słucham — po prostu mów"
+    },
+    "unmute": "Włącz mikrofon",
+    "mute": "Wycisz mikrofon",
+    "writePlaceholderMuted": "Napisz do Socratesa…",
+    "writePlaceholder": "Albo napisz do Socratesa…",
+    "messageLabel": "Wiadomość do Socratesa",
+    "send": "Wyślij",
+    "textPlaceholder": "np. Sprawdzam faktury od dostawców przed zamknięciem miesiąca…"
+  },
+  "translation": {
+    "pending": "Tłumaczymy ten workflow na Twój język…",
+    "translatedFrom": "Przetłumaczono automatycznie · język oryginału: {{language}}. Cytaty pokazują też oryginalne słowa eksperta."
+  }
+}

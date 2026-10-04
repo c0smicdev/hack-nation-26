@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import type { Person, Profile, ProfilePatch } from "../src/lib/api/types.js"
 import { db } from "./db.js"
+import { LANGUAGES } from "./language.js"
 import { HttpError } from "./store.js"
 
 /**
@@ -39,7 +40,12 @@ const Patch = z
   .object({
     displayName: z.string().trim().min(1).max(80),
     role: z.string().trim().max(80),
-    preferences: z.object({ chattiness: z.enum(["quiet", "normal", "curious"]) }).partial(),
+    preferences: z
+      .object({
+        chattiness: z.enum(["quiet", "normal", "curious"]),
+        language: z.enum(LANGUAGES),
+      })
+      .partial(),
     onboarded: z.literal(true),
   })
   .partial()

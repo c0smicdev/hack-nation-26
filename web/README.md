@@ -9,16 +9,17 @@ npm run dev:mock     # same UI on in-memory mocks, no keys needed
 npm run setup:agents # create/update the ElevenLabs interviewer + supervisor agents and their procedures
 ```
 
-| Script                 | What it does                                                                                                                                     |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run dev`          | Dev server with HMR; serves the backend under `/api`                                                                                             |
-| `npm run dev:mock`     | Forces mock data even if `.env.local` points at the backend                                                                                      |
-| `npm run setup:agents` | Pushes the agent prompts (`interviewer`, `supervisor`, `drafter`) and `prompts/procedures/` to ElevenAgents; `-- supervisor` syncs only that one |
-| `npm run eval:focus`   | Scores step-screenshot focus boxes against `eval/focus/labels.json` (needs the API key)                                                          |
-| `npm run build`        | Typecheck + production build                                                                                                                     |
-| `npm run lint`         | ESLint                                                                                                                                           |
-| `npm run format`       | Prettier (with Tailwind class order)                                                                                                             |
-| `npm run typecheck`    | `tsc -b` only (app, Vite config and server)                                                                                                      |
+| Script                   | What it does                                                                                                                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`            | Dev server with HMR; serves the backend under `/api`                                                                                                                         |
+| `npm run dev:mock`       | Forces mock data even if `.env.local` points at the backend                                                                                                                  |
+| `npm run setup:agents`   | Pushes the agent prompts (`interviewer`, `supervisor`, `drafter`) and `prompts/procedures/` to ElevenAgents; `-- supervisor` syncs only that one                             |
+| `npm run i18n:translate` | Translates new or changed UI text from `src/locales/en/` into every other language with Claude (by meaning, not word for word); `-- de fr` only those, `-- --all` everything |
+| `npm run eval:focus`     | Scores step-screenshot focus boxes against `eval/focus/labels.json` (needs the API key)                                                                                      |
+| `npm run build`          | Typecheck + production build                                                                                                                                                 |
+| `npm run lint`           | ESLint                                                                                                                                                                       |
+| `npm run format`         | Prettier (with Tailwind class order)                                                                                                                                         |
+| `npm run typecheck`      | `tsc -b` only (app, Vite config and server)                                                                                                                                  |
 
 ## Setup (real backend + voice)
 

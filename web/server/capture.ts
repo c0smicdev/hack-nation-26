@@ -3,6 +3,7 @@ import { z } from "zod"
 import type {
   CaptureSession,
   Chattiness,
+  Language,
   ErpSignal,
   ID,
   LiveQuestion,
@@ -46,6 +47,7 @@ export function createSession(
   input: NewSession,
   expert?: Person,
   chattiness?: Chattiness,
+  language?: Language,
 ): CaptureSession {
   if (!input.task.trim() || (!expert && !input.expertName.trim())) {
     throw new HttpError(400, "task and expertName are required")
@@ -71,6 +73,7 @@ export function createSession(
     pendingErp: [],
     pendingFocus: new Set(),
     chattiness,
+    language,
   })
   store.captureStatus = {
     ...store.captureStatus,
@@ -258,6 +261,7 @@ export async function processTick(sessionId: ID, tick: Tick): Promise<TickResult
       effort: "low",
       maxTokens: 4000,
       system: prompt("vision-events"),
+      language: runtime.language,
       schema: VisionResult,
       content: [
         text(

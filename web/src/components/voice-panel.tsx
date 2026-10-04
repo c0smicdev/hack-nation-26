@@ -1,5 +1,6 @@
 import { Keyboard, Loader2, Mic, MicOff, Send } from "lucide-react"
 import { type FormEvent, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,7 +13,7 @@ import type { VoiceAgent } from "@/lib/voice/use-voice-agent"
 export function VoicePanel({
   agent,
   title = "Socrates",
-  placeholder = "Type instead of speaking…",
+  placeholder,
   mutable = false,
   className,
 }: {
@@ -23,6 +24,7 @@ export function VoicePanel({
   mutable?: boolean
   className?: string
 }) {
+  const { t } = useTranslation("common")
   const [draft, setDraft] = useState("")
   const end = useRef<HTMLDivElement>(null)
 
@@ -58,24 +60,24 @@ export function VoicePanel({
         <Badge variant={agent.mode === "voice" ? "secondary" : "outline"}>
           {agent.mode === "voice"
             ? agent.agentSpeaking
-              ? "Speaking"
+              ? t("voicePanel.speaking")
               : muted
-                ? "Muted"
-                : "Listening"
+                ? t("voicePanel.muted")
+                : t("voicePanel.listening")
             : agent.mode === "text"
-              ? "Text mode"
+              ? t("voicePanel.textMode")
               : agent.mode === "connecting"
-                ? "Connecting…"
+                ? t("voicePanel.connecting")
                 : agent.mode === "error"
-                  ? "Voice error"
-                  : "Not connected"}
+                  ? t("voicePanel.voiceError")
+                  : t("voicePanel.notConnected")}
         </Badge>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
         {agent.error && <p className="text-sm text-destructive">{agent.error}</p>}
         <div className="min-h-40 flex-1 space-y-2 overflow-y-auto text-sm">
           {agent.transcript.length === 0 && (
-            <p className="text-muted-foreground">The conversation will appear here.</p>
+            <p className="text-muted-foreground">{t("voicePanel.empty")}</p>
           )}
           {agent.transcript.map((line) =>
             line.role === "app" ? (
@@ -91,7 +93,7 @@ export function VoicePanel({
                 )}
               >
                 <span className="block text-xs font-medium text-muted-foreground">
-                  {line.role === "agent" ? "Socrates" : "You"}
+                  {line.role === "agent" ? "Socrates" : t("voicePanel.you")}
                 </span>
                 {line.text}
               </p>
@@ -108,8 +110,8 @@ export function VoicePanel({
                 variant={muted ? "destructive" : "outline"}
                 onClick={() => agent.setMuted(!muted)}
                 aria-pressed={muted}
-                aria-label={muted ? "Unmute microphone" : "Mute microphone"}
-                title={muted ? "Unmute microphone" : "Mute microphone"}
+                aria-label={muted ? t("voicePanel.unmute") : t("voicePanel.mute")}
+                title={muted ? t("voicePanel.unmute") : t("voicePanel.mute")}
               >
                 <MicOff />
               </Button>
@@ -120,9 +122,13 @@ export function VoicePanel({
                 setDraft(e.target.value)
                 if (canMute) agent.activity()
               }}
-              placeholder={muted ? "Mic muted. Write to Socrates…" : placeholder}
+              placeholder={
+                muted
+                  ? t("voicePanel.mutedPlaceholder")
+                  : (placeholder ?? t("voicePanel.placeholder"))
+              }
             />
-            <Button type="submit" size="icon" variant="outline" aria-label="Send">
+            <Button type="submit" size="icon" variant="outline" aria-label={t("voicePanel.send")}>
               <Send />
             </Button>
           </form>

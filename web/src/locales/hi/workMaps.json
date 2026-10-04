@@ -1,0 +1,129 @@
+{
+  "status": {
+    "confirmed": "एक्सपर्ट ने कन्फ़र्म किया",
+    "in_debrief": "डीब्रीफ़ जारी",
+    "draft": "ड्राफ़्ट"
+  },
+  "guardrail": {
+    "limit": "सीमा",
+    "stop_and_ask": "रुकें और पूछें",
+    "never": "कभी नहीं"
+  },
+  "quoteSource": {
+    "narration": "काम करते हुए",
+    "live_question": "लाइव सवाल का जवाब देते हुए",
+    "debrief": "डीब्रीफ़ में"
+  },
+  "counts": {
+    "steps_one": "{{count}} स्टेप",
+    "steps_other": "{{count}} स्टेप",
+    "judgmentCalls_one": "{{count}} विवेक का फ़ैसला",
+    "judgmentCalls_other": "{{count}} विवेक के फ़ैसले",
+    "guardrails_one": "{{count}} गार्डरेल",
+    "guardrails_other": "{{count}} गार्डरेल",
+    "openQuestions_one": "{{count}} खुला सवाल",
+    "openQuestions_other": "{{count}} खुले सवाल"
+  },
+  "judgmentCall": "विवेक का फ़ैसला",
+  "quoted": "“{{text}}”",
+  "flowchart": {
+    "when": "कब: {{trigger}}",
+    "start": "शुरुआत",
+    "done": "पूरा",
+    "edgeCase": "अगर {{when}} → {{then}}",
+    "guardrail": {
+      "limit": "सीमा",
+      "stop_and_ask": "रुकें और पूछें",
+      "never": "कभी नहीं"
+    }
+  },
+  "libraryPage": {
+    "title": "वर्कफ़्लो",
+    "description": "आपके एक्सपर्ट्स से तैयार छोटी, इंटरैक्टिव गाइड — हर स्टेप, विवेक का फ़ैसला और गार्डरेल, उन्हीं के शब्दों में।",
+    "searchPlaceholder": "वर्कफ़्लो, एक्सपर्ट खोजें…",
+    "filters": {
+      "all": "सभी",
+      "confirmed": "कन्फ़र्म"
+    },
+    "newWorkflow": "नया वर्कफ़्लो",
+    "empty": {
+      "title": "कोई वर्कफ़्लो नहीं मिला",
+      "noWorkflows": "रिकॉर्ड किए गए सेशन यहाँ वर्कफ़्लो बन जाते हैं।",
+      "noMatches": "कोई दूसरी खोज या फ़िल्टर आज़माएँ।"
+    }
+  },
+  "workMapPage": {
+    "back": "वर्कफ़्लो",
+    "updated": "{{when}} अपडेट हुआ",
+    "supervise": "सुपरवाइज़्ड रन शुरू करें",
+    "when": "कब:",
+    "flowchart": "फ़्लोचार्ट"
+  },
+  "askSheet": {
+    "trigger": "इसके बारे में पूछें",
+    "title": "Socrates से पूछें",
+    "description": "जवाब इस वर्कफ़्लो में {{expert}} के अपने शब्दों से आते हैं।",
+    "stopAndAsk": "मुझे कब रुककर किसी से पूछना चाहिए?",
+    "howDoI": "मैं {{task}} कैसे करूँ?"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates:",
+    "caption": "{{speaker}}, {{time}} पर {{source}}",
+    "original": "मूल: “{{text}}”"
+  },
+  "stepDetail": {
+    "position": "स्टेप {{index}} / {{total}}",
+    "decision": "फ़ैसला",
+    "why": "क्यों",
+    "guardrails": "गार्डरेल",
+    "edgeCases": "खास स्थितियाँ",
+    "escalateTo": " · पूछें: {{who}}",
+    "if": "अगर",
+    "previous": "पिछला",
+    "next": "अगला"
+  },
+  "debrief": {
+    "title": "डीब्रीफ़",
+    "description": "कमियाँ दूर करने के लिए काम के बाद Socrates के पूछे गए सवाल।",
+    "notStarted": "डीब्रीफ़ अभी शुरू नहीं हुआ है।",
+    "stillOpen": "अभी खुला है — Socrates अगले डीब्रीफ़ में पूछेगा।",
+    "goToStep": "स्टेप {{number}} पर जाएँ",
+    "teachBack": "टीच-बैक",
+    "confirmed": "कन्फ़र्म",
+    "teachBackDescription": "Socrates प्रोसेस को तब तक वापस समझाता है जब तक एक्सपर्ट न कहे: हाँ, बिल्कुल ऐसे ही होता है।",
+    "correction": "सुधार",
+    "teachBackPending": "डीब्रीफ़ के सभी सवालों के जवाब मिलते ही यह होगा।"
+  },
+  "newWorkflow": {
+    "greeting": "आप मुझे कौन-सा workflow दिखाना चाहते हैं? बताइए कि आप क्या करते हैं, किसके लिए और कब। टाइटल और विवरण मैं भर दूँगा।",
+    "draftError": "माफ़ कीजिए, मैं इसका ड्राफ़्ट नहीं बना सका: {{message}}",
+    "title": "नया workflow",
+    "titlePlaceholder": "बिना टाइटल का workflow",
+    "titleLabel": "टाइटल",
+    "descriptionPlaceholderText": "जैसे-जैसे आप workflow बताएँगे, Socrates इसे भरता जाएगा…",
+    "descriptionPlaceholderVoice": "जैसे-जैसे आप बोलेंगे, Socrates इसे भरता जाएगा…",
+    "descriptionLabel": "विवरण",
+    "voiceUnavailable": "यहाँ वॉइस उपलब्ध नहीं है, तो चलिए टाइप करते हैं।",
+    "talkInstead": "बोलकर बताएँ",
+    "typeInstead": "टाइप करें",
+    "cancel": "रद्द करें",
+    "create": "workflow बनाएँ",
+    "status": {
+      "connecting": "कनेक्ट हो रहा है…",
+      "speaking": "Socrates बोल रहा है",
+      "muted": "माइक म्यूट है — नीचे Socrates को लिखें",
+      "listening": "सुन रहा हूँ — बस बोलिए"
+    },
+    "unmute": "माइक्रोफ़ोन अनम्यूट करें",
+    "mute": "माइक्रोफ़ोन म्यूट करें",
+    "writePlaceholderMuted": "Socrates को लिखें…",
+    "writePlaceholder": "या Socrates को लिखें…",
+    "messageLabel": "Socrates के लिए मैसेज",
+    "send": "भेजें",
+    "textPlaceholder": "जैसे: मंथ-एंड क्लोज़ से पहले मैं सप्लायर इनवॉइस चेक करता हूँ…"
+  },
+  "translation": {
+    "pending": "इस workflow का आपकी भाषा में अनुवाद हो रहा है…",
+    "translatedFrom": "अपने-आप अनुवाद किया गया · मूल भाषा: {{language}}। उद्धरणों में एक्सपर्ट के अपने शब्द भी दिखते हैं।"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "askPage": {
+    "title": "Ask Socrates",
+    "description": "Questions about any captured workflow, answered in the experts' own words — with a link to the exact step."
+  },
+  "askPanel": {
+    "tryAsking": "Try asking",
+    "placeholder": "Ask how something is done, or why…",
+    "send": "Send"
+  }
+}

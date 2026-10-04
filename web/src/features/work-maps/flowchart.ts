@@ -1,4 +1,5 @@
-import type { Guardrail, ID, LiveStep, WorkMap } from "@/lib/api"
+import type { ID, LiveStep, WorkMap } from "@/lib/api"
+import { i18n } from "@/lib/i18n"
 
 /**
  * workflow → Mermaid, deterministically. Steps become nodes (judgment steps are
@@ -16,12 +17,6 @@ function label(text: string, max = 70) {
   return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean
 }
 
-const GUARDRAIL_PREFIX: Record<Guardrail["kind"], string> = {
-  limit: "Limit",
-  stop_and_ask: "Stop and ask",
-  never: "Never",
-}
-
 export const stepNodeId = (index: number) => `step${index}`
 
 /** Where a new hire is in the Work Map while they run it (Supervise). */
@@ -33,7 +28,10 @@ export interface MapProgress {
 }
 
 export function workMapToMermaid(map: WorkMap, progress?: MapProgress) {
-  const lines = ["flowchart TD", `  start(["${label(`When: ${map.trigger}`, 80)}"])`]
+  // Fixed labels are translated per call, so the chart follows the UI language.
+  const t = i18n.t.bind(i18n)
+  const when = label(t("workMaps:flowchart.when", { trigger: map.trigger }), 80)
+  const lines = ["flowchart TD", `  start(["${when}"])`]
   map.steps.forEach((step, i) => {
     const id = stepNodeId(i)
     // Diamonds grow with their text, so judgment labels stay shorter.
@@ -57,18 +55,26 @@ export function workMapToMermaid(map: WorkMap, progress?: MapProgress) {
     step.guardrails.forEach((g, j) => {
       const gid = `${id}g${j}`
       const who = g.kind === "stop_and_ask" && g.escalateTo ? ` (${g.escalateTo})` : ""
-      lines.push(`  ${gid}[/"${GUARDRAIL_PREFIX[g.kind]}${label(who, 40)}: ${label(g.rule, 60)}"/]`)
+      const prefix = label(t(`workMaps:flowchart.guardrail.${g.kind}`))
+      lines.push(`  ${gid}[/"${prefix}${label(who, 40)}: ${label(g.rule, 60)}"/]`)
       lines.push(`  class ${gid} guardrail`)
       lines.push(`  ${id} -.- ${gid}`)
     })
     step.edgeCases.forEach((e, j) => {
       const eid = `${id}e${j}`
-      lines.push(`  ${eid}(["If ${label(e.when, 45)} → ${label(e.then, 45)}"])`)
+      const text = t("workMaps:flowchart.edgeCase", {
+        when: label(e.when, 45),
+        then: label(e.then, 45),
+      })
+      lines.push(`  ${eid}(["${label(text, 120)}"])`)
       lines.push(`  class ${eid} edge`)
       lines.push(`  ${id} -.- ${eid}`)
     })
   })
-  if (map.steps.length) lines.push(`  ${stepNodeId(map.steps.length - 1)} --> done(["Done"])`)
+  if (map.steps.length) {
+    const done = label(t("workMaps:flowchart.done"))
+    lines.push(`  ${stepNodeId(map.steps.length - 1)} --> done(["${done}"])`)
+  }
 
   lines.push(...CLASS_DEFS)
   return lines.join("\n")
@@ -91,7 +97,7 @@ const CLASS_DEFS = [
  * Same shapes as the workflow; while recording, a dashed node marks what's next.
  */
 export function liveStepsToMermaid(steps: LiveStep[]) {
-  const lines = ["flowchart TD", '  start(["Start"])']
+  const lines = ["flowchart TD", `  start(["${label(i18n.t("workMaps:flowchart.start"))}"])`]
   steps.forEach((step, i) => {
     const id = stepNodeId(i)
     const text = label(step.title, step.kind === "judgment" ? 44 : 70)

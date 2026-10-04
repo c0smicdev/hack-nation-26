@@ -1,4 +1,5 @@
 import { accessToken } from "@/lib/auth/supabase"
+import { currentLanguage } from "@/lib/i18n"
 
 import type { SocratesApi } from "./client"
 
@@ -19,6 +20,8 @@ export function createHttpApi(baseUrl: string): SocratesApi {
       ...init,
       headers: {
         "Content-Type": "application/json",
+        // Socrates writes back, and serves workflows, in the reader's language.
+        "X-Socrates-Language": currentLanguage(),
         ...(token && { Authorization: `Bearer ${token}` }),
         ...init?.headers,
       },

@@ -1,0 +1,133 @@
+{
+  "captureState": {
+    "notCapturing": "कैप्चर नहीं हो रहा",
+    "offTheRecord": "ऑफ़ द रिकॉर्ड",
+    "capturing": "कैप्चर हो रहा है"
+  },
+  "sessionStatus": {
+    "intake": "शुरुआती जानकारी",
+    "live": "लाइव",
+    "processing": "मैप बन रहा है",
+    "awaitingDebrief": "डीब्रीफ़ बाकी है",
+    "mapped": "मैप तैयार"
+  },
+  "eventKind": {
+    "screen": "स्क्रीन",
+    "speech": "एक्सपर्ट",
+    "question": "Socrates ने पूछा",
+    "offRecord": "प्राइवेसी"
+  },
+  "capturePage": {
+    "title": "कैप्चर",
+    "description": "Socrates आपकी स्क्रीन देखता रहे, और आप कोई असली काम करें। यह सही मौकों पर \"क्यों\" पूछता है, छोटे से डीब्रीफ़ में बची बातें पूरी करता है और सब कुछ एक वर्कफ़्लो में बदल देता है।",
+    "howItWorks": {
+      "title": "यह कैसे काम करता है",
+      "step1": "1. दूसरे टैब में मॉक ERP खोलें, सेशन शुरू करें और वही टैब शेयर करें। Socrates को बताएं कि आप क्या करने वाले हैं।",
+      "step2": "2. हमेशा की तरह काम करें और बोलकर सोचें। Socrates सही मौकों पर 3–5 सवाल पूछेगा।",
+      "step3": "3. काम पूरा होने पर बता दें: एक छोटा-सा बोलकर डीब्रीफ़, फिर Socrates आपको पूरा काम समझाकर सुनाएगा।",
+      "offTheRecord": "कभी भी \"ऑफ़ द रिकॉर्ड\" बोलें या स्विच दबाएं। जब तक आप वापस रिकॉर्ड पर नहीं आते, कुछ भी कैप्चर नहीं होगा।"
+    },
+    "sessions": "सेशन"
+  },
+  "sessionRow": {
+    "events_one": "{{count}} इवेंट",
+    "events_other": "{{count}} इवेंट",
+    "liveQuestions_one": "{{count}} लाइव सवाल",
+    "liveQuestions_other": "{{count}} लाइव सवाल"
+  },
+  "newSession": {
+    "title": "नया सेशन",
+    "description": "कौन क्या दिखा रहा है? काम की जानकारी आप बोलकर भी सुधार सकते हैं।",
+    "expert": "एक्सपर्ट",
+    "role": "भूमिका",
+    "sessionTitle": "सेशन का नाम",
+    "task": "आप क्या करने वाले हैं?",
+    "defaultTitle": "महीने के आखिर के सप्लायर इनवॉइस",
+    "defaultTask": "मंथ-एंड क्लोज़ से पहले इस हफ़्ते के सप्लायर इनवॉइस ERP में प्रोसेस करना।",
+    "start": "सेशन शुरू करें"
+  },
+  "openErp": "मॉक ERP खोलें",
+  "breadcrumbWorkflows": "वर्कफ़्लो",
+  "yourSteps": "आपके स्टेप",
+  "openWorkflow": "वर्कफ़्लो खोलें",
+  "confirmTeachBack": "हां, यह सही है",
+  "busy": {
+    "buildingDraft": "वर्कफ़्लो का ड्राफ़्ट बन रहा है",
+    "writingTeachBack": "टीच-बैक लिखा जा रहा है",
+    "savingToMemory": "मेमोरी में सेव हो रहा है",
+    "updatingTeachBack": "टीच-बैक अपडेट हो रहा है"
+  },
+  "recording": {
+    "notRecording": "रिकॉर्डिंग बंद",
+    "paused": "रुका हुआ",
+    "recording": "रिकॉर्डिंग जारी",
+    "shareTitle": "रिकॉर्डिंग शुरू करने के लिए स्क्रीन शेयर करें",
+    "shareHint": "वह विंडो चुनें जिसमें आप काम करेंगे (जैसे मॉक ERP)। Socrates देखता है, आपके काम को स्टेप्स में बांटता है और यहां वर्कफ़्लो बनाता है।",
+    "shareScreen": "स्क्रीन शेयर करें",
+    "stepsSoFar_one": "अब तक {{count}} स्टेप",
+    "stepsSoFar_other": "अब तक {{count}} स्टेप",
+    "endWorkflow": "वर्कफ़्लो खत्म करें"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates बोल रहा है",
+    "listening": "Socrates सुन रहा है",
+    "connecting": "कनेक्ट हो रहा है…",
+    "text": "सवाल स्क्रीन पर दिखेंगे",
+    "off": "आवाज़ बंद"
+  },
+  "memoryMatch": {
+    "text": "यह <strong>{{title}}</strong> जैसा लग रहा है, जो {{expert}} मुझे पहले दिखा चुके हैं। क्या यह वही वर्कफ़्लो है?",
+    "same": "वही वर्कफ़्लो",
+    "new": "यह नया है"
+  },
+  "textQuestion": {
+    "placeholder": "आपका जवाब",
+    "answer": "जवाब दें",
+    "later": "बाद में"
+  },
+  "leaveGuard": {
+    "title": "यह रिकॉर्डिंग छोड़ दें?",
+    "description": "वर्कफ़्लो अभी रिकॉर्ड हो रहा है। अगर आप अभी जाते हैं, तो रिकॉर्डिंग रुक जाएगी और अब तक कैप्चर किए गए स्टेप्स वर्कफ़्लो नहीं बनेंगे।",
+    "keep": "रिकॉर्डिंग जारी रखें",
+    "abandon": "रिकॉर्डिंग छोड़ें"
+  },
+  "offTheRecordSwitch": {
+    "label": "ऑफ़ द रिकॉर्ड"
+  },
+  "liveStepList": {
+    "gettingStarted": "शुरुआत",
+    "empty": "काम शुरू करें। Socrates जैसे-जैसे आपके स्टेप्स समझेगा, वे यहाँ दिखेंगे।",
+    "decision": "फ़ैसला",
+    "differsFromMemory": "मेमोरी से अलग",
+    "events_one": "{{count}} इवेंट",
+    "events_other": "{{count}} इवेंट",
+    "screenshotAlt": "इस दौरान स्क्रीन: {{title}}"
+  },
+  "debriefView": {
+    "building": "Socrates ने जो देखा और सुना, उससे ड्राफ़्ट वर्कफ़्लो बनाया जा रहा है…",
+    "debrief": "डीब्रीफ़",
+    "confirmed": "कन्फ़र्म हो गया और मेमोरी में सेव हो गया",
+    "teachBack": "टीच-बैक: क्या Socrates समझ गया?",
+    "questionsAnswered": "{{total}} में से {{answered}} सवालों के जवाब दिए गए",
+    "chat": "चैट",
+    "steps": "स्टेप्स",
+    "voiceTitle": "Socrates · डीब्रीफ़",
+    "voicePlaceholder": "बोलकर जवाब दें, या यहाँ टाइप करें…",
+    "debriefByVoice": "बोलकर डीब्रीफ़ करें"
+  },
+  "debriefPanel": {
+    "title": "डीब्रीफ़",
+    "description": "{{total}} में से {{answered}} खुले सवालों के जवाब दिए गए। Socrates एक-एक करके सवाल पूछता है, फिर पूरी प्रक्रिया आपको वापस समझाता है।",
+    "teachBackTitle": "टीच-बैक",
+    "teachBackDescription": "पूरा तब माना जाएगा जब हर सवाल का जवाब मिल जाए और {{expert}} समझाई गई बात को कन्फ़र्म कर दें।",
+    "confirmed": "कन्फ़र्म हो गया। वर्कफ़्लो मेमोरी में सेव हो गया है।",
+    "explainBack": "वापस समझाएँ",
+    "about": "विषय: {{title}}",
+    "answerPlaceholder": "बोलकर जवाब दें, या यहाँ टाइप करें",
+    "save": "सेव करें",
+    "updatedAfter_one": "{{count}} सुधार के बाद अपडेट किया गया।",
+    "updatedAfter_other": "{{count}} सुधारों के बाद अपडेट किया गया।",
+    "correctionPlaceholder": "कुछ गलत है? अपने शब्दों में सुधारें।",
+    "correct": "सुधारें"
+  }
+}

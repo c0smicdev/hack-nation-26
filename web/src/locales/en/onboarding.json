@@ -1,0 +1,23 @@
+{
+  "greeting": "Hey {{name}}, I'm Socrates",
+  "greetingNoName": "Hey, I'm Socrates",
+  "intro": "I'll be your AI assistant. When you show me your work, I watch, ask why at the right moments and remember it, so your know-how can help the next person. When you're learning something new, I'm right next to you, in your expert's own words. How should I work with you?",
+  "styles": {
+    "quiet": {
+      "title": "Silent observer",
+      "description": "I watch and stay out of your way. I only speak up for what really matters: a limit, an exception or a mistake."
+    },
+    "normal": {
+      "title": "Balanced",
+      "description": "A few questions at natural pauses, and help whenever you ask. Everything else waits until you're done."
+    },
+    "curious": {
+      "title": "Active coach",
+      "description": "I ask more as you go and offer tips along the way, without you having to ask first."
+    }
+  },
+  "default": "Default",
+  "start": "Let's get started",
+  "save": "Save",
+  "saveError": "Couldn't save that: {{message}}"
+}

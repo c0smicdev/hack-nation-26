@@ -1,0 +1,7 @@
+{
+  "firstMessage": {
+    "interviewer": "안녕하세요, 저는 Socrates예요. 오늘 {{workflow}}을(를) 보여 주시는 거죠?",
+    "supervisor": "안녕하세요, {{learner_name}}님. 저는 Socrates예요. 편하게 시작하세요. 저는 조용히 있을게요. 필요하면 언제든 불러 주세요.",
+    "drafter": "안녕하세요, 저는 Socrates예요. 어떤 워크플로를 보여 주실 건가요? 어떤 일을 언제 하시는지 말씀해 주세요."
+  }
+}

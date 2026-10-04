@@ -1,5 +1,6 @@
 import { BookOpenText, Plus, Search } from "lucide-react"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { PageHeader } from "@/components/page-header"
 import { EmptyState, ErrorState } from "@/components/query-state"
@@ -11,9 +12,10 @@ import type { WorkMapStatus } from "@/lib/api"
 import { NewWorkflowDialog } from "./components/new-workflow-dialog"
 import { WorkMapCard } from "./components/work-map-card"
 import { useWorkMaps } from "./hooks"
-import { STATUS } from "./labels"
+import { STATUS, statusLabel } from "./labels"
 
 function AddWorkflowCard() {
+  const { t } = useTranslation("workMaps")
   return (
     <NewWorkflowDialog
       trigger={
@@ -24,7 +26,7 @@ function AddWorkflowCard() {
           <div className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-110">
             <Plus className="size-6" />
           </div>
-          <span className="text-base font-semibold">New workflow</span>
+          <span className="text-base font-semibold">{t("libraryPage.newWorkflow")}</span>
         </button>
       }
     />
@@ -34,6 +36,7 @@ function AddWorkflowCard() {
 type Filter = "all" | WorkMapStatus
 
 export function LibraryPage() {
+  const { t } = useTranslation("workMaps")
   const { data, isPending, isError, error, refetch } = useWorkMaps()
   const [query, setQuery] = useState("")
   const [filter, setFilter] = useState<Filter>("all")
@@ -50,10 +53,7 @@ export function LibraryPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <PageHeader
-        title="Workflows"
-        description="Short, interactive guides captured from your experts — every step, judgment call and guardrail, in their own words."
-      />
+      <PageHeader title={t("libraryPage.title")} description={t("libraryPage.description")} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative sm:w-80">
@@ -61,16 +61,16 @@ export function LibraryPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search workflows, experts…"
+            placeholder={t("libraryPage.searchPlaceholder")}
             className="pl-8"
           />
         </div>
         <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="all">{t("libraryPage.filters.all")}</TabsTrigger>
             {(Object.keys(STATUS) as WorkMapStatus[]).map((s) => (
               <TabsTrigger key={s} value={s}>
-                {s === "confirmed" ? "Confirmed" : STATUS[s].label}
+                {s === "confirmed" ? t("libraryPage.filters.confirmed") : statusLabel(s)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -96,10 +96,10 @@ export function LibraryPage() {
       )}
 
       {!isPending && !isError && visible.length === 0 && (
-        <EmptyState icon={<BookOpenText />} title="No workflows found">
+        <EmptyState icon={<BookOpenText />} title={t("libraryPage.empty.title")}>
           {data.length === 0
-            ? "Captured sessions turn into workflows here."
-            : "Try a different search or filter."}
+            ? t("libraryPage.empty.noWorkflows")
+            : t("libraryPage.empty.noMatches")}
         </EmptyState>
       )}
     </div>

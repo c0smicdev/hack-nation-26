@@ -12,6 +12,7 @@ import type {
   ScreenQuestion,
   TeachBackReply,
   Tick,
+  Language,
   VoiceRole,
   WorkflowDraftRequest,
 } from "../src/lib/api/types.js"
@@ -28,9 +29,15 @@ import { requireUser } from "./auth.js"
 import { loadFrame, withDb } from "./db.js"
 import { getProfile, personForUser, updateProfile } from "./profile.js"
 import { askAboutScreen, processSupervisionTick, startSupervision } from "./supervise.js"
+import { localize, prepareLanguage } from "./translate.js"
+import { LANGUAGES } from "./language.js"
 import { ask, checkDecision, draftWorkflow, voiceSession } from "./teach.js"
 import { answerDebrief, finishCapture, replyTeachBack, requestTeachBack } from "./workmap.js"
 import { addEvent, getRuntime, getWorkMap, HttpError, sessionAt, store } from "./store.js"
+
+/** The reader's UI language (sent with every request), else the one in their profile. */
+const languageOf = async (user: User | undefined, language: Language | undefined) =>
+  language ?? (await getProfile(user)).preferences.language
 
 type Params = Record<string, string>
 type Handler = (ctx: {
@@ -39,13 +46,29 @@ type Handler = (ctx: {
   url: URL
   /** Signed-in Supabase user; undefined when login is off. */
   user?: User
+  /** The UI language the request came from (`X-Socrates-Language`). */
+  language?: Language
 }) => unknown
 
 const routes: [method: string, pattern: string, handler: Handler][] = [
   ["GET", "/me", ({ user }) => getProfile(user)],
-  ["PATCH", "/me", async ({ user, body }) => updateProfile(user, await body())],
+  [
+    "PATCH",
+    "/me",
+    async ({ user, body }) => {
+      const profile = await updateProfile(user, await body())
+      // Get every workflow ready in the new language before they open it.
+      prepareLanguage(profile.preferences.language)
+      return profile
+    },
+  ],
 
-  ["GET", "/workmaps", () => store.workMaps.map(toSummary)],
+  [
+    "GET",
+    "/workmaps",
+    async ({ language }) =>
+      (await Promise.all(store.workMaps.map((m) => localize(m, language)))).map(toSummary),
+  ],
   [
     "POST",
     "/workmaps/related",
@@ -54,7 +77,7 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
       return (await findRelatedWorkMaps(task)).map(toSummary)
     },
   ],
-  ["GET", "/workmaps/:id", ({ params }) => getWorkMap(params.id)],
+  ["GET", "/workmaps/:id", ({ params, language }) => localize(getWorkMap(params.id), language)],
   [
     "POST",
     "/workmaps/:id/debrief/:itemId",
@@ -70,12 +93,18 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
   [
     "POST",
     "/workmaps/:id/check",
-    async ({ params, body }) => checkDecision(params.id, (await body()) as DecisionCheck),
+    async ({ params, body, user, language }) =>
+      checkDecision(params.id, (await body()) as DecisionCheck, await languageOf(user, language)),
   ],
   [
     "POST",
     "/workmaps/:id/supervisions",
-    async ({ params, body }) => startSupervision(params.id, (await body()) as NewSupervision),
+    async ({ params, body, user, language }) =>
+      startSupervision(
+        params.id,
+        (await body()) as NewSupervision,
+        await languageOf(user, language),
+      ),
   ],
   [
     "POST",
@@ -92,11 +121,11 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
   [
     "POST",
     "/sessions",
-    async ({ body, user }) => {
+    async ({ body, user, language }) => {
       const input = (await body()) as NewSession
       const expert = user && (await personForUser(user, input.expertName, input.expertRole))
       const { preferences } = await getProfile(user)
-      return createSession(input, expert, preferences.chattiness)
+      return createSession(input, expert, preferences.chattiness, language ?? preferences.language)
     },
   ],
   ["GET", "/sessions/:id", ({ params }) => sessionView(getRuntime(params.id))],
@@ -156,11 +185,17 @@ const routes: [method: string, pattern: string, handler: Handler][] = [
   ],
 
   ["GET", "/voice/:role", ({ params }) => voiceSession(params.role as VoiceRole)],
-  ["POST", "/ask", async ({ body }) => ask((await body()) as AskRequest)],
+  [
+    "POST",
+    "/ask",
+    async ({ body, user, language }) =>
+      ask((await body()) as AskRequest, await languageOf(user, language)),
+  ],
   [
     "POST",
     "/workflows/draft",
-    async ({ body }) => draftWorkflow((await body()) as WorkflowDraftRequest),
+    async ({ body, user, language }) =>
+      draftWorkflow((await body()) as WorkflowDraftRequest, await languageOf(user, language)),
   ],
 ]
 
@@ -206,8 +241,10 @@ export async function handle(request: Request): Promise<Response> {
     if (!params) continue
     try {
       const user = await requireUser(request)
+      const header = request.headers.get("x-socrates-language")
+      const language = LANGUAGES.find((l) => l === header)
       const result = await withDb(method !== "GET", () =>
-        Promise.resolve(handler({ params, url, user, body: () => request.json() })),
+        Promise.resolve(handler({ params, url, user, language, body: () => request.json() })),
       )
       return json(result)
     } catch (error) {

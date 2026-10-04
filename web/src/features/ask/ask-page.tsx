@@ -1,23 +1,23 @@
+import { useTranslation } from "react-i18next"
+
 import { PageHeader } from "@/components/page-header"
 import { Card } from "@/components/ui/card"
 
 import { AskPanel } from "./ask-panel"
 
-const SUGGESTIONS = [
-  "When is an invoice capex instead of opex?",
-  "What do I do with an unknown supplier?",
-  "Who approves intercompany invoices?",
-]
-
 export function AskPage() {
+  const { t } = useTranslation("ask")
+  // Same examples as the header's Ask panel, so they share the common text.
+  const suggestions = [
+    t("common:askSuggestions.capex"),
+    t("common:askSuggestions.unknownSupplier"),
+    t("common:askSuggestions.intercompany"),
+  ]
   return (
     <div className="mx-auto flex h-[calc(100svh-7rem)] max-w-3xl flex-col gap-6 md:h-[calc(100svh-9rem)]">
-      <PageHeader
-        title="Ask Socrates"
-        description="Questions about any captured workflow, answered in the experts' own words — with a link to the exact step."
-      />
+      <PageHeader title={t("askPage.title")} description={t("askPage.description")} />
       <Card className="min-h-0 flex-1 px-4">
-        <AskPanel suggestions={SUGGESTIONS} className="h-full" />
+        <AskPanel suggestions={suggestions} className="h-full" />
       </Card>
     </div>
   )

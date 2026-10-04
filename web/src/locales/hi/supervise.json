@@ -1,0 +1,105 @@
+{
+  "notReady": {
+    "title": "अभी निगरानी के लिए तैयार नहीं",
+    "description": "{{expert}} ने {{title}} की अभी पुष्टि नहीं की है। पहले इसका डीब्रीफ़ और टीच-बैक पूरा करें, ताकि Socrates सिर्फ़ उसी जानकारी से गाइड करे जिसकी एक्सपर्ट ने पुष्टि की है।",
+    "back": "वर्कफ़्लो पर वापस जाएँ"
+  },
+  "errors": {
+    "notStarted": "रन अभी शुरू नहीं हुआ है",
+    "lookupFailed": "माफ़ करें, मैं यह नहीं देख पाया ({{message}})।"
+  },
+  "header": {
+    "workflows": "वर्कफ़्लो",
+    "supervisedRun": "निगरानी में रन",
+    "supervising": "{{name}} की निगरानी",
+    "runEnded": "रन खत्म हुआ",
+    "paused": "रुका हुआ: स्क्रीन शेयर नहीं है",
+    "notStarted": "शुरू नहीं हुआ",
+    "checkingSave": "सेव की जाँच हो रही है",
+    "openErp": "मॉक ERP खोलें",
+    "endRun": "रन खत्म करें"
+  },
+  "graph": {
+    "sharingStopped": "स्क्रीन शेयरिंग रुक गई है। जब तक आप दोबारा शेयर नहीं करते, Socrates आपका काम नहीं देख सकता।",
+    "shareAgain": "दोबारा शेयर करें",
+    "currentStep": "स्टेप {{index}}/{{total}}: {{title}}",
+    "startWorking": "काम शुरू करें। आपकी प्रगति यहाँ दिखेगी।"
+  },
+  "tabs": {
+    "chat": "चैट",
+    "mentor": "{{expert}} ने क्या किया"
+  },
+  "voice": {
+    "cantHear": "Socrates आपको सुन नहीं पा रहा: {{error}}",
+    "disconnected": "Socrates की आवाज़ डिस्कनेक्ट हो गई। अपने सवाल नीचे टाइप करें, या वॉइस फिर से चालू करें।",
+    "notSetUp": "निगरानी में रन के लिए वॉइस सेट अप नहीं है (npm run setup:agents -- supervisor)। अपने सवाल नीचे टाइप करें।",
+    "turnOn": "वॉइस चालू करें"
+  },
+  "mentor": {
+    "intro": "{{expert}} यह काम कैसे करते हैं, स्टेप दर स्टेप, उन्हीं के शब्दों में।"
+  },
+  "start": {
+    "title": "Socrates की निगरानी में यह वर्कफ़्लो चलाएँ",
+    "description": "वह विंडो शेयर करें जिसमें आप काम करेंगे (जैसे मॉक ERP, <strong>Training cases</strong> पर)। Socrates चुप रहेगा: जब भी मदद चाहिए, पूछ लें। वह तभी बीच में आएगा जब आप कोई ऐसी गलती करने वाले हों जो {{expert}} पकड़ लेते।",
+    "yourName": "आपका नाम",
+    "share": "स्क्रीन शेयर करें और शुरू करें"
+  },
+  "warningBanner": {
+    "wouldStop": "{{expert}} यहाँ रुकते",
+    "headsUp": "चेतावनी",
+    "openChat": "चैट खोलें",
+    "dismiss": "हटाएँ"
+  },
+  "runSummary": {
+    "finished": "रन पूरा हुआ।",
+    "stepsDone": "{{total}} में से {{done}} स्टेप पूरे",
+    "headsUps_one": "{{count}} चेतावनी",
+    "headsUps_other": "{{count}} चेतावनियाँ",
+    "questionsAsked_one": "{{count}} सवाल पूछा गया",
+    "questionsAsked_other": "{{count}} सवाल पूछे गए",
+    "back": "वर्कफ़्लो पर वापस जाएँ"
+  },
+  "status": {
+    "speaking": "Socrates बोल रहा है",
+    "muted": "माइक म्यूट है",
+    "standingBy": "Socrates तैयार है",
+    "connecting": "कनेक्ट हो रहा है…",
+    "typing": "टाइप करके पूछें",
+    "voiceOff": "वॉइस बंद"
+  },
+  "leaveGuard": {
+    "title": "यह निगरानी में रन खत्म करें?",
+    "description": "Socrates अभी भी तैयार है। अगर आप अभी जाते हैं, तो स्क्रीन शेयरिंग रुक जाएगी और Socrates इस रन के बाकी हिस्से में मदद नहीं कर पाएगा।",
+    "keepGoing": "जारी रखें",
+    "endRun": "रन खत्म करें"
+  },
+  "chatPanel": {
+    "stepLink": "स्टेप {{index}}: {{title}}",
+    "emptyTitle": "Socrates तैयार है",
+    "emptyBody": "जैसे आप आम तौर पर करते हैं, वैसे ही काम करें। कुछ भी पूछें, बोलकर या नीचे लिखकर, और Socrates {{expert}} के शब्दों में जवाब देगा। अगर आप कोई ऐसी गलती करने वाले हों जो {{expert}} पकड़ लेते, तो वह आपको बता देगा।",
+    "saveHeld": "{{expert}} यहाँ रुकते · सेव रोका गया",
+    "headsUp": "चेतावनी",
+    "socrates": "Socrates",
+    "you": "आप",
+    "thinking": "Socrates आपकी स्क्रीन देख रहा है…",
+    "mute": "माइक्रोफ़ोन म्यूट करें",
+    "unmute": "माइक्रोफ़ोन अनम्यूट करें",
+    "placeholderShare": "शुरू करने के लिए अपनी स्क्रीन शेयर करें",
+    "placeholderMuted": "माइक म्यूट है। Socrates को लिखें…",
+    "placeholder": "Socrates से पूछें…",
+    "send": "भेजें"
+  },
+  "mentorSteps": {
+    "here": "आप यहाँ हैं",
+    "decision": "फ़ैसला",
+    "headsUpGiven": "पहले से सूचना दी गई",
+    "whatDid": "{{expert}} ने क्या किया: ",
+    "ask": "पूछें: {{who}}",
+    "if": "अगर",
+    "guardrail": {
+      "limit": "सीमा",
+      "stopAndAsk": "रुकें और पूछें",
+      "never": "कभी नहीं"
+    }
+  }
+}

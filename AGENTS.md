@@ -259,6 +259,7 @@ See [`web/README.md`](web/README.md) for the full structure and recipes. The ess
 - **Imports** use the `@/` alias for `src/`.
 - **Timestamps:** `at` = seconds since session start; wall-clock = ISO 8601. Rects are normalized to `0..1`.
 - **LLM output** must match `types.ts`. Validate it at the boundary (e.g. with zod) instead of trusting it.
+- **UI text** is translated (profile menu → language). Never hard-code user-visible English: add it to `src/locales/en/<feature>.json`, use `t("key")` from `useTranslation("<feature>")`, then run `npm run i18n:translate` and commit the generated files. Text sent to an agent or LLM stays in English; the server tells the model which language to write in (`server/language.ts`), and the voice agents get `{{language}}`.
 - **Prompts** live in their own files (one per prompt, e.g. `prompts/vision-events.md`, `prompts/interviewer.md`, `prompts/supervisor.md`, `prompts/memory-match.md`) so we can iterate on them without touching code.
 - **UI** follows [`docs/brand-guidelines.md`](docs/brand-guidelines.md) (fonts, colors, shadcn token mapping).
 - Keep components small and readable. Comment the *why*, not the *what*.

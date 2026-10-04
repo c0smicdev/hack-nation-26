@@ -1,0 +1,11 @@
+{
+  "askPage": {
+    "title": "Socrates'e sorun",
+    "description": "Kaydedilen her iş akışıyla ilgili sorularınız, uzmanların kendi sözleriyle yanıtlanır ve ilgili adımın bağlantısı da verilir."
+  },
+  "askPanel": {
+    "tryAsking": "Şunu sormayı deneyin",
+    "placeholder": "Bir işin nasıl ya da neden yapıldığını sorun…",
+    "send": "Gönder"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "notReady": {
+    "title": "Not ready to supervise yet",
+    "description": "{{title}} isn't confirmed by {{expert}} yet. Finish its debrief and teach-back first, so Socrates only guides with knowledge the expert confirmed.",
+    "back": "Back to the workflow"
+  },
+  "errors": {
+    "notStarted": "The run hasn't started yet",
+    "lookupFailed": "Sorry, I couldn't look that up ({{message}})."
+  },
+  "header": {
+    "workflows": "Workflows",
+    "supervisedRun": "Supervised run",
+    "supervising": "Supervising {{name}}",
+    "runEnded": "Run ended",
+    "paused": "Paused: screen not shared",
+    "notStarted": "Not started",
+    "checkingSave": "Checking a save",
+    "openErp": "Open mock ERP",
+    "endRun": "End run"
+  },
+  "graph": {
+    "sharingStopped": "Screen sharing stopped. Socrates can't see your work until you share again.",
+    "shareAgain": "Share again",
+    "currentStep": "Step {{index}} of {{total}}: {{title}}",
+    "startWorking": "Start working. Your progress shows up here."
+  },
+  "tabs": {
+    "chat": "Chat",
+    "mentor": "What {{expert}} did"
+  },
+  "voice": {
+    "cantHear": "Socrates can't hear you: {{error}}",
+    "disconnected": "Socrates' voice disconnected. Type your questions below, or turn voice back on.",
+    "notSetUp": "Voice isn't set up for supervised runs (npm run setup:agents -- supervisor). Type your questions below.",
+    "turnOn": "Turn on voice"
+  },
+  "mentor": {
+    "intro": "How {{expert}} does it, step by step, in their own words."
+  },
+  "start": {
+    "title": "Run this workflow with Socrates standing by",
+    "description": "Share the window you'll work in (e.g. the mock ERP, on <strong>Training cases</strong>). Socrates stays quiet: ask whenever you need help, and it steps in only if you're about to make a mistake {{expert}} would have caught.",
+    "yourName": "Your name",
+    "share": "Share screen & start"
+  },
+  "warningBanner": {
+    "wouldStop": "{{expert}} would stop here",
+    "headsUp": "Heads-up",
+    "openChat": "Open the chat",
+    "dismiss": "Dismiss"
+  },
+  "runSummary": {
+    "finished": "Run finished.",
+    "stepsDone": "{{done}} of {{total}} steps done",
+    "headsUps_one": "{{count}} heads-up",
+    "headsUps_other": "{{count}} heads-ups",
+    "questionsAsked_one": "{{count}} question asked",
+    "questionsAsked_other": "{{count}} questions asked",
+    "back": "Back to the workflow"
+  },
+  "status": {
+    "speaking": "Socrates is speaking",
+    "muted": "Mic muted",
+    "standingBy": "Socrates is standing by",
+    "connecting": "Connecting…",
+    "typing": "Ask by typing",
+    "voiceOff": "Voice off"
+  },
+  "leaveGuard": {
+    "title": "End this supervised run?",
+    "description": "Socrates is still standing by. If you leave now, screen sharing stops and Socrates can't help with the rest of this run.",
+    "keepGoing": "Keep going",
+    "endRun": "End run"
+  },
+  "chatPanel": {
+    "stepLink": "Step {{index}}: {{title}}",
+    "emptyTitle": "Socrates is standing by",
+    "emptyBody": "Work as you normally would. Ask anything, out loud or below, and Socrates answers in {{expert}}'s words. If you're about to make a mistake {{expert}} would have caught, it'll tell you.",
+    "saveHeld": "{{expert}} would stop here · save held",
+    "headsUp": "Heads-up",
+    "socrates": "Socrates",
+    "you": "You",
+    "thinking": "Socrates is looking at your screen…",
+    "mute": "Mute microphone",
+    "unmute": "Unmute microphone",
+    "placeholderShare": "Share your screen to start",
+    "placeholderMuted": "Mic muted. Type to Socrates…",
+    "placeholder": "Ask Socrates…",
+    "send": "Send"
+  },
+  "mentorSteps": {
+    "here": "You're here",
+    "decision": "Decision",
+    "headsUpGiven": "Heads-up given",
+    "whatDid": "What {{expert}} did: ",
+    "ask": "Ask: {{who}}",
+    "if": "If",
+    "guardrail": {
+      "limit": "Limit",
+      "stopAndAsk": "Stop & ask",
+      "never": "Never"
+    }
+  }
+}

@@ -2,6 +2,8 @@ import { useConversation } from "@elevenlabs/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { api, type VoiceRole } from "@/lib/api"
+import { currentLanguage, i18n } from "@/lib/i18n"
+import { languageName } from "@/lib/i18n/languages"
 
 export interface TranscriptLine {
   id: number
@@ -87,9 +89,20 @@ export function useVoiceAgent({
             },
           ]),
         )
+        // Socrates speaks the UI language: the prompt's {{language}}, plus ElevenLabs' language
+        // (speech recognition and voice) and a greeting in it, since the agent's own is English.
+        const language = currentLanguage()
         conversation.startSession({
           signedUrl: session.signedUrl,
-          dynamicVariables,
+          dynamicVariables: { ...dynamicVariables, language: languageName(language) },
+          ...(language !== "en" && {
+            overrides: {
+              agent: {
+                language,
+                firstMessage: i18n.t(`voice:firstMessage.${role}`, dynamicVariables),
+              },
+            },
+          }),
           clientTools,
           onMessage: ({ message, role }) => {
             if (role === "user") {

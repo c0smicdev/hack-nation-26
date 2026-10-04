@@ -1,5 +1,6 @@
 import { ChevronRight, ExternalLink, Loader2, Radio, ShieldCheck } from "lucide-react"
 import { type FormEvent, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -19,41 +20,33 @@ import { SessionStatusBadge } from "./components/session-status-badge"
 import { useCreateSession, useSessions } from "./hooks"
 
 export function CapturePage() {
+  const { t } = useTranslation("capture")
   const sessions = useSessions()
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <PageHeader
-        title="Capture"
-        description="Do a real task while Socrates watches your screen. It asks why at natural pauses, closes the gaps in a short debrief, and turns it into a workflow."
-      />
+      <PageHeader title={t("capturePage.title")} description={t("capturePage.description")} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <NewSessionCard />
         <Card>
           <CardHeader>
-            <CardTitle>How it works</CardTitle>
+            <CardTitle>{t("capturePage.howItWorks.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              1. Open the mock ERP in another tab, start a session and share that tab. Tell Socrates
-              what you're about to do.
-            </p>
-            <p>
-              2. Work as usual and think out loud. Socrates asks 3–5 questions at natural pauses.
-            </p>
-            <p>3. Say you're done: a short spoken debrief, then Socrates explains it back.</p>
+            <p>{t("capturePage.howItWorks.step1")}</p>
+            <p>{t("capturePage.howItWorks.step2")}</p>
+            <p>{t("capturePage.howItWorks.step3")}</p>
             <p className="flex gap-2 pt-2 text-xs">
               <ShieldCheck className="size-4 shrink-0" />
-              Say "off the record" or flip the switch any time. Nothing is captured until you're
-              back on the record.
+              {t("capturePage.howItWorks.offTheRecord")}
             </p>
           </CardContent>
         </Card>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Sessions</h2>
+        <h2 className="text-lg font-semibold">{t("capturePage.sessions")}</h2>
         {sessions.isError ? (
           <ErrorState error={sessions.error} retry={sessions.refetch} />
         ) : !sessions.data ? (
@@ -86,6 +79,7 @@ function sessionLink(session: CaptureSession) {
 }
 
 function SessionRow({ session }: { session: CaptureSession }) {
+  const { t } = useTranslation("capture")
   const to = sessionLink(session)
   const row = (
     <>
@@ -93,8 +87,9 @@ function SessionRow({ session }: { session: CaptureSession }) {
         <p className="truncate font-medium">{session.title}</p>
         <p className="text-sm text-muted-foreground">
           {session.expert.name} · {formatRelative(session.startedAt)} ·{" "}
-          {formatDuration(session.durationSec)} · {session.eventCount} events ·{" "}
-          {session.questionsAsked} live questions
+          {formatDuration(session.durationSec)} ·{" "}
+          {t("sessionRow.events", { count: session.eventCount })} ·{" "}
+          {t("sessionRow.liveQuestions", { count: session.questionsAsked })}
         </p>
       </div>
       <SessionStatusBadge status={session.status} />
@@ -111,6 +106,7 @@ function SessionRow({ session }: { session: CaptureSession }) {
 }
 
 function NewSessionCard() {
+  const { t } = useTranslation("capture")
   const navigate = useNavigate()
   const create = useCreateSession()
   const { data: me } = useMe()
@@ -119,8 +115,8 @@ function NewSessionCard() {
   const form: NewSession = {
     expertName: me?.displayName ?? "",
     expertRole: me?.role ?? "",
-    title: "Month-end supplier invoices",
-    task: "Process this week's supplier invoices in the ERP before the month-end close.",
+    title: t("newSession.defaultTitle"),
+    task: t("newSession.defaultTask"),
     ...edits,
   }
   const set = (key: keyof NewSession) => (e: { target: { value: string } }) =>
@@ -136,26 +132,26 @@ function NewSessionCard() {
     <Card className="lg:col-span-2">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Radio className="size-4" /> New session
+          <Radio className="size-4" /> {t("newSession.title")}
         </CardTitle>
-        <CardDescription>Who's showing what? You can refine the task by voice.</CardDescription>
+        <CardDescription>{t("newSession.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="expert">Expert</Label>
+            <Label htmlFor="expert">{t("newSession.expert")}</Label>
             <Input id="expert" value={form.expertName} onChange={set("expertName")} required />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="role">Role</Label>
+            <Label htmlFor="role">{t("newSession.role")}</Label>
             <Input id="role" value={form.expertRole} onChange={set("expertRole")} />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="title">Session title</Label>
+            <Label htmlFor="title">{t("newSession.sessionTitle")}</Label>
             <Input id="title" value={form.title} onChange={set("title")} />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="task">What are you about to do?</Label>
+            <Label htmlFor="task">{t("newSession.task")}</Label>
             <Textarea id="task" value={form.task} onChange={set("task")} rows={2} required />
           </div>
           {create.isError && (
@@ -164,14 +160,14 @@ function NewSessionCard() {
           <div className="flex flex-wrap gap-2 sm:col-span-2">
             <Button type="submit" disabled={create.isPending}>
               {create.isPending && <Loader2 className="animate-spin" />}
-              Start session
+              {t("newSession.start")}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => window.open(paths.erp(), "nordwind-erp")}
             >
-              <ExternalLink /> Open mock ERP
+              <ExternalLink /> {t("openErp")}
             </Button>
           </div>
         </form>

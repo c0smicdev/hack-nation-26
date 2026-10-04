@@ -1,0 +1,11 @@
+{
+  "askPage": {
+    "title": "Vraag het Socrates",
+    "description": "Stel vragen over elke vastgelegde workflow en krijg antwoord in de eigen woorden van de experts, met een link naar de exacte stap."
+  },
+  "askPanel": {
+    "tryAsking": "Probeer eens",
+    "placeholder": "Vraag hoe iets moet, of waarom…",
+    "send": "Versturen"
+  }
+}

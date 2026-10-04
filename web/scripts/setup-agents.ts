@@ -358,7 +358,9 @@ async function main() {
         agent: {
           first_message: agent.firstMessage,
           language: "en",
-          dynamic_variables: { dynamic_variable_placeholders: agent.placeholders },
+          dynamic_variables: {
+            dynamic_variable_placeholders: { ...agent.placeholders, language: "English" },
+          },
           prompt: {
             prompt: readFileSync(`prompts/${agent.prompt}.md`, "utf8"),
             llm: LLM,
@@ -375,6 +377,15 @@ async function main() {
         },
         conversation:
           "maxDurationSecs" in agent ? { max_duration_seconds: agent.maxDurationSecs } : undefined,
+      },
+      // The app sets the language per conversation (the user's pick) and a greeting in it.
+      platform_settings: {
+        overrides: {
+          conversation_config_override: {
+            agent: { language: true, first_message: true },
+            conversation: { text_only: true },
+          },
+        },
       },
     }
 

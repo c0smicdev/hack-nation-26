@@ -1,0 +1,7 @@
+{
+  "firstMessage": {
+    "interviewer": "你好，我是 Socrates。今天你要给我演示{{workflow}}，对吧？",
+    "supervisor": "你好，{{learner_name}}，我是 Socrates。你开始吧，我不出声。需要帮忙随时问我。",
+    "drafter": "你好，我是 Socrates。你想给我演示哪个工作流？告诉我你做什么、什么时候做就行。"
+  }
+}

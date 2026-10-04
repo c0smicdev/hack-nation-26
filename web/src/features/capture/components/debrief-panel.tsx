@@ -1,5 +1,6 @@
 import { CheckCircle2, Circle, Loader2, MessageSquareQuote } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 
 import { paths } from "@/app/paths"
@@ -28,6 +29,7 @@ export function DebriefPanel({
   onTeachBack: () => void
   onReply: (confirmed: boolean, correction?: string) => void
 }) {
+  const { t } = useTranslation("capture")
   const answered = map.debrief.filter((d) => d.resolved).length
   const allAnswered = answered === map.debrief.length
   const teachBack = map.teachBack
@@ -36,10 +38,9 @@ export function DebriefPanel({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Debrief</CardTitle>
+          <CardTitle>{t("debriefPanel.title")}</CardTitle>
           <CardDescription>
-            {answered} of {map.debrief.length} open questions answered. Socrates asks them one at a
-            time, then explains the whole process back.
+            {t("debriefPanel.description", { answered, total: map.debrief.length })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -53,18 +54,18 @@ export function DebriefPanel({
 
       <Card className={cn(!allAnswered && "opacity-60")}>
         <CardHeader>
-          <CardTitle>Teach-back</CardTitle>
+          <CardTitle>{t("debriefPanel.teachBackTitle")}</CardTitle>
           <CardDescription>
-            Done means every question is answered and {map.expert.name} confirms the explanation.
+            {t("debriefPanel.teachBackDescription", { expert: map.expert.name })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {finalMapId ? (
             <div className="flex flex-wrap items-center gap-3 rounded-lg border border-emerald-600/30 bg-emerald-600/5 p-4">
               <CheckCircle2 className="size-5 text-emerald-600" />
-              <p className="flex-1 font-medium">Confirmed. The workflow is saved to memory.</p>
+              <p className="flex-1 font-medium">{t("debriefPanel.confirmed")}</p>
               <Button asChild>
-                <Link to={paths.workMap(finalMapId)}>Open the workflow</Link>
+                <Link to={paths.workMap(finalMapId)}>{t("openWorkflow")}</Link>
               </Button>
             </div>
           ) : teachBack ? (
@@ -77,7 +78,7 @@ export function DebriefPanel({
           ) : (
             <Button onClick={onTeachBack} disabled={!allAnswered || !!busy}>
               {busy === "teach-back" && <Loader2 className="animate-spin" />}
-              Explain it back
+              {t("debriefPanel.explainBack")}
             </Button>
           )}
           {busy && <p className="text-sm text-muted-foreground">{busy}…</p>}
@@ -96,6 +97,7 @@ function DebriefItemRow({
   map: WorkMap
   onAnswer: (itemId: ID, text: string) => void
 }) {
+  const { t } = useTranslation("capture")
   const [draft, setDraft] = useState("")
   const step = map.steps.find((s) => s.id === item.stepId)
   return (
@@ -107,7 +109,11 @@ function DebriefItemRow({
       )}
       <div className="min-w-0 flex-1 space-y-2">
         <p className="font-medium">{item.question}</p>
-        {step && <p className="text-xs text-muted-foreground">About: {step.title}</p>}
+        {step && (
+          <p className="text-xs text-muted-foreground">
+            {t("debriefPanel.about", { title: step.title })}
+          </p>
+        )}
         {item.answer ? (
           <p className="flex gap-2 text-sm text-muted-foreground">
             <MessageSquareQuote className="mt-0.5 size-4 shrink-0" />“{item.answer.text}”
@@ -124,11 +130,11 @@ function DebriefItemRow({
               rows={1}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Answer by voice, or type it here"
+              placeholder={t("debriefPanel.answerPlaceholder")}
               className="min-h-9"
             />
             <Button type="submit" variant="outline" disabled={!draft.trim()}>
-              Save
+              {t("debriefPanel.save")}
             </Button>
           </form>
         )}
@@ -148,6 +154,7 @@ function TeachBackReplyForm({
   busy: boolean
   onReply: (confirmed: boolean, correction?: string) => void
 }) {
+  const { t } = useTranslation("capture")
   const [correction, setCorrection] = useState("")
   return (
     <div className="space-y-3">
@@ -156,18 +163,18 @@ function TeachBackReplyForm({
       </blockquote>
       {corrections > 0 && (
         <p className="text-xs text-muted-foreground">
-          Updated after {corrections} correction{corrections === 1 ? "" : "s"}.
+          {t("debriefPanel.updatedAfter", { count: corrections })}
         </p>
       )}
       <Textarea
         value={correction}
         onChange={(e) => setCorrection(e.target.value)}
-        placeholder="Something wrong? Correct it in your own words."
+        placeholder={t("debriefPanel.correctionPlaceholder")}
         rows={2}
       />
       <div className="flex gap-2">
         <Button onClick={() => onReply(true)} disabled={busy}>
-          Yes, that's right
+          {t("confirmTeachBack")}
         </Button>
         <Button
           variant="outline"
@@ -177,7 +184,7 @@ function TeachBackReplyForm({
             setCorrection("")
           }}
         >
-          Correct it
+          {t("debriefPanel.correct")}
         </Button>
       </div>
     </div>

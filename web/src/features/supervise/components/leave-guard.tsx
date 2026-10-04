@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useBlocker } from "react-router"
 
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import {
 
 /** While `active`, leaving the page (in-app link or closing the tab) asks first. */
 export function LeaveGuard({ active, onLeave }: { active: boolean; onLeave: () => void }) {
+  const { t } = useTranslation("supervise")
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       active && currentLocation.pathname !== nextLocation.pathname,
@@ -29,15 +31,12 @@ export function LeaveGuard({ active, onLeave }: { active: boolean; onLeave: () =
     <Dialog open={blocker.state === "blocked"} onOpenChange={(open) => !open && blocker.reset?.()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>End this supervised run?</DialogTitle>
-          <DialogDescription>
-            Socrates is still standing by. If you leave now, screen sharing stops and Socrates can't
-            help with the rest of this run.
-          </DialogDescription>
+          <DialogTitle>{t("leaveGuard.title")}</DialogTitle>
+          <DialogDescription>{t("leaveGuard.description")}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => blocker.reset?.()}>
-            Keep going
+            {t("leaveGuard.keepGoing")}
           </Button>
           <Button
             variant="destructive"
@@ -46,7 +45,7 @@ export function LeaveGuard({ active, onLeave }: { active: boolean; onLeave: () =
               blocker.proceed?.()
             }}
           >
-            End run
+            {t("leaveGuard.endRun")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,0 +1,11 @@
+{
+  "askPage": {
+    "title": "Demander à Socrates",
+    "description": "Posez vos questions sur n'importe quel workflow enregistré : les réponses reprennent les mots mêmes des experts, avec un lien vers l'étape exacte."
+  },
+  "askPanel": {
+    "tryAsking": "Essayez de demander",
+    "placeholder": "Demandez comment faire quelque chose, ou pourquoi…",
+    "send": "Envoyer"
+  }
+}

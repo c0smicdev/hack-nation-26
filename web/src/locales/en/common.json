@@ -1,0 +1,59 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "How Socrates works with you",
+    "askSocrates": "Ask Socrates",
+    "logIn": "Log in",
+    "logOut": "Log out"
+  },
+  "profileMenu": {
+    "language": "Language",
+    "languageHint": "The app's language. Socrates also talks and writes to you in it."
+  },
+  "askSuggestions": {
+    "capex": "When is an invoice capex instead of opex?",
+    "unknownSupplier": "What do I do with an unknown supplier?",
+    "intercompany": "Who approves intercompany invoices?"
+  },
+  "time": {
+    "justNow": "just now"
+  },
+  "dialog": {
+    "close": "Close"
+  },
+  "mermaidDiagram": {
+    "error": "Couldn't draw the diagram: {{message}}",
+    "fitToView": "Fit to view",
+    "actualSize": "Actual size"
+  },
+  "queryState": {
+    "errorTitle": "Something went wrong",
+    "retry": "Try again"
+  },
+  "screenMoment": {
+    "redacted": "Redacted"
+  },
+  "voicePanel": {
+    "placeholder": "Type instead of speaking…",
+    "mutedPlaceholder": "Mic muted. Write to Socrates…",
+    "speaking": "Speaking",
+    "muted": "Muted",
+    "listening": "Listening",
+    "textMode": "Text mode",
+    "connecting": "Connecting…",
+    "voiceError": "Voice error",
+    "notConnected": "Not connected",
+    "empty": "The conversation will appear here.",
+    "you": "You",
+    "mute": "Mute microphone",
+    "unmute": "Unmute microphone",
+    "send": "Send"
+  },
+  "errorPages": {
+    "backToLibrary": "Back to the library",
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "Socrates doesn't know this page — yet.",
+    "brokeTitle": "Something broke",
+    "unknownError": "Unknown error"
+  }
+}

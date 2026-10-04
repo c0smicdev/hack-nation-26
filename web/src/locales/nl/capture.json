@@ -1,0 +1,133 @@
+{
+  "captureState": {
+    "notCapturing": "Legt niet vast",
+    "offTheRecord": "Off the record",
+    "capturing": "Legt vast"
+  },
+  "sessionStatus": {
+    "intake": "Intake",
+    "live": "Live",
+    "processing": "Kaart maken",
+    "awaitingDebrief": "Wacht op debrief",
+    "mapped": "In kaart gebracht"
+  },
+  "eventKind": {
+    "screen": "Scherm",
+    "speech": "Expert",
+    "question": "Socrates vroeg",
+    "offRecord": "Privacy"
+  },
+  "capturePage": {
+    "title": "Vastleggen",
+    "description": "Doe een echte taak terwijl Socrates met je scherm meekijkt. Socrates vraagt op natuurlijke momenten waarom, vult de gaten in een korte debrief en maakt er een workflow van.",
+    "howItWorks": {
+      "title": "Zo werkt het",
+      "step1": "1. Open de demo-ERP in een ander tabblad, start een sessie en deel dat tabblad. Vertel Socrates wat je gaat doen.",
+      "step2": "2. Werk zoals altijd en denk hardop. Socrates stelt op natuurlijke momenten 3–5 vragen.",
+      "step3": "3. Zeg dat je klaar bent: een korte gesproken debrief, daarna legt Socrates het aan je terug uit.",
+      "offTheRecord": "Zeg \"off the record\" of zet op elk moment de schakelaar om. Er wordt niets vastgelegd tot je weer on the record bent."
+    },
+    "sessions": "Sessies"
+  },
+  "sessionRow": {
+    "events_one": "{{count}} gebeurtenis",
+    "events_other": "{{count}} gebeurtenissen",
+    "liveQuestions_one": "{{count}} live vraag",
+    "liveQuestions_other": "{{count}} live vragen"
+  },
+  "newSession": {
+    "title": "Nieuwe sessie",
+    "description": "Wie laat wat zien? Je kunt de taak met je stem verfijnen.",
+    "expert": "Expert",
+    "role": "Rol",
+    "sessionTitle": "Sessietitel",
+    "task": "Wat ga je doen?",
+    "defaultTitle": "Leveranciersfacturen maandafsluiting",
+    "defaultTask": "Verwerk de leveranciersfacturen van deze week in de ERP vóór de maandafsluiting.",
+    "start": "Sessie starten"
+  },
+  "openErp": "Demo-ERP openen",
+  "breadcrumbWorkflows": "Workflows",
+  "yourSteps": "Jouw stappen",
+  "openWorkflow": "Workflow openen",
+  "confirmTeachBack": "Ja, dat klopt",
+  "busy": {
+    "buildingDraft": "Conceptworkflow maken",
+    "writingTeachBack": "Teach-back schrijven",
+    "savingToMemory": "Opslaan in geheugen",
+    "updatingTeachBack": "Teach-back bijwerken"
+  },
+  "recording": {
+    "notRecording": "Neemt niet op",
+    "paused": "Gepauzeerd",
+    "recording": "Neemt op",
+    "shareTitle": "Deel je scherm om de opname te starten",
+    "shareHint": "Kies het venster waarin je gaat werken (bijv. de demo-ERP). Socrates kijkt mee, deelt wat je doet op in stappen en tekent hier de workflow.",
+    "shareScreen": "Scherm delen",
+    "stepsSoFar_one": "{{count}} stap tot nu toe",
+    "stepsSoFar_other": "{{count}} stappen tot nu toe",
+    "endWorkflow": "Workflow beëindigen"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates praat",
+    "listening": "Socrates luistert",
+    "connecting": "Verbinden…",
+    "text": "Vragen verschijnen op het scherm",
+    "off": "Stem uit"
+  },
+  "memoryMatch": {
+    "text": "Dit lijkt op <strong>{{title}}</strong>, dat {{expert}} me al heeft laten zien. Dezelfde workflow?",
+    "same": "Dezelfde workflow",
+    "new": "Het is nieuw"
+  },
+  "textQuestion": {
+    "placeholder": "Je antwoord",
+    "answer": "Antwoorden",
+    "later": "Later"
+  },
+  "leaveGuard": {
+    "title": "Deze opname afbreken?",
+    "description": "De workflow wordt nog opgenomen. Als je nu weggaat, stopt de opname en worden de vastgelegde stappen geen workflow.",
+    "keep": "Doorgaan met opnemen",
+    "abandon": "Opname stoppen"
+  },
+  "offTheRecordSwitch": {
+    "label": "Off the record"
+  },
+  "liveStepList": {
+    "gettingStarted": "Aan de slag",
+    "empty": "Begin met werken. Je stappen verschijnen hier zodra Socrates ze begrijpt.",
+    "decision": "Beslissing",
+    "differsFromMemory": "Wijkt af van geheugen",
+    "events_one": "{{count}} gebeurtenis",
+    "events_other": "{{count}} gebeurtenissen",
+    "screenshotAlt": "Scherm tijdens: {{title}}"
+  },
+  "debriefView": {
+    "building": "Conceptworkflow wordt opgebouwd uit wat Socrates zag en hoorde…",
+    "debrief": "Debrief",
+    "confirmed": "Bevestigd en opgeslagen in geheugen",
+    "teachBack": "Teach-back: snapt Socrates het?",
+    "questionsAnswered": "{{answered}} van {{total}} vragen beantwoord",
+    "chat": "Chat",
+    "steps": "Stappen",
+    "voiceTitle": "Socrates · Debrief",
+    "voicePlaceholder": "Antwoord met je stem, of typ het hier…",
+    "debriefByVoice": "Debrief met stem"
+  },
+  "debriefPanel": {
+    "title": "Debrief",
+    "description": "{{answered}} van {{total}} open vragen beantwoord. Socrates stelt ze één voor één en legt daarna het hele proces terug uit.",
+    "teachBackTitle": "Teach-back",
+    "teachBackDescription": "Klaar betekent dat elke vraag beantwoord is en {{expert}} de uitleg bevestigt.",
+    "confirmed": "Bevestigd. De workflow is opgeslagen in het geheugen.",
+    "explainBack": "Leg het terug uit",
+    "about": "Over: {{title}}",
+    "answerPlaceholder": "Antwoord met je stem, of typ het hier",
+    "save": "Opslaan",
+    "updatedAfter_one": "Bijgewerkt na {{count}} correctie.",
+    "updatedAfter_other": "Bijgewerkt na {{count}} correcties.",
+    "correctionPlaceholder": "Klopt er iets niet? Corrigeer het in je eigen woorden.",
+    "correct": "Corrigeren"
+  }
+}

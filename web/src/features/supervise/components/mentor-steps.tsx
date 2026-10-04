@@ -8,16 +8,18 @@ import {
   ShieldAlert,
 } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 import { ScreenMomentView } from "@/components/screen-moment-view"
 import { Badge } from "@/components/ui/badge"
 import type { GuardrailKind, ID, Quote, WorkMap } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
-const GUARDRAIL: Record<GuardrailKind, { label: string; icon: LucideIcon }> = {
-  limit: { label: "Limit", icon: Gauge },
-  stop_and_ask: { label: "Stop & ask", icon: Hand },
-  never: { label: "Never", icon: Ban },
+// Labels are translation keys, looked up at render time so they follow the language.
+const GUARDRAIL: Record<GuardrailKind, { labelKey: string; icon: LucideIcon }> = {
+  limit: { labelKey: "mentorSteps.guardrail.limit", icon: Gauge },
+  stop_and_ask: { labelKey: "mentorSteps.guardrail.stopAndAsk", icon: Hand },
+  never: { labelKey: "mentorSteps.guardrail.never", icon: Ban },
 }
 
 export function ExpertQuote({ quote }: { quote: Quote }) {
@@ -48,6 +50,7 @@ export function MentorSteps({
   openId?: ID
   onToggle: (id: ID) => void
 }) {
+  const { t } = useTranslation("supervise")
   const openRef = useRef<HTMLLIElement>(null)
   useEffect(() => {
     openRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
@@ -83,11 +86,15 @@ export function MentorSteps({
               <span className="min-w-0 flex-1 space-y-1">
                 <span className="block text-sm font-medium">{step.title}</span>
                 <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                  {here && <Badge className="bg-blue-600 text-white">You're here</Badge>}
-                  {step.kind === "judgment" && <Badge variant="secondary">Decision</Badge>}
+                  {here && (
+                    <Badge className="bg-blue-600 text-white">{t("mentorSteps.here")}</Badge>
+                  )}
+                  {step.kind === "judgment" && (
+                    <Badge variant="secondary">{t("mentorSteps.decision")}</Badge>
+                  )}
                   {flagged.includes(step.id) && (
                     <Badge variant="outline" className="border-amber-500 text-amber-700">
-                      Heads-up given
+                      {t("mentorSteps.headsUpGiven")}
                     </Badge>
                   )}
                   {step.guardrails.length > 0 && (
@@ -107,14 +114,16 @@ export function MentorSteps({
             {open && (
               <div className="space-y-4 bg-muted/30 px-4 pt-1 pb-4 text-sm">
                 <p>
-                  <span className="text-muted-foreground">What {expertFirst} did: </span>
+                  <span className="text-muted-foreground">
+                    {t("mentorSteps.whatDid", { expert: expertFirst })}
+                  </span>
                   {step.decision}
                 </p>
                 {step.reason && <ExpertQuote quote={step.reason} />}
                 {step.guardrails.length > 0 && (
                   <ul className="space-y-2">
                     {step.guardrails.map((g) => {
-                      const { label, icon: Icon } = GUARDRAIL[g.kind]
+                      const { labelKey, icon: Icon } = GUARDRAIL[g.kind]
                       return (
                         <li
                           key={g.id}
@@ -124,8 +133,10 @@ export function MentorSteps({
                           <span>
                             {g.rule}
                             <span className="block text-xs text-muted-foreground">
-                              {label}
-                              {g.escalateTo && <> · Ask: {g.escalateTo}</>}
+                              {t(labelKey)}
+                              {g.escalateTo && (
+                                <> · {t("mentorSteps.ask", { who: g.escalateTo })}</>
+                              )}
                             </span>
                           </span>
                         </li>
@@ -137,7 +148,7 @@ export function MentorSteps({
                   <ul className="space-y-1">
                     {step.edgeCases.map((e) => (
                       <li key={e.id} className="text-muted-foreground">
-                        <span className="text-foreground">If</span> {e.when}{" "}
+                        <span className="text-foreground">{t("mentorSteps.if")}</span> {e.when}{" "}
                         <span className="text-foreground">→</span> {e.then}
                       </li>
                     ))}

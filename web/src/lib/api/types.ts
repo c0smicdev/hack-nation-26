@@ -27,8 +27,13 @@ export interface Person {
  */
 export type Chattiness = "quiet" | "normal" | "curious"
 
+/** UI language, and the language Socrates speaks and writes in. Picked in the profile menu. */
+export type Language =
+  "en" | "de" | "fr" | "es" | "it" | "pt" | "nl" | "pl" | "tr" | "hi" | "zh" | "ja" | "ko"
+
 export interface UserPreferences {
   chattiness?: Chattiness
+  language?: Language
 }
 
 /** The signed-in user. `id` is also their `Person.id` on sessions they record. */
@@ -95,6 +100,8 @@ export interface Quote {
   at: number
   /** The question the agent asked, if this quote is an answer. */
   prompt?: string
+  /** The expert's exact words, when `text` is a translation for the reader. */
+  original?: string
 }
 
 export type GuardrailKind =
@@ -169,6 +176,12 @@ export interface WorkMap {
   steps: WorkMapStep[]
   debrief: DebriefItem[]
   teachBack?: TeachBack
+  /** Language the content is written in (the expert's when recorded; default English). */
+  language?: Language
+  /** Set when the server translated this copy for the reader: the original's language. */
+  translatedFrom?: Language
+  /** The reader's language is being prepared in the background: ask again shortly. */
+  translationPending?: boolean
 }
 
 /** Lightweight version used in lists. */
@@ -186,6 +199,8 @@ export interface WorkMapSummary {
   openQuestionCount: number
   /** Thumbnail for cards; carries redactions like any screen moment. */
   cover?: ScreenMoment
+  /** See `WorkMap.translationPending`. */
+  translationPending?: boolean
 }
 
 /* ------------------------------------------------------------------ */

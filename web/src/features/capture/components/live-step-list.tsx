@@ -1,9 +1,10 @@
 import { ChevronRight } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Badge } from "@/components/ui/badge"
 import type { ID, LiveStep, SessionEvent } from "@/lib/api"
-import { formatTimestamp, pluralize } from "@/lib/format"
+import { formatTimestamp } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 import { EventFeed } from "./event-feed"
@@ -24,6 +25,7 @@ export function LiveStepList({
   openId?: ID
   onToggle: (id: ID) => void
 }) {
+  const { t } = useTranslation("capture")
   const openRef = useRef<HTMLLIElement>(null)
   useEffect(() => {
     openRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
@@ -35,14 +37,14 @@ export function LiveStepList({
     <ol className="divide-y">
       {before.length > 0 && (
         <li className="px-4 py-3">
-          <p className="pb-2 text-xs font-medium text-muted-foreground">Getting started</p>
+          <p className="pb-2 text-xs font-medium text-muted-foreground">
+            {t("liveStepList.gettingStarted")}
+          </p>
           <EventFeed events={before} order="oldest" />
         </li>
       )}
       {!steps.length && (
-        <li className="px-4 py-6 text-sm text-muted-foreground">
-          Start working. Your steps appear here as Socrates understands them.
-        </li>
+        <li className="px-4 py-6 text-sm text-muted-foreground">{t("liveStepList.empty")}</li>
       )}
       {steps.map((step, i) => {
         const open = step.id === openId
@@ -71,9 +73,13 @@ export function LiveStepList({
                   <span className="min-w-0">{step.title}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                  {step.kind === "judgment" && <Badge variant="secondary">Decision</Badge>}
-                  {step.deviation && <Badge variant="destructive">Differs from memory</Badge>}
-                  {pluralize(own.length, "event")}
+                  {step.kind === "judgment" && (
+                    <Badge variant="secondary">{t("liveStepList.decision")}</Badge>
+                  )}
+                  {step.deviation && (
+                    <Badge variant="destructive">{t("liveStepList.differsFromMemory")}</Badge>
+                  )}
+                  {t("liveStepList.events", { count: own.length })}
                 </span>
               </span>
               <ChevronRight
@@ -92,7 +98,7 @@ export function LiveStepList({
                 {step.screenshotUrl && (
                   <img
                     src={step.screenshotUrl}
-                    alt={`Screen during: ${step.title}`}
+                    alt={t("liveStepList.screenshotAlt", { title: step.title })}
                     className="w-full rounded-md border"
                   />
                 )}

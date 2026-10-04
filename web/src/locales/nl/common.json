@@ -1,0 +1,59 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Hoe Socrates met je samenwerkt",
+    "askSocrates": "Vraag het Socrates",
+    "logIn": "Inloggen",
+    "logOut": "Uitloggen"
+  },
+  "profileMenu": {
+    "language": "Taal",
+    "languageHint": "De taal van de app. Socrates praat en schrijft ook in deze taal met je."
+  },
+  "askSuggestions": {
+    "capex": "Wanneer is een factuur capex in plaats van opex?",
+    "unknownSupplier": "Wat doe ik met een onbekende leverancier?",
+    "intercompany": "Wie keurt intercompany-facturen goed?"
+  },
+  "time": {
+    "justNow": "zojuist"
+  },
+  "dialog": {
+    "close": "Sluiten"
+  },
+  "mermaidDiagram": {
+    "error": "Kan het diagram niet tekenen: {{message}}",
+    "fitToView": "Passend maken",
+    "actualSize": "Werkelijke grootte"
+  },
+  "queryState": {
+    "errorTitle": "Er ging iets mis",
+    "retry": "Opnieuw proberen"
+  },
+  "screenMoment": {
+    "redacted": "Afgeschermd"
+  },
+  "voicePanel": {
+    "placeholder": "Typ in plaats van te praten…",
+    "mutedPlaceholder": "Microfoon gedempt. Schrijf naar Socrates…",
+    "speaking": "Aan het praten",
+    "muted": "Gedempt",
+    "listening": "Luistert",
+    "textMode": "Tekstmodus",
+    "connecting": "Verbinden…",
+    "voiceError": "Spraakfout",
+    "notConnected": "Niet verbonden",
+    "empty": "Het gesprek verschijnt hier.",
+    "you": "Jij",
+    "mute": "Microfoon dempen",
+    "unmute": "Microfoon aanzetten",
+    "send": "Versturen"
+  },
+  "errorPages": {
+    "backToLibrary": "Terug naar de bibliotheek",
+    "notFoundTitle": "Pagina niet gevonden",
+    "notFoundMessage": "Socrates kent deze pagina niet — nog niet.",
+    "brokeTitle": "Er is iets kapotgegaan",
+    "unknownError": "Onbekende fout"
+  }
+}

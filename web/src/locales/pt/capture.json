@@ -1,0 +1,138 @@
+{
+  "captureState": {
+    "notCapturing": "Sem captura",
+    "offTheRecord": "Em off",
+    "capturing": "Capturando"
+  },
+  "sessionStatus": {
+    "intake": "Preparação",
+    "live": "Ao vivo",
+    "processing": "Criando o mapa",
+    "awaitingDebrief": "Aguardando debrief",
+    "mapped": "Mapeada"
+  },
+  "eventKind": {
+    "screen": "Tela",
+    "speech": "Especialista",
+    "question": "Socrates perguntou",
+    "offRecord": "Privacidade"
+  },
+  "capturePage": {
+    "title": "Captura",
+    "description": "Faça uma tarefa real enquanto o Socrates observa sua tela. Ele pergunta o porquê nas pausas naturais, preenche as lacunas em um debrief rápido e transforma tudo em um workflow.",
+    "howItWorks": {
+      "title": "Como funciona",
+      "step1": "1. Abra o ERP de demonstração em outra aba, inicie uma sessão e compartilhe essa aba. Conte ao Socrates o que você vai fazer.",
+      "step2": "2. Trabalhe normalmente e pense em voz alta. O Socrates faz de 3 a 5 perguntas nas pausas naturais.",
+      "step3": "3. Diga que terminou: um debrief rápido por voz e, depois, o Socrates explica tudo de volta para você.",
+      "offTheRecord": "Diga \"em off\" ou use o botão a qualquer momento. Nada é capturado até você voltar a gravar."
+    },
+    "sessions": "Sessões"
+  },
+  "sessionRow": {
+    "events_one": "{{count}} evento",
+    "events_many": "{{count}} eventos",
+    "events_other": "{{count}} eventos",
+    "liveQuestions_one": "{{count}} pergunta ao vivo",
+    "liveQuestions_many": "{{count}} perguntas ao vivo",
+    "liveQuestions_other": "{{count}} perguntas ao vivo"
+  },
+  "newSession": {
+    "title": "Nova sessão",
+    "description": "Quem vai mostrar o quê? Você pode detalhar a tarefa por voz.",
+    "expert": "Especialista",
+    "role": "Cargo",
+    "sessionTitle": "Título da sessão",
+    "task": "O que você vai fazer?",
+    "defaultTitle": "Notas fiscais de fornecedores do fechamento do mês",
+    "defaultTask": "Processar as notas fiscais de fornecedores desta semana no ERP antes do fechamento do mês.",
+    "start": "Iniciar sessão"
+  },
+  "openErp": "Abrir ERP de demonstração",
+  "breadcrumbWorkflows": "Workflows",
+  "yourSteps": "Suas etapas",
+  "openWorkflow": "Abrir o workflow",
+  "confirmTeachBack": "Sim, está certo",
+  "busy": {
+    "buildingDraft": "Criando o rascunho do workflow",
+    "writingTeachBack": "Escrevendo o teach-back",
+    "savingToMemory": "Salvando na memória",
+    "updatingTeachBack": "Atualizando o teach-back"
+  },
+  "recording": {
+    "notRecording": "Sem gravação",
+    "paused": "Pausado",
+    "recording": "Gravando",
+    "shareTitle": "Compartilhe sua tela para começar a gravar",
+    "shareHint": "Escolha a janela em que você vai trabalhar (por exemplo, o ERP de demonstração). O Socrates observa, agrupa o que você faz em etapas e desenha o workflow aqui.",
+    "shareScreen": "Compartilhar tela",
+    "stepsSoFar_one": "{{count}} etapa até agora",
+    "stepsSoFar_many": "{{count}} etapas até agora",
+    "stepsSoFar_other": "{{count}} etapas até agora",
+    "endWorkflow": "Encerrar workflow"
+  },
+  "socratesStatus": {
+    "speaking": "Socrates está falando",
+    "listening": "Socrates está ouvindo",
+    "connecting": "Conectando…",
+    "text": "As perguntas aparecem na tela",
+    "off": "Voz desativada"
+  },
+  "memoryMatch": {
+    "text": "Parece <strong>{{title}}</strong>, que {{expert}} já me mostrou. É o mesmo workflow?",
+    "same": "Mesmo workflow",
+    "new": "É novo"
+  },
+  "textQuestion": {
+    "placeholder": "Sua resposta",
+    "answer": "Responder",
+    "later": "Depois"
+  },
+  "leaveGuard": {
+    "title": "Descartar esta gravação?",
+    "description": "O fluxo de trabalho ainda está sendo gravado. Se você sair agora, a gravação para e os passos capturados até aqui não vão virar um fluxo de trabalho.",
+    "keep": "Continuar gravando",
+    "abandon": "Descartar gravação"
+  },
+  "offTheRecordSwitch": {
+    "label": "Em off"
+  },
+  "liveStepList": {
+    "gettingStarted": "Primeiros passos",
+    "empty": "Comece a trabalhar. Seus passos aparecem aqui conforme o Socrates os entende.",
+    "decision": "Decisão",
+    "differsFromMemory": "Difere da memória",
+    "events_one": "{{count}} evento",
+    "events_many": "{{count}} de eventos",
+    "events_other": "{{count}} eventos",
+    "screenshotAlt": "Tela durante: {{title}}"
+  },
+  "debriefView": {
+    "building": "Montando o rascunho do fluxo de trabalho com base no que o Socrates viu e ouviu…",
+    "debrief": "Debrief",
+    "confirmed": "Confirmado e salvo na memória",
+    "teachBack": "Recapitulação: o Socrates entendeu?",
+    "questionsAnswered": "{{answered}} de {{total}} perguntas respondidas",
+    "chat": "Chat",
+    "steps": "Passos",
+    "voiceTitle": "Socrates · Debrief",
+    "voicePlaceholder": "Responda por voz ou digite aqui…",
+    "debriefByVoice": "Debrief por voz"
+  },
+  "debriefPanel": {
+    "title": "Debrief",
+    "description": "{{answered}} de {{total}} perguntas em aberto respondidas. O Socrates faz uma pergunta por vez e depois explica todo o processo de volta.",
+    "teachBackTitle": "Recapitulação",
+    "teachBackDescription": "Concluir significa que todas as perguntas foram respondidas e que {{expert}} confirmou a explicação.",
+    "confirmed": "Confirmado. O fluxo de trabalho foi salvo na memória.",
+    "explainBack": "Explicar de volta",
+    "about": "Sobre: {{title}}",
+    "answerPlaceholder": "Responda por voz ou digite aqui",
+    "save": "Salvar",
+    "updatedAfter_one": "Atualizado após {{count}} correção.",
+    "updatedAfter_many": "Atualizado após {{count}} de correções.",
+    "updatedAfter_other": "Atualizado após {{count}} correções.",
+    "correctionPlaceholder": "Algo errado? Corrija com suas próprias palavras.",
+    "correct": "Corrigir"
+  }
+}

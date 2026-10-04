@@ -1,0 +1,59 @@
+{
+  "appName": "Socrates",
+  "header": {
+    "socratesStyle": "Socrates आपके साथ कैसे काम करे",
+    "askSocrates": "Socrates से पूछें",
+    "logIn": "लॉग इन करें",
+    "logOut": "लॉग आउट करें"
+  },
+  "profileMenu": {
+    "language": "भाषा",
+    "languageHint": "ऐप की भाषा। Socrates भी आपसे इसी भाषा में बात करेगा और लिखेगा।"
+  },
+  "askSuggestions": {
+    "capex": "कोई इनवॉइस opex की जगह capex कब होता है?",
+    "unknownSupplier": "अनजान सप्लायर के साथ मुझे क्या करना चाहिए?",
+    "intercompany": "इंटरकंपनी इनवॉइस कौन अप्रूव करता है?"
+  },
+  "time": {
+    "justNow": "अभी-अभी"
+  },
+  "dialog": {
+    "close": "बंद करें"
+  },
+  "mermaidDiagram": {
+    "error": "डायग्राम नहीं बन पाया: {{message}}",
+    "fitToView": "स्क्रीन में फ़िट करें",
+    "actualSize": "असली साइज़"
+  },
+  "queryState": {
+    "errorTitle": "कुछ गड़बड़ हो गई",
+    "retry": "फिर से कोशिश करें"
+  },
+  "screenMoment": {
+    "redacted": "छिपाया गया"
+  },
+  "voicePanel": {
+    "placeholder": "बोलने की जगह टाइप करें…",
+    "mutedPlaceholder": "माइक म्यूट है। Socrates को लिखें…",
+    "speaking": "बोल रहा है",
+    "muted": "म्यूट है",
+    "listening": "सुन रहा है",
+    "textMode": "टेक्स्ट मोड",
+    "connecting": "कनेक्ट हो रहा है…",
+    "voiceError": "वॉइस में गड़बड़ी",
+    "notConnected": "कनेक्ट नहीं है",
+    "empty": "बातचीत यहाँ दिखेगी।",
+    "you": "आप",
+    "mute": "माइक्रोफ़ोन म्यूट करें",
+    "unmute": "माइक्रोफ़ोन अनम्यूट करें",
+    "send": "भेजें"
+  },
+  "errorPages": {
+    "backToLibrary": "लाइब्रेरी पर वापस जाएँ",
+    "notFoundTitle": "पेज नहीं मिला",
+    "notFoundMessage": "Socrates इस पेज को नहीं जानता — अभी तक।",
+    "brokeTitle": "कुछ टूट गया",
+    "unknownError": "अनजान गड़बड़ी"
+  }
+}

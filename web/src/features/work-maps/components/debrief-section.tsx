@@ -1,4 +1,5 @@
 import { CircleCheck, CircleDashed, CircleHelp } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,6 +16,7 @@ export function DebriefSection({
   workMap: WorkMap
   onSelectStep: (id: ID) => void
 }) {
+  const { t } = useTranslation("workMaps")
   const { debrief, teachBack, steps } = workMap
   const stepNumber = (id: ID) => steps.findIndex((s) => s.id === id) + 1
 
@@ -22,14 +24,12 @@ export function DebriefSection({
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Debrief</CardTitle>
-          <CardDescription>
-            Questions Socrates asked after the task to close the gaps.
-          </CardDescription>
+          <CardTitle>{t("debrief.title")}</CardTitle>
+          <CardDescription>{t("debrief.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {debrief.length === 0 ? (
-            <p className="text-sm text-muted-foreground">The debrief hasn't started yet.</p>
+            <p className="text-sm text-muted-foreground">{t("debrief.notStarted")}</p>
           ) : (
             <ul className="space-y-5">
               {debrief.map((item) => (
@@ -46,9 +46,7 @@ export function DebriefSection({
                     {item.answer ? (
                       <QuoteBlock quote={item.answer} />
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Still open — Socrates asks in the next debrief.
-                      </p>
+                      <p className="text-sm text-muted-foreground">{t("debrief.stillOpen")}</p>
                     )}
                     {item.stepId && (
                       <button
@@ -56,7 +54,7 @@ export function DebriefSection({
                         onClick={() => onSelectStep(item.stepId!)}
                         className="mt-2 text-xs text-muted-foreground underline-offset-4 hover:underline"
                       >
-                        Go to step {stepNumber(item.stepId)}
+                        {t("debrief.goToStep", { number: stepNumber(item.stepId) })}
                       </button>
                     )}
                   </div>
@@ -70,16 +68,14 @@ export function DebriefSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            Teach-back
+            {t("debrief.teachBack")}
             {teachBack?.confirmed && (
               <Badge className={STATUS.confirmed.className}>
-                <CircleCheck /> Confirmed
+                <CircleCheck /> {t("debrief.confirmed")}
               </Badge>
             )}
           </CardTitle>
-          <CardDescription>
-            Socrates explains the process back until the expert says: yes, that's how it works.
-          </CardDescription>
+          <CardDescription>{t("debrief.teachBackDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {teachBack ? (
@@ -88,7 +84,7 @@ export function DebriefSection({
               {teachBack.corrections.map((c, i) => (
                 <div key={i} className="space-y-2">
                   <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                    Correction
+                    {t("debrief.correction")}
                   </p>
                   <QuoteBlock quote={c} />
                 </div>
@@ -96,7 +92,7 @@ export function DebriefSection({
             </>
           ) : (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CircleDashed className="size-4" /> Happens once every debrief question is answered.
+              <CircleDashed className="size-4" /> {t("debrief.teachBackPending")}
             </p>
           )}
         </CardContent>

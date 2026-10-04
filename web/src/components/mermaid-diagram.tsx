@@ -1,5 +1,6 @@
 import { Maximize2, Minimize2 } from "lucide-react"
 import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -29,6 +30,7 @@ export function MermaidDiagram({
   maxHeight?: string
   className?: string
 }) {
+  const { t } = useTranslation("common")
   const viewport = useRef<HTMLDivElement>(null)
   const container = useRef<HTMLDivElement>(null)
   const baseId = `mermaid-${useId().replace(/:/g, "")}`
@@ -119,7 +121,11 @@ export function MermaidDiagram({
         ref={viewport}
         className={cn("flex size-full", actualSize ? "overflow-auto" : "overflow-hidden")}
       >
-        {error && <p className="text-sm text-destructive">Couldn't draw the diagram: {error}</p>}
+        {error && (
+          <p className="text-sm text-destructive">
+            {t("mermaidDiagram.error", { message: error })}
+          </p>
+        )}
         {!ready && !error && <Skeleton className="h-64 w-full" />}
         <div ref={container} className="m-auto" />
       </div>
@@ -131,7 +137,7 @@ export function MermaidDiagram({
           onClick={() => setActualSize((on) => !on)}
         >
           {actualSize ? <Minimize2 /> : <Maximize2 />}
-          {actualSize ? "Fit to view" : "Actual size"}
+          {actualSize ? t("mermaidDiagram.fitToView") : t("mermaidDiagram.actualSize")}
         </Button>
       )}
     </div>

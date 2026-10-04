@@ -4,6 +4,7 @@ import type {
   CaptureSession,
   CaptureStatus,
   Chattiness,
+  Language,
   ErpSignal,
   ID,
   Quote,
@@ -67,6 +68,8 @@ export interface SessionRuntime {
   draftWorkMapId?: ID
   /** The expert's coaching style (their profile), so vision asks as much as they want. */
   chattiness?: Chattiness
+  /** The expert's language: questions, debrief and the drafted workflow are written in it. */
+  language?: Language
 }
 
 /** A new hire running a confirmed Work Map while Socrates stands by. */
@@ -88,6 +91,8 @@ export interface SupervisionRuntime {
   visionBusy: boolean
   /** ERP signals from ticks that were dropped while vision was busy. */
   pendingErp: ErpSignal[]
+  /** The learner's language, for answers and heads-ups. */
+  language?: Language
 }
 
 interface Store {

@@ -1,0 +1,105 @@
+{
+  "notReady": {
+    "title": "Noch nicht bereit für die Begleitung",
+    "description": "{{title}} ist noch nicht von {{expert}} bestätigt. Schließ zuerst die Nachbesprechung und das Teach-back ab, damit Socrates nur mit Wissen anleitet, das die Fachperson bestätigt hat.",
+    "back": "Zurück zum Workflow"
+  },
+  "errors": {
+    "notStarted": "Der Durchlauf hat noch nicht begonnen",
+    "lookupFailed": "Sorry, das konnte ich nicht nachschlagen ({{message}})."
+  },
+  "header": {
+    "workflows": "Workflows",
+    "supervisedRun": "Begleiteter Durchlauf",
+    "supervising": "Begleitung von {{name}}",
+    "runEnded": "Durchlauf beendet",
+    "paused": "Pausiert: Bildschirm nicht geteilt",
+    "notStarted": "Nicht gestartet",
+    "checkingSave": "Speichern wird geprüft",
+    "openErp": "Demo-ERP öffnen",
+    "endRun": "Durchlauf beenden"
+  },
+  "graph": {
+    "sharingStopped": "Die Bildschirmfreigabe wurde beendet. Socrates sieht deine Arbeit erst wieder, wenn du erneut teilst.",
+    "shareAgain": "Erneut teilen",
+    "currentStep": "Schritt {{index}} von {{total}}: {{title}}",
+    "startWorking": "Leg los. Dein Fortschritt erscheint hier."
+  },
+  "tabs": {
+    "chat": "Chat",
+    "mentor": "So hat es {{expert}} gemacht"
+  },
+  "voice": {
+    "cantHear": "Socrates kann dich nicht hören: {{error}}",
+    "disconnected": "Die Sprachverbindung zu Socrates wurde getrennt. Tipp deine Fragen unten ein oder schalte die Sprache wieder ein.",
+    "notSetUp": "Sprache ist für begleitete Durchläufe nicht eingerichtet (npm run setup:agents -- supervisor). Tipp deine Fragen unten ein.",
+    "turnOn": "Sprache einschalten"
+  },
+  "mentor": {
+    "intro": "So macht es {{expert}}, Schritt für Schritt, in eigenen Worten."
+  },
+  "start": {
+    "title": "Führ diesen Workflow aus, Socrates steht bereit",
+    "description": "Teile das Fenster, in dem du arbeitest (z. B. das Demo-ERP unter <strong>Trainingsfälle</strong>). Socrates hält sich zurück: Frag, wann immer du Hilfe brauchst. Socrates greift nur ein, wenn du kurz davor bist, einen Fehler zu machen, den {{expert}} bemerkt hätte.",
+    "yourName": "Dein Name",
+    "share": "Bildschirm teilen & starten"
+  },
+  "warningBanner": {
+    "wouldStop": "{{expert}} würde hier anhalten",
+    "headsUp": "Hinweis",
+    "openChat": "Chat öffnen",
+    "dismiss": "Schließen"
+  },
+  "runSummary": {
+    "finished": "Durchlauf abgeschlossen.",
+    "stepsDone": "{{done}} von {{total}} Schritten erledigt",
+    "headsUps_one": "{{count}} Hinweis",
+    "headsUps_other": "{{count}} Hinweise",
+    "questionsAsked_one": "{{count}} Frage gestellt",
+    "questionsAsked_other": "{{count}} Fragen gestellt",
+    "back": "Zurück zum Workflow"
+  },
+  "status": {
+    "speaking": "Socrates spricht",
+    "muted": "Mikro stumm",
+    "standingBy": "Socrates steht bereit",
+    "connecting": "Verbinde …",
+    "typing": "Per Text fragen",
+    "voiceOff": "Sprache aus"
+  },
+  "leaveGuard": {
+    "title": "Begleiteten Durchlauf beenden?",
+    "description": "Socrates steht noch bereit. Wenn du jetzt gehst, endet die Bildschirmfreigabe und Socrates kann dir beim Rest dieses Durchlaufs nicht mehr helfen.",
+    "keepGoing": "Weitermachen",
+    "endRun": "Durchlauf beenden"
+  },
+  "chatPanel": {
+    "stepLink": "Schritt {{index}}: {{title}}",
+    "emptyTitle": "Socrates steht bereit",
+    "emptyBody": "Arbeite wie gewohnt. Frag alles, laut oder unten im Chat, und Socrates antwortet mit den Worten von {{expert}}. Wenn du kurz davor bist, einen Fehler zu machen, den {{expert}} bemerkt hätte, sagt Socrates dir Bescheid.",
+    "saveHeld": "{{expert}} würde hier anhalten · Speichern zurückgehalten",
+    "headsUp": "Hinweis",
+    "socrates": "Socrates",
+    "you": "Du",
+    "thinking": "Socrates schaut sich deinen Bildschirm an …",
+    "mute": "Mikrofon stummschalten",
+    "unmute": "Mikrofon einschalten",
+    "placeholderShare": "Teile deinen Bildschirm, um zu starten",
+    "placeholderMuted": "Mikro stumm. Schreib Socrates …",
+    "placeholder": "Frag Socrates…",
+    "send": "Senden"
+  },
+  "mentorSteps": {
+    "here": "Du bist hier",
+    "decision": "Entscheidung",
+    "headsUpGiven": "Hinweis gegeben",
+    "whatDid": "Was {{expert}} gemacht hat: ",
+    "ask": "Fragen: {{who}}",
+    "if": "Wenn",
+    "guardrail": {
+      "limit": "Grenze",
+      "stopAndAsk": "Stopp & nachfragen",
+      "never": "Niemals"
+    }
+  }
+}

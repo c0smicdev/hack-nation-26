@@ -1,0 +1,125 @@
+{
+  "status": {
+    "confirmed": "エキスパート確認済み",
+    "in_debrief": "振り返り中",
+    "draft": "下書き"
+  },
+  "guardrail": {
+    "limit": "上限",
+    "stop_and_ask": "止めて確認",
+    "never": "禁止"
+  },
+  "quoteSource": {
+    "narration": "作業中の発言",
+    "live_question": "作業中の質問への回答",
+    "debrief": "振り返りでの発言"
+  },
+  "counts": {
+    "steps_other": "{{count}} ステップ",
+    "judgmentCalls_other": "判断ポイント {{count}} 件",
+    "guardrails_other": "ガードレール {{count}} 件",
+    "openQuestions_other": "未解決の質問 {{count}} 件"
+  },
+  "judgmentCall": "判断ポイント",
+  "quoted": "「{{text}}」",
+  "flowchart": {
+    "when": "タイミング：{{trigger}}",
+    "start": "開始",
+    "done": "完了",
+    "edgeCase": "{{when}} の場合 → {{then}}",
+    "guardrail": {
+      "limit": "上限",
+      "stop_and_ask": "止めて確認",
+      "never": "禁止"
+    }
+  },
+  "libraryPage": {
+    "title": "ワークフロー",
+    "description": "エキスパートの作業から作成した、短いインタラクティブなガイドです。すべてのステップ、判断ポイント、ガードレールを本人の言葉で残しています。",
+    "searchPlaceholder": "ワークフロー、エキスパートを検索…",
+    "filters": {
+      "all": "すべて",
+      "confirmed": "確認済み"
+    },
+    "newWorkflow": "新規ワークフロー",
+    "empty": {
+      "title": "ワークフローが見つかりません",
+      "noWorkflows": "記録したセッションは、ここでワークフローになります。",
+      "noMatches": "検索語やフィルターを変えてお試しください。"
+    }
+  },
+  "workMapPage": {
+    "back": "ワークフロー",
+    "updated": "{{when}}に更新",
+    "supervise": "見守り実行を開始",
+    "when": "タイミング：",
+    "flowchart": "フローチャート"
+  },
+  "askSheet": {
+    "trigger": "これについて質問",
+    "title": "Socrates に質問",
+    "description": "回答は、このワークフローでの {{expert}} さん自身の言葉に基づいています。",
+    "stopAndAsk": "どんなときに手を止めて誰かに確認すべきですか？",
+    "howDoI": "{{task}}にはどうすればいいですか？"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates：",
+    "caption": "{{speaker}}（{{source}}、{{time}}）",
+    "original": "原文：「{{text}}」"
+  },
+  "stepDetail": {
+    "position": "ステップ {{index}}/{{total}}",
+    "decision": "判断",
+    "why": "理由",
+    "guardrails": "ガードレール",
+    "edgeCases": "例外ケース",
+    "escalateTo": " · 確認先：{{who}}",
+    "if": "条件",
+    "previous": "前へ",
+    "next": "次へ"
+  },
+  "debrief": {
+    "title": "振り返り",
+    "description": "作業の後、抜けを埋めるために Socrates が尋ねた質問です。",
+    "notStarted": "振り返りはまだ始まっていません。",
+    "stillOpen": "未解決です。次の振り返りで Socrates が質問します。",
+    "goToStep": "ステップ {{number}} へ",
+    "teachBack": "ティーチバック",
+    "confirmed": "確認済み",
+    "teachBackDescription": "エキスパートが「そう、その通り」と言うまで、Socrates が手順を説明し返します。",
+    "correction": "修正",
+    "teachBackPending": "デブリーフの質問にすべて回答すると始まります。"
+  },
+  "newWorkflow": {
+    "greeting": "どのワークフローを見せていただけますか？何を、誰のために、いつ行うのか教えてください。タイトルと説明は私が入力します。",
+    "draftError": "申し訳ありません、下書きを作成できませんでした：{{message}}",
+    "title": "新しいワークフロー",
+    "titlePlaceholder": "無題のワークフロー",
+    "titleLabel": "タイトル",
+    "descriptionPlaceholderText": "ワークフローを説明すると、Socratesがここに入力します…",
+    "descriptionPlaceholderVoice": "話していただくと、Socratesがここに入力します…",
+    "descriptionLabel": "説明",
+    "voiceUnavailable": "ここでは音声を使えないため、テキストで入力しましょう。",
+    "talkInstead": "音声で話す",
+    "typeInstead": "テキストで入力",
+    "cancel": "キャンセル",
+    "create": "ワークフローを作成",
+    "status": {
+      "connecting": "接続中…",
+      "speaking": "Socratesが話しています",
+      "muted": "マイクはミュート中です。下の欄からSocratesにメッセージを送れます",
+      "listening": "聞き取り中です。そのまま話してください"
+    },
+    "unmute": "マイクのミュートを解除",
+    "mute": "マイクをミュート",
+    "writePlaceholderMuted": "Socratesにメッセージを入力…",
+    "writePlaceholder": "またはSocratesにメッセージを入力…",
+    "messageLabel": "Socratesへのメッセージ",
+    "send": "送信",
+    "textPlaceholder": "例：月次決算の前に仕入先の請求書を確認しています…"
+  },
+  "translation": {
+    "pending": "このワークフローをお使いの言語に翻訳しています…",
+    "translatedFrom": "自動翻訳されています · 元の言語：{{language}}。引用にはエキスパート本人の言葉も表示されます。"
+  }
+}

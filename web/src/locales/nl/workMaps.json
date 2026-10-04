@@ -1,0 +1,129 @@
+{
+  "status": {
+    "confirmed": "Bevestigd door expert",
+    "in_debrief": "In debrief",
+    "draft": "Concept"
+  },
+  "guardrail": {
+    "limit": "Limiet",
+    "stop_and_ask": "Stop & vraag",
+    "never": "Nooit"
+  },
+  "quoteSource": {
+    "narration": "tijdens het werk",
+    "live_question": "bij een live vraag",
+    "debrief": "in de debrief"
+  },
+  "counts": {
+    "steps_one": "{{count}} stap",
+    "steps_other": "{{count}} stappen",
+    "judgmentCalls_one": "{{count}} afweging",
+    "judgmentCalls_other": "{{count}} afwegingen",
+    "guardrails_one": "{{count}} vangrail",
+    "guardrails_other": "{{count}} vangrails",
+    "openQuestions_one": "{{count}} open vraag",
+    "openQuestions_other": "{{count}} open vragen"
+  },
+  "judgmentCall": "Afweging",
+  "quoted": "‘{{text}}’",
+  "flowchart": {
+    "when": "Wanneer: {{trigger}}",
+    "start": "Start",
+    "done": "Klaar",
+    "edgeCase": "Als {{when}} → {{then}}",
+    "guardrail": {
+      "limit": "Limiet",
+      "stop_and_ask": "Stop en vraag",
+      "never": "Nooit"
+    }
+  },
+  "libraryPage": {
+    "title": "Workflows",
+    "description": "Korte, interactieve handleidingen van je experts: elke stap, afweging en vangrail, in hun eigen woorden.",
+    "searchPlaceholder": "Zoek workflows, experts…",
+    "filters": {
+      "all": "Alle",
+      "confirmed": "Bevestigd"
+    },
+    "newWorkflow": "Nieuwe workflow",
+    "empty": {
+      "title": "Geen workflows gevonden",
+      "noWorkflows": "Vastgelegde sessies worden hier workflows.",
+      "noMatches": "Probeer een andere zoekterm of filter."
+    }
+  },
+  "workMapPage": {
+    "back": "Workflows",
+    "updated": "bijgewerkt {{when}}",
+    "supervise": "Begeleid een uitvoering",
+    "when": "Wanneer:",
+    "flowchart": "Stroomdiagram"
+  },
+  "askSheet": {
+    "trigger": "Stel hier een vraag over",
+    "title": "Vraag het Socrates",
+    "description": "Antwoorden komen uit de eigen woorden van {{expert}} in deze workflow.",
+    "stopAndAsk": "Wanneer moet ik stoppen en het iemand vragen?",
+    "howDoI": "Hoe doe ik dit: {{task}}?"
+  },
+  "quoteBlock": {
+    "socrates": "Socrates:",
+    "caption": "{{speaker}}, {{source}} om {{time}}",
+    "original": "Origineel: ‘{{text}}’"
+  },
+  "stepDetail": {
+    "position": "Stap {{index}} van {{total}}",
+    "decision": "Beslissing",
+    "why": "Waarom",
+    "guardrails": "Vangrails",
+    "edgeCases": "Uitzonderingen",
+    "escalateTo": " · Vraag: {{who}}",
+    "if": "Als",
+    "previous": "Vorige",
+    "next": "Volgende"
+  },
+  "debrief": {
+    "title": "Debrief",
+    "description": "Vragen die Socrates na de taak stelde om de gaten te dichten.",
+    "notStarted": "De debrief is nog niet begonnen.",
+    "stillOpen": "Nog open: Socrates vraagt het in de volgende debrief.",
+    "goToStep": "Ga naar stap {{number}}",
+    "teachBack": "Teach-back",
+    "confirmed": "Bevestigd",
+    "teachBackDescription": "Socrates legt het proces terug uit tot de expert zegt: ja, zo werkt het.",
+    "correction": "Correctie",
+    "teachBackPending": "Volgt zodra alle debriefvragen beantwoord zijn."
+  },
+  "newWorkflow": {
+    "greeting": "Welke workflow wil je me laten zien? Vertel wat je doet, voor wie en wanneer. Ik vul de titel en beschrijving in.",
+    "draftError": "Sorry, dat lukte me niet: {{message}}",
+    "title": "Nieuwe workflow",
+    "titlePlaceholder": "Naamloze workflow",
+    "titleLabel": "Titel",
+    "descriptionPlaceholderText": "Socrates vult dit in terwijl je de workflow beschrijft…",
+    "descriptionPlaceholderVoice": "Socrates vult dit in terwijl je praat…",
+    "descriptionLabel": "Beschrijving",
+    "voiceUnavailable": "Spraak is hier niet beschikbaar, dus we typen.",
+    "talkInstead": "Liever praten",
+    "typeInstead": "Liever typen",
+    "cancel": "Annuleren",
+    "create": "Workflow maken",
+    "status": {
+      "connecting": "Verbinden…",
+      "speaking": "Socrates praat",
+      "muted": "Microfoon gedempt: schrijf hieronder aan Socrates",
+      "listening": "Ik luister: praat maar"
+    },
+    "unmute": "Microfoon aanzetten",
+    "mute": "Microfoon dempen",
+    "writePlaceholderMuted": "Schrijf aan Socrates…",
+    "writePlaceholder": "Of schrijf aan Socrates…",
+    "messageLabel": "Bericht aan Socrates",
+    "send": "Versturen",
+    "textPlaceholder": "bijv. Ik controleer leveranciersfacturen vóór de maandafsluiting…"
+  },
+  "translation": {
+    "pending": "Deze workflow wordt naar jouw taal vertaald…",
+    "translatedFrom": "Automatisch vertaald · oorspronkelijke taal: {{language}}. Bij citaten zie je ook de eigen woorden van de expert."
+  }
+}

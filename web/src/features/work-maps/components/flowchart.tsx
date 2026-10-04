@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 
 import { MermaidDiagram } from "@/components/mermaid-diagram"
 import type { ID, WorkMap } from "@/lib/api"
@@ -13,7 +13,10 @@ export function Flowchart({
   workMap: WorkMap
   onSelectStep: (id: ID) => void
 }) {
-  const chart = useMemo(() => workMapToMermaid(workMap), [workMap])
+  // Not memoized: the chart's fixed labels (start, done, guardrail kinds) are translated, and
+  // useTranslation re-renders on a language switch. The string is cheap to build.
+  useTranslation()
+  const chart = workMapToMermaid(workMap)
   const clicks = Object.fromEntries(
     workMap.steps.map((step, i) => [stepNodeId(i), () => onSelectStep(step.id)]),
   )
